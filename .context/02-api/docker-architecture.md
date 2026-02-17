@@ -1,32 +1,32 @@
-# Microserveis en Docker: Circuit Copilot
+# Microservices in Docker: Circuit Copilot
 
-Aquest document detalla els microserveis integrats en l'entorn Docker i aquells que es recomana afegir per garantir el rendiment del sistema en entorns d'alta densitat.
+This document details the microservices integrated in the Docker environment and those recommended to be added to guarantee system performance in high-density environments.
 
-## 1. Microserveis Actuals a Docker
+## 1. Current Microservices in Docker
 
 ### `api` (Backend - Node.js/Express)
-- **Tecnologia:** Node.js, Express, Socket.io (amb MessagePack).
-- **Funció:** Gestiona la lògica de negoci, l'autenticació JWT, la sincronització d'entrades i la telemetria en temps real.
-- **Docker:** Build multi-etapa definit al `Dockerfile` de l'aplicació.
+- **Technology:** Node.js, Express, Socket.io (with MessagePack).
+- **Function:** Manages business logic, JWT authentication, ticket synchronization, and real-time telemetry.
+- **Docker:** Multi-stage build defined in the application's `Dockerfile`.
 
-### `db` (Base de Dades - PostgreSQL)
-- **Tecnologia:** PostgreSQL 15 amb l'extensió **PostGIS**.
-- **Funció:** Emmagatzematge persistent de Punts d'Interès (POIs), dades d'usuaris i metadades geogràfiques.
-- **Docker:** Imatge oficial de PostGIS.
+### `db` (Database - PostgreSQL)
+- **Technology:** PostgreSQL 15 with the **PostGIS** extension.
+- **Function:** Persistent storage of Points of Interest (POIs), user data, and geographic metadata.
+- **Docker:** Official PostGIS image.
 
-## 2. Microserveis Recomanats (Gaps Detectats)
+## 2. Recommended Microservices (Detected Gaps)
 
-Per complir amb els requisits d'alta densitat (més de 100.000 persones) i baixa latència, es recomana la integració dels següents serveis:
+To comply with high-density requirements (over 100,000 people) and low latency, the integration of the following services is recommended:
 
 ### `cache` (Redis)
-- **Funció:** Gestionar la telemetria de posició GPS de gran volum i l'estat de la cursa en viu sense sobrecarregar la base de dades principal.
-- **Benefici:** Reducció dràstica de la latència en les actualitzacions de Socket.io.
+- **Function:** Manage high-volume GPS position telemetry and live race status without overloading the main database.
+- **Benefit:** Drastic reduction of latency in Socket.io updates.
 
 ### `db-admin` (Drizzle Studio / pgAdmin)
-- **Funció:** Interfície gràfica per a la gestió de dades i visualització de la base de dades durant el desenvolupament.
-- **Benefici:** Agilitat en la depuració de dades geogràfiques.
+- **Function:** Graphical interface for data management and database visualization during development.
+- **Benefit:** Agility in debugging geographic data.
 
-## 3. Serveis Fora de Docker
+## 3. Services Outside Docker
 
 ### `mobile` (Frontend - Expo/React Native)
-- **Raó:** Segons l'arquitectura del projecte (`.context/00-core/architecture.md`), l'aplicació mòbil s'ha d'executar nativament per optimitzar la comunicació amb el Metro Bundler, acceleròmetres, GPS i sensors d'AR (ViroReact) en dispositius físics.
+- **Reason:** According to the project architecture (`.context/00-core/architecture.md`), the mobile application must run natively to optimize communication with Metro Bundler, accelerometers, GPS, and AR sensors (ViroReact) on physical devices.

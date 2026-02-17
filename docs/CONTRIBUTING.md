@@ -1,45 +1,45 @@
-# 🤝 Contribuir a Circuit Copilot
+# 🤝 Contributing to Circuit Copilot
 
-Gràcies per ajudar-nos a millorar l'experiència al circuit! Segueix aquestes pautes per mantenir el projecte net i funcional.
+Thank you for helping us improve the circuit experience! Follow these guidelines to keep the project clean and functional.
 
 > [!TIP]
-> Aquest és un monorepo gestionat amb **Turborepo**. Pots executar la majoria de tasques des de l'arrel del projecte.
+> This is a monorepo managed with **Turborepo**. You can run most tasks from the project root.
 
-## 🌿 Estratègia de Brancament
+## 🌿 Branching Strategy
 
-Utilitzem branques de funcionalitat:
-- `feat/nom-funcionalitat`: Noves característiques.
-- `fix/nom-error`: Correcció de bugs.
-- `docs/descripció`: Millores en la documentació.
+We use feature branches:
+- `feat/feature-name`: New features.
+- `fix/error-name`: Bug fixes.
+- `docs/description`: Documentation improvements.
 
-## 📝 Convenció de Commits
+## 📝 Commit Convention
 
-Seguim els **Conventional Commits**: `tipus(àmbit): descripció`
-- `feat(mobile): afegeix seguiment d'usuari`
-- `fix(api): corregeix consulta PostGIS`
-- `chore(root): actualitza dependències`
+We follow **Conventional Commits**: `type(scope): description`
+- `feat(mobile): add user tracking`
+- `fix(api): fix PostGIS query`
+- `chore(root): update dependencies`
 
-## 🛠️ Estàndards de Desenvolupament
+## 🛠️ Development Standards
 
 > [!IMPORTANT]
-> Abans de pujar codi, assegura't que el linter no dona errors.
+> Before pushing code, make sure the linter does not give errors.
 
-### Lògica Compartida
-Si una funció o tipus s'utilitza en més d'un lloc, posa-ho a `packages/shared`.
+### Shared Logic
+If a function or type is used in more than one place, put it in `packages/shared`.
 
-### Comandes Recomanades
+### Recommended Commands
 ```bash
-npm run dev     # Desenvolupament actiu
-npm run lint    # Verificació d'estil
-npm run test    # Execució de proves
-npm run format  # Formatat automàtic
+npm run dev     # Active development
+npm run lint    # Style verification
+npm run test    # Test execution
+npm run format  # Automatic formatting
 ```
 
-## 🚀 Procés de Pull Request
+## 🚀 Pull Request Process
 
-1. **Auto-revisió:** Revisa el teu codi buscant `console.log` o codi mort.
-2. **Documentació:** Si canvies una funcionalitat, actualitza els documents rellevants a `docs/`.
-3. **Vídeo/GIF:** Si canvies la UI o AR, inclou una mostra visual a la PR.
+1. **Self-review:** Review your code looking for `console.log` or dead code.
+2. **Documentation:** If you change a feature, update the relevant documents in `docs/`.
+3. **Video/GIF:** If you change the UI or AR, include a visual sample in the PR.
 
 > [!CAUTION]
-> No et saltis els **Git Hooks**. Estan per assegurar que el codi que s'envia és de qualitat.
+> Do not skip the **Git Hooks**. They are there to ensure that the code sent is of quality.

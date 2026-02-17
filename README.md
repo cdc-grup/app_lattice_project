@@ -1,63 +1,59 @@
 # 📱 Circuit Copilot
 
-Benvingut al repositori oficial. Aquesta aplicació és una solució full-stack construïda amb **Express**, **Expo** i **PostgreSQL**, organitzada en un **monorepo** amb **Turborepo** i **Docker**.
+Welcome to the official repository. This application is a full-stack solution built with **Express**, **Expo**, and **PostgreSQL**, organized in a **monorepo** with **Turborepo** and **Docker**.
 
 > [!TIP]
-> Aquest projecte utilitza **Turborepo** per gestionar el monorepo. Pots executar ordres des de l'arrel i s'aplicaran a tots els paquets de manera eficient.
+> This project uses **Turborepo** to manage the monorepo. You can run commands from the root and they will be applied to all packages efficiently.
 
-## 🗺️ Mapa de Documentació
+## 🗺️ Documentation Map
 
-Per garantir un procés de desenvolupament fluid i una integració perfecta amb agents d'IA, mantenim una "Font de la Veritat" en els següents directoris:
+To ensure a smooth development process and perfect integration with AI agents, we maintain a "Source of Truth" in the following directories:
 
-### 🧠 Context del Projecte (Llest per a IA)
+### 🧠 Project Context (AI-Ready)
 
-- **[System Prompt](.context/00-core/system-prompt.md)**: Pautes d'estil de codi, idioma i comportament de l'agent.
-- **[Arquitectura](.context/00-core/architecture.md)**: Detalls de l'estructura tècnica i flux de dades.
-- **[User Journeys](.context/01-product/user-journeys.md)**: Lògica de negoci i fluxos principals d'usuari.
+- **[System Prompt](.context/00-core/system-prompt.md)**: Code style guidelines, language, and agent behavior.
+- **[Architecture](.context/00-core/architecture.md)**: Technical structure and data flow details.
+- **[User Journeys](.context/01-product/user-journeys.md)**: Business logic and main user flows.
 
-### 🛠️ Especificacions i Guies
+### 🛠️ Specifications and Guides
 
-- **[Guia de Configuració](docs/SETUP_GUIDE.md)**: Com configurar l'entorn local amb Docker.
-- **[Guia de Desplegament](docs/DEPLOYMENT.md)**: Com portar l'aplicació a producció.
-- **[Guia del Col·laborador](docs/CONTRIBUTING.md)**: Regles per a branques, commits i Pull Requests.
+- **[Setup Guide](docs/SETUP_GUIDE.md)**: How to set up the local environment with Docker.
+- **[Deployment Guide](docs/DEPLOYMENT.md)**: How to take the application to production.
+- **[Contributor Guide](docs/CONTRIBUTING.md)**: Rules for branches, commits, and Pull Requests.
 
-
-
-## ⚡ Inici Ràpid
+## ⚡ Quick Start
 
 > [!IMPORTANT]
-> Assegura't de tenir **Docker Desktop**/**Docker Compose** i **Node.js** (v18+) instal·lats abans de començar.
+> Make sure you have **Docker Desktop**/**Docker Compose** and **Node.js** (v18+) installed before starting.
 
-1.  **Instal·lar**: `npm install` a l'arrel.
-2.  **Infraestructura**: `docker compose up -d` per aixecar PostgreSQL i PostGIS.
-3.  **Desenvolupament**: `npm run dev` per iniciar tots els serveis (API + Mobile) simultàniament.
+1.  **Install**: `npm install` at the root.
+2.  **Infrastructure**: `docker compose up -d` to start PostgreSQL and PostGIS.
+3.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
 
+## 🛠️ Available Commands (Root)
 
+You can manage the entire project directly from the root of the monorepo:
 
-## 🛠️ Comandes Disponibles (Root)
-
-Pots gestionar tot el projecte directament des de l'arrel del monorepo:
-
-| Comanda | Descripció |
+| Command | Description |
 | :--- | :--- |
-| `npm run dev` | Inicia el mode desenvolupament per a API i Mobile. |
-| `npm run build` | Compila tots els paquets i aplicacions. |
-| `npm run lint` | Executa el linter en tot el projecte. |
-| `npm run test` | Executa les proves unitàries i d'integració. |
-| `npm run format` | Formata el codi en tot el projecte amb Prettier. |
+| `npm run dev` | Starts development mode for API and Mobile. |
+| `npm run build` | Compiles all packages and applications. |
+| `npm run lint` | Runs the linter across the entire project. |
+| `npm run test` | Runs unit and integration tests. |
+| `npm run format` | Formats code across the entire project with Prettier. |
 
-### 🗄️ Gestió de Base de Dades
+### 🗄️ Database Management
 
 > [!CAUTION]
-> Utilitza `migrate` amb precaució en entorns de producció.
+> Use `migrate` with caution in production environments.
 
-- `npm run generate`: Genera els fitxers de migració de Drizzle segons l'esquema.
-- `npm run migrate`: Aplica les migracions pendents a la base de dades.
-- `**npm** run studio`: Obre la interfície visual de Drizzle per explorar les dades.
+- `npm run generate`: Generates Drizzle migration files based on the schema.
+- `npm run migrate`: Applies pending migrations to the database.
+- `npm run studio`: Opens the Drizzle visual interface to explore data.
 
-## 🛠️ Estructura Tecnològica
+## 🛠️ Technology Stack
 
-- **Frontend:** React Native via Expo (@app/mobile).
-- **Backend:** Node.js amb Express (@app/api).
-- **Compartit:** Tipus **i** lògica comuna (@app/shared).
-- **Infraestructura:** Postgres + PostGIS via Docker.
+- **Frontend:** React Native via Expo (`apps/mobile`).
+- **Backend:** Node.js with Express (`apps/api`).
+- **Shared:** Common types and logic (`packages/shared`).
+- **Infrastructure:** Postgres + PostGIS via Docker (`packages/db`).

@@ -1,31 +1,31 @@
-# Arquitectura: Circuit Copilot
+# Architecture: Circuit Copilot
 
-## Definició de l'Estructura Tecnològica
+## Technology Stack Definition
 
-- **Framework Mòbil:** Expo (React Native).
-- **Motor de Mapes:** **Mapbox SDK** (`@rnmapbox/maps`).
-  - _Motiu:_ Necessari per a tesel·les vectorials personalitzades del circuit i graf d'encaminament fora de línia.
-- **Motor d'AR:** **ViroCommunity (ViroReact)**.
-  - _Motiu:_ Suport natiu per a objectes 3D geo-ancorats (AR basada en la ubicació).
+- **Mobile Framework:** Expo (React Native).
+- **Map Engine:** **Mapbox SDK** (`@rnmapbox/maps`).
+  - _Reason:_ Necessary for custom vector tiles of the circuit and offline routing graph.
+- **AR Engine:** **ViroCommunity (ViroReact)**.
+  - _Reason:_ Native support for geo-anchored 3D objects (Location-based AR).
 - **Backend:** Node.js (Express).
-- **Base de Dades:** PostgreSQL amb l'extensió **PostGIS** activada.
-- **Temps Real:** Socket.io amb analitzador **MessagePack** (per a compressió binària).
+- **Database:** PostgreSQL with **PostGIS** extension enabled.
+- **Real-time:** Socket.io with **MessagePack** analyzer (for binary compression).
 
-## Estratègia d'Eficiència de Dades (Entorn d'Alta Densitat)
+## Data Efficiency Strategy (High Density Environment)
 
-1. **Limitació de Telemetria:**
-   - El client envia actualitzacions GPS NOMÉS si: `delta_distance > 15m` O `delta_time > 45s`.
-   - Evita la saturació de la xarxa durant esdeveniments de curses.
-2. **Primer el mode fora de línia (Offline First):**
-   - Els estils de mapa i els PDI estàtics (lavabos, portes) es descarreguen durant l'Onboarding.
-   - L'ús de dades en temps d'execució es limita a: Posicions d'amics i actualitzacions de congestió.
-3. **Càlcul de Rutes Local:**
-   - El càlcul de la ruta es realitza al dispositiu utilitzant el graf de navegació descarregat.
-   - El servidor només envia "Arrestes Bloquejades" (camins congestionats) per actualitzar els pesos del graf local.
+1. **Telemetry Limitation:**
+   - The client sends GPS updates ONLY if: `delta_distance > 15m` OR `delta_time > 45s`.
+   - Avoids network saturation during racing events.
+2. **Offline First:**
+   - Map styles and static POIs (toilets, gates) are downloaded during Onboarding.
+   - Runtime data usage is limited to: Friend positions and congestion updates.
+3. **Local Route Calculation:**
+   - Route calculation is performed on the device using the downloaded navigation graph.
+   - The server only sends "Blocked Edges" (congested paths) to update the local graph weights.
 
-## Estratègia de Contenidors i Entorn
+## Container and Environment Strategy
 
-- **Backend (API) & Database:** Dockeritzats mitjançant **Docker Compose**.
-  - _PostgreSQL/PostGIS:_ Imatge oficial.
-  - _API:_ Dockerfile multi-etapa (dev/prod).
-- **Frontend (Mòbil):** Execució nativa (fora de Docker) per optimitzar la connexió amb el Metro Bundler i dispositius físics.
+- **Backend (API) & Database:** Dockerized using **Docker Compose**.
+  - _PostgreSQL/PostGIS:_ Official image.
+  - _API:_ Multi-stage Dockerfile (dev/prod).
+- **Frontend (Mobile):** Native execution (outside Docker) to optimize the connection with Metro Bundler and physical devices.

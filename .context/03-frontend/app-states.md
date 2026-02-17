@@ -1,132 +1,128 @@
-# Màquina d'Estats de l'App
+# App State Machine
 
-## 1. Flux d'Alt Nivell (Estats Globals)
+## 1. High-Level Flow (Global States)
 
-Aquest diagrama defineix el macro-cicle de vida de l'aplicació.
+This diagram defines the application's macro life cycle.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Splash: Llançament de l'App
-    Splash --> AuthCheck: Comprovar Token i Entrada
+    [*] --> Splash: App Launch
+    Splash --> AuthCheck: Check Token and Ticket
 
     state AuthCheck {
         [*] --> Validating
-        Validating --> Onboarding: Sense Token / Sense Entrada
-        Validating --> PreRaceMode: Entrada Vàlida i Data < Esdeveniment
-        Validating --> LiveMode: Entrada Vàlida i Data = Esdeveniment
+        Validating --> Onboarding: No Token / No Ticket
+        Validating --> PreRaceMode: Valid Ticket and Date < Event
+        Validating --> LiveMode: Valid Ticket and Date = Event
     }
 
-    Onboarding --> PreRaceMode: Entrada Sincronitzada
+    Onboarding --> PreRaceMode: Ticket Synchronized
 
     state LiveMode {
         [*] --> Map2D_Idle
-        Map2D_Idle --> Navigation_Active: L'usuari selecciona Destí
-        Navigation_Active --> Map2D_Idle: Arribada / Cancel·lació
+        Map2D_Idle --> Navigation_Active: User selects Destination
+        Navigation_Active --> Map2D_Idle: Arrival / Cancellation
     }
 
-    LiveMode --> PostRaceMode: Esdeveniment Finalitzat
-    PostRaceMode --> CarFinder: "Troba el meu Cotxe"
+    LiveMode --> PostRaceMode: Event Finished
+    PostRaceMode --> CarFinder: "Find my Car"
 ```
 
-## 2. El Motor de Navegació (Lògica Complexa)
+## 2. Navigation Engine (Complex Logic)
 
-Aquí és on passa la màgia (i la complexitat). Definim com l'usuari entra i surt del mode AR i com gestionem la pèrdua de connexió.
+This is where the magic (and complexity) happens. We define how the user enters and leaves AR mode and how we handle connection loss.
 
-### Lògica de Transició AR/2D
+### AR/2D Transition Logic
 
-- **Activador Principal:** Giroscopi (Inclinació del telèfon).
-- Si `pitch > 60°` (mòbil vertical) -> **Activa l'AR**.
-- Si `pitch < 30°` (mòbil pla) -> **Torna al 2D**.
+- **Main Trigger:** Gyroscope (Phone tilt).
+- If `pitch > 60°` (portrait/vertical) -> **Activate AR**.
+- If `pitch < 30°` (landscape/flat) -> **Return to 2D**.
 
-- **Activador Secundari:** Botó manual "Veure en AR".
+- **Secondary Trigger:** Manual "View in AR" button.
 
 ```mermaid
 stateDiagram-v2
-    state "Navegació Activa" as Nav {
-        [*] --> ComputingRoute: Sol·licitud a l'API / Graf Local
+    state "Active Navigation" as Nav {
+        [*] --> ComputingRoute: API Request / Local Graph
 
-        ComputingRoute --> Route_2D: Èxit
-        ComputingRoute --> Error_Toast: Error (No s'ha trobat cap camí)
+        ComputingRoute --> Route_2D: Success
+        ComputingRoute --> Error_Toast: Error (No path found)
 
         state Route_2D {
             [*] --> FollowingPath
-            FollowingPath --> OffRoute: Desviació GPS > 20m
-            OffRoute --> ComputingRoute: Recàlcul Automàtic
+            FollowingPath --> OffRoute: GPS Deviation > 20m
+            OffRoute --> ComputingRoute: Automatic Recalculation
         }
 
         state Route_AR {
-            [*] --> Calibrating: Escanejar Terreny / Brúixola
-            Calibrating --> ShowingArrows: Bona Precisió
-            ShowingArrows --> LowLightWarning: Càmera Fosca
-            ShowingArrows --> Route_2D: Abaixar el Telèfon
+            [*] --> Calibrating: Scan Ground / Compass
+            Calibrating --> ShowingArrows: Good Accuracy
+            ShowingArrows --> LowLightWarning: Dark Camera
+            ShowingArrows --> Route_2D: Lower Phone
         }
 
-        Route_2D --> Route_AR: Aixecar el Telèfon (Pitch > 60°)
-        Route_AR --> Route_2D: Abaixar el Telèfon (Pitch < 30°)
+        Route_2D --> Route_AR: Raise Phone (Pitch > 60°)
+        Route_AR --> Route_2D: Lower Phone (Pitch < 30°)
 
-        -- Esdeveniments Externs --
-        Route_2D --> CongestionAlert: Socket: "Multitud a Davant"
-        CongestionAlert --> ComputingRoute: Re-encaminament Automàtic
+        -- External Events --
+        Route_2D --> CongestionAlert: Socket: "Crowd Ahead"
+        CongestionAlert --> ComputingRoute: Automatic Re-routing
     }
 
-    state "Connectivitat" as Conn {
-        Online --> Offline: Senyal Perdut
-        Offline --> Online: Senyal Restablit
+    state "Connectivity" as Conn {
+        Online --> Offline: Signal Lost
+        Offline --> Online: Signal Restored
     }
 
     note right of Offline
-        En Mode Fora de Línia:
-        - Mapbox canvia al Paquet de Tesel·les Vectorials
-        - L'encaminament utilitza el Graf local (Sense dades de congestió)
-        - L'AR està desactivada (Opcional, però recomanat)
+        In Offline Mode:
+        - Mapbox switches to Vector Tiles Package
+        - Routing uses local Graph (No congestion data)
+        - AR is deactivated (Optional, but recommended)
     end note
 ```
 
-## 3. Descripció dels Estats Clau
+## 3. Description of Key States
 
 ### A. `PreRaceMode` (US3)
 
-- **Objectiu:** Planificació i expectació.
-- **Restriccions:** No consumeix bateria buscant GPS d'alta precisió.
-- **UI:** Mostra l'horari (`events_schedule`), punts d'accés recomanats i descàrregues de mapes fora de línia.
-- **Sortida:** Canvia automàticament a `LiveMode` el dia de la cursa a les 06:00 AM.
+- **Objective:** Planning and anticipation.
+- **Restrictions:** Does not consume battery searching for high-precision GPS.
+- **UI:** Shows schedule (`events_schedule`), recommended access points, and offline map downloads.
+- **Exit:** Automatically switches to `LiveMode` on the day of the race at 06:00 AM.
 
 ### B. `Navigation_Active` (US4, US7, US8)
 
-És l'estat més crític. Consumeix molta bateria i dades.
+It is the most critical state. Consumes a lot of battery and data.
 
-- **Sub-estat `ComputingRoute`:**
+- **Sub-state `ComputingRoute`:**
+  1. Consults the server (API) for congestion.
+  2. If the server fails/takes > 3s, calculates the local route (Plan B).
 
-1. Consulta al servidor (API) per congestió.
-2. Si el servidor falla/triga > 3s, calcula la ruta local (Pla B).
-
-- **Sub-estat `Route_AR`:**
-- **Calibratge:** En aixecar el telèfon, ViroReact necessita 1-2 segons per ancorar el terreny. S'ha de mostrar un carregador "Detectant terreny...".
-- **Bloqueig de Seguretat:** Si l'usuari camina massa ràpid (>10km/h), l'AR es bloqueja i mostra "Per la teva seguretat, mira endavant".
+- **Sub-state `Route_AR`:**
+  - **Calibration:** When raising the phone, ViroReact needs 1-2 seconds to anchor the terrain. A "Detecting terrain..." loader should be shown.
+  - **Safety Lock:** If the user walks too fast (>10km/h), AR locks and shows "For your safety, look ahead".
 
 ### C. `Offline_Mode` (US33)
 
-Aquest és un "Estat Superposat" (pot ocórrer en qualsevol moment).
+This is a "Superimposed State" (can occur at any time).
 
-- **Comportament:**
-- L'API de ruta (`POST /navigation/route`) està bloquejada.
-- El motor de ruta local (`Mapbox.DirectionsFactory`) està activat.
-- Els marcadors d'"Amics" s'amaguen (ja que no es poden actualitzar).
-- Es mostra un bàner groc: "Mode fora de línia - Rutes bàsiques actives".
+- **Behavior:**
+  - Route API (`POST /navigation/route`) is blocked.
+  - Local route engine (`Mapbox.DirectionsFactory`) is activated.
+  - "Friends" markers are hidden (since they cannot be updated).
+  - A yellow banner is shown: "Offline Mode - Basic routes active".
 
-## 4. Casos Límit (Edge Cases a programar)
+## 4. Edge Cases (To be programmed)
 
-1. **"L'usuari fantasma":**
+1. **"The Ghost User":**
+  - _Situation:_ GPS says the user is 500 km from the circuit (start error).
+  - _Action:_ The state diagram must avoid entering `Navigation_Active`. Shows a modal: "It seems you are not at the circuit".
 
-- _Situació:_ El GPS diu que l'usuari és a 500 km del circuit (error d'inici).
-- _Acció:_ El diagrama d'estats ha d'evitar entrar a `Navigation_Active`. Mostra un modal: "Sembla que no ets al circuit".
+2. **"The Congestion Loop":**
+  - _Situation:_ The server says Route A is full. The app calculates Route B. 10 seconds later, Route B also fills up.
+  - _Action:_ Define a `debounce` in the `ReRouting` state. Do not re-calculate more than once per minute to avoid confusing the user.
 
-2. **"El bucle de congestió":**
-
-- _Situació:_ El servidor diu que la ruta A està plena. L'app calcula la ruta B. 10 segons després, la ruta B també s'omple.
-- _Acció:_ Defineix un `debounce` a l'estat de `ReRouting`. No tornis a calcular més d'una vegada per minut per evitar confondre l'usuari.
-
-3. **"Bateria Crítica":**
-
-- _Situació:_ Bateria < 15%.
-- _Acció:_ Força la transició de `Route_AR` a `Route_2D` i desactiva el sensor del giroscopi per estalviar energia.
+3. **"Critical Battery":**
+  - _Situation:_ Battery < 15%.
+  - _Action:_ Forces transition from `Route_AR` to `Route_2D` and deactivates the gyroscope sensor to save energy.
