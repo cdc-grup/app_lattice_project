@@ -81,8 +81,9 @@ Utilitzem Docker Compose per executar PostgreSQL amb l'extensió PostGIS.
 ### 🛠️ Gestió de BD (Drizzle)
 
 - `npm run generate`: Registra canvis en l'esquema.
-- `npm run migrate`: Empeny els canvis a la BD d'infraestructura.
-- `npm run studio`: Visor web de dades local.
+- `npm run migrate`: Empeny els canvis a la BD d'infraestructura (PostGIS).
+- `npm run seed`: Omple la base de dades amb dades de prova inicials.
+- `npm run studio`: Visor web interactiu per explorar les dades.
 
 ## ❓ Solució de Problemes
 

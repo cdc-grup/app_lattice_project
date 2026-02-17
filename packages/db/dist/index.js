@@ -37,7 +37,7 @@ exports.db = exports.pool = void 0;
 const node_postgres_1 = require("drizzle-orm/node-postgres");
 const pg_1 = require("pg");
 const schema = __importStar(require("./schema"));
-const connectionString = process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/circuit_db";
+const connectionString = process.env.DATABASE_URL;
 exports.pool = new pg_1.Pool({
     connectionString,
 });

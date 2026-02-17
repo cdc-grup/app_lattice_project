@@ -9,9 +9,10 @@
     "dev": "turbo dev --filter=!//",
     "lint": "turbo lint --filter=!//",
     "test": "turbo test --filter=!//",
-    "generate": "turbo generate --filter=!//",
-    "migrate": "turbo migrate --filter=!//",
-    "studio": "turbo studio --filter=!//",
+    "generate": "turbo run generate --filter=!//",
+    "migrate": "turbo run migrate --filter=!//",
+    "seed": "turbo run seed --filter=!//",
+    "studio": "turbo run studio --filter=!//",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "workspaces": [

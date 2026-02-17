@@ -1,4 +1,4 @@
-export declare const mobilityProfileEnum: import("drizzle-orm/pg-core").PgEnum<["standard", "wheelchair", "reduced_mobility", "visual_impairment", "family_stroller"]>;
+export declare const mobilityModeEnum: import("drizzle-orm/pg-core").PgEnum<["standard", "wheelchair", "reduced_mobility", "visual_impairment", "family_stroller"]>;
 export declare const poiTypeEnum: import("drizzle-orm/pg-core").PgEnum<["restaurant", "wc", "grandstand", "gate", "medical", "shop", "parking", "meetup_point"]>;
 export declare const crowdLevelEnum: import("drizzle-orm/pg-core").PgEnum<["low", "moderate", "high", "blocked"]>;
 export declare const surfaceTypeEnum: import("drizzle-orm/pg-core").PgEnum<["asphalt", "grass", "gravel", "stairs", "ramp"]>;
@@ -308,8 +308,8 @@ export declare const pointsOfInterest: import("drizzle-orm/pg-core").PgTableWith
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
-        currentCrowdLevel: import("drizzle-orm/pg-core").PgColumn<{
-            name: "current_crowd_level";
+        crowdLevel: import("drizzle-orm/pg-core").PgColumn<{
+            name: "crowd_level";
             tableName: "points_of_interest";
             dataType: "string";
             columnType: "PgEnumColumn";
@@ -423,8 +423,8 @@ export declare const pathSegments: import("drizzle-orm/pg-core").PgTableWithColu
             enumValues: undefined;
             baseColumn: never;
         }, {}, {}>;
-        currentCrowdLevel: import("drizzle-orm/pg-core").PgColumn<{
-            name: "current_crowd_level";
+        crowdLevel: import("drizzle-orm/pg-core").PgColumn<{
+            name: "crowd_level";
             tableName: "path_segments";
             dataType: "string";
             columnType: "PgEnumColumn";

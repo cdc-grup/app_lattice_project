@@ -8,16 +8,17 @@
     "build": "tsc",
     "generate": "drizzle-kit generate:pg",
     "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/seed.ts",
     "studio": "drizzle-kit studio",
     "lint": "eslint \"**/*.ts\""
   },
   "dependencies": {
-    "drizzle-orm": "^0.30.9",
+    "drizzle-orm": "^0.33.0",
     "pg": "^8.11.5",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.17",
+    "drizzle-kit": "^0.24.0",
     "@types/pg": "^8.11.5",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3",

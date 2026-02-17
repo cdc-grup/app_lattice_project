@@ -3,10 +3,12 @@
  */
 
 export interface TicketInfo {
+  code: string;
   gate: string;
-  zone: string;
-  seat: string;
-  seat_coordinates: [number, number];
+  zoneName: string;
+  seatRow: string;
+  seatNumber: string;
+  seatLocation: [number, number]; // [lat, lng]
 }
 
 export interface UserTicketSyncResponse {
@@ -15,11 +17,13 @@ export interface UserTicketSyncResponse {
   ticket_info: TicketInfo;
 }
 
-export type POICategory = 'toilet' | 'food' | 'gate' | 'medical' | 'parking';
+export type POIType = 'restaurant' | 'wc' | 'grandstand' | 'gate' | 'medical' | 'shop' | 'parking' | 'meetup_point';
 
 export interface POI {
   id: number;
   name: string;
-  category: POICategory;
-  coordinates: [number, number];
+  description: string;
+  type: POIType;
+  location: [number, number];
+  crowdLevel: 'low' | 'moderate' | 'high' | 'blocked';
 }

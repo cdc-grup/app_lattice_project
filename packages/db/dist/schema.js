@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.offlinePackages = exports.savedLocations = exports.groupMembers = exports.groups = exports.pathSegments = exports.pointsOfInterest = exports.tickets = exports.users = exports.surfaceTypeEnum = exports.crowdLevelEnum = exports.poiTypeEnum = exports.mobilityProfileEnum = void 0;
+exports.offlinePackages = exports.savedLocations = exports.groupMembers = exports.groups = exports.pathSegments = exports.pointsOfInterest = exports.tickets = exports.users = exports.surfaceTypeEnum = exports.crowdLevelEnum = exports.poiTypeEnum = exports.mobilityModeEnum = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const custom_types_1 = require("./custom-types");
 // ---------------------------------------------------------
 // ENUMS
 // ---------------------------------------------------------
-exports.mobilityProfileEnum = (0, pg_core_1.pgEnum)('mobility_profile', [
+exports.mobilityModeEnum = (0, pg_core_1.pgEnum)('mobility_mode', [
     'standard',
     'wheelchair',
     'reduced_mobility',
@@ -44,7 +44,7 @@ exports.users = (0, pg_core_1.pgTable)('users', {
     email: (0, pg_core_1.varchar)('email').unique().notNull(),
     passwordHash: (0, pg_core_1.varchar)('password_hash').notNull(),
     fullName: (0, pg_core_1.varchar)('full_name'),
-    mobilityMode: (0, exports.mobilityProfileEnum)('mobility_mode').default('standard'),
+    mobilityMode: (0, exports.mobilityModeEnum)('mobility_mode').default('standard'),
     avoidStairs: (0, pg_core_1.boolean)('avoid_stairs').default(false),
     avoidCrowds: (0, pg_core_1.boolean)('avoid_crowds').default(false),
     avoidSlopes: (0, pg_core_1.boolean)('avoid_slopes').default(false),
@@ -68,7 +68,7 @@ exports.pointsOfInterest = (0, pg_core_1.pgTable)('points_of_interest', {
     description: (0, pg_core_1.text)('description'),
     type: (0, exports.poiTypeEnum)('type').notNull(),
     location: (0, custom_types_1.geometry)('location').notNull(),
-    currentCrowdLevel: (0, exports.crowdLevelEnum)('current_crowd_level').default('low'),
+    crowdLevel: (0, exports.crowdLevelEnum)('crowd_level').default('low'),
     isWheelchairAccessible: (0, pg_core_1.boolean)('is_wheelchair_accessible').default(true),
     hasPriorityLane: (0, pg_core_1.boolean)('has_priority_lane'),
 });
@@ -79,7 +79,7 @@ exports.pathSegments = (0, pg_core_1.pgTable)('path_segments', {
     surface: (0, exports.surfaceTypeEnum)('surface'),
     slopePercentage: (0, pg_core_1.doublePrecision)('slope_percentage'),
     hasStairs: (0, pg_core_1.boolean)('has_stairs'),
-    currentCrowdLevel: (0, exports.crowdLevelEnum)('current_crowd_level').default('low'),
+    crowdLevel: (0, exports.crowdLevelEnum)('crowd_level').default('low'),
 });
 exports.groups = (0, pg_core_1.pgTable)('groups', {
     id: (0, pg_core_1.serial)('id').primaryKey(),

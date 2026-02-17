@@ -5,7 +5,7 @@ import { geometry } from './custom-types';
 // ENUMS
 // ---------------------------------------------------------
 
-export const mobilityProfileEnum = pgEnum('mobility_profile', [
+export const mobilityModeEnum = pgEnum('mobility_mode', [
   'standard',
   'wheelchair',
   'reduced_mobility',
@@ -48,7 +48,7 @@ export const users = pgTable('users', {
   email: varchar('email').unique().notNull(),
   passwordHash: varchar('password_hash').notNull(),
   fullName: varchar('full_name'),
-  mobilityMode: mobilityProfileEnum('mobility_mode').default('standard'),
+  mobilityMode: mobilityModeEnum('mobility_mode').default('standard'),
   avoidStairs: boolean('avoid_stairs').default(false),
   avoidCrowds: boolean('avoid_crowds').default(false),
   avoidSlopes: boolean('avoid_slopes').default(false),
@@ -74,7 +74,7 @@ export const pointsOfInterest = pgTable('points_of_interest', {
   description: text('description'),
   type: poiTypeEnum('type').notNull(),
   location: geometry('location').notNull(),
-  currentCrowdLevel: crowdLevelEnum('current_crowd_level').default('low'),
+  crowdLevel: crowdLevelEnum('crowd_level').default('low'),
   isWheelchairAccessible: boolean('is_wheelchair_accessible').default(true),
   hasPriorityLane: boolean('has_priority_lane'),
 });
@@ -86,7 +86,7 @@ export const pathSegments = pgTable('path_segments', {
   surface: surfaceTypeEnum('surface'),
   slopePercentage: doublePrecision('slope_percentage'),
   hasStairs: boolean('has_stairs'),
-  currentCrowdLevel: crowdLevelEnum('current_crowd_level').default('low'),
+  crowdLevel: crowdLevelEnum('crowd_level').default('low'),
 });
 
 export const groups = pgTable('groups', {

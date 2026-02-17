@@ -19,9 +19,12 @@ erDiagram
     USERS {
         int id PK
         string email
-        enum mobility_mode "Standard, Wheelchair, etc"
+        string password_hash
+        string full_name
+        enum mobility_mode "standard, wheelchair, reduced_mobility, visual_impairment, family_stroller"
         boolean avoid_stairs
         boolean avoid_crowds
+        boolean avoid_slopes
     }
 
     TICKETS {
@@ -29,14 +32,19 @@ erDiagram
         int user_id FK
         string code
         string gate
+        string zone_name
+        string seat_row
+        string seat_number
         geometry seat_location
     }
 
     POINTS_OF_INTEREST {
         int id PK
         string name
-        enum type "Restaurant, WC, Gate..."
-        enum crowd_level
+        string description
+        enum type "restaurant, wc, grandstand, gate, medical, shop, parking, meetup_point"
+        geometry location
+        enum crowd_level "low, moderate, high, blocked"
         boolean is_wheelchair_accessible
     }
 
@@ -44,13 +52,15 @@ erDiagram
         int id PK
         geometry start_node
         geometry end_node
-        enum surface "Asphalt, Grass..."
+        enum surface "asphalt, grass, gravel, stairs, ramp"
         float slope_percentage
-        enum current_crowd_level
+        boolean has_stairs
+        enum crowd_level
     }
 
     GROUPS {
         int id PK
+        string name
         string invite_code
         int created_by FK
         geometry meeting_point
@@ -59,6 +69,7 @@ erDiagram
     GROUP_MEMBERS {
         int user_id PK, FK
         int group_id PK, FK
+        timestamp joined_at
         geometry last_location
         timestamp last_updated
     }
@@ -73,6 +84,8 @@ erDiagram
     OFFLINE_PACKAGES {
         int id PK
         string region_name
+        string file_url
+        string version
         float size_mb
     }
 ```
