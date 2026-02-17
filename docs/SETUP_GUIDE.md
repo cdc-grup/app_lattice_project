@@ -1,105 +1,102 @@
-# Circuit Copilot: Guia de Configuració per a Desenvolupadors
+# 🛠️ Circuit Copilot: Guia de Configuració para Desarrolladores
 
 Aquesta guia descriu la configuració de l'entorn de desenvolupament local per al monorepo de **Circuit Copilot**.
 
-## Prerequisits
+> [!IMPORTANT]
+> Aquest projecte està dissenyat per funcionar de manera òptima en sistemes **Linux** o **macOS**. Per a Windows, es recomana l'ús de **WSL2**.
+
+## 📋 Prerequisits
 
 Abans de clonar el repositori, assegura't de tenir instal·lat el següent:
 
 1. **Node.js (LTS)**: v18.0.0 o superior.
 2. **Docker Desktop**: En funcionament i actualitzat (necessari per a PostGIS i Redis).
-3. **Git**: Per al control de versions.
-4. **Entorn de Desenvolupament Mòbil**:
+3. **Entorn de Desenvolupament Mòbil**:
+   - **iOS**: Xcode (només per a Mac).
+   - **Android**: Android Studio + SDK Platform Tools.
+4. **Compte de Mapbox**: Necessites un token d'accés públic per als mapes.
 
-- **iOS**: Xcode (només per a Mac).
-- **Android**: Android Studio + SDK Platform Tools.
+## 🏗️ Estructura del Repositori
 
-5. **Compte de Mapbox**: Necessites un token d'accés públic.
-
-## Estructura del Repositori (Monorepo)
-
-Utilitzem **Turborepo** / Workspaces. No cal fer `npm install` a cada carpeta.
+Utilitzem **Turborepo**. No cal fer `npm install` a cada carpeta individual.
 
 ```text
 /
 ├── apps/
 │   ├── mobile/         # Aplicació Expo (React Native)
-│   └── api/           # API Node.js + Express
+│   └── api/            # API Node.js + Express
 ├── packages/
 │   ├── shared/         # Tipus TypeScript compartits (@app/shared)
-│   └── database/       # Esquema de Prisma/Sequelize i Migracions
-└── docker-compose.yml  # Orquestra la base de dades i Redis
+│   └── db/             # Esquema de Drizzle i Migracions (@app/db)
+└── docker-compose.yml  # Orquestra la base de dades PostGIS
 ```
 
-## Pas 1: Instal·lació
+---
+
+## 🚀 Pas 1: Instal·lació
 
 1. **Clona el repositori:**
-
-```bash
-git clone https://github.com/la-teva-org/circuit-copilot.git
-cd circuit-copilot
-```
-
-2. **Instal·la les dependències (Arrel):**
-   Aquest projecte utilitza **npm** com a gestor de paquets estàndard.
-
-```bash
-npm install
-```
-
-## Pas 2: Variables d'Entorn
-
-...
-
-## Pas 3: Base de dades i Infraestructura
-
-Utilitzem Docker Compose per executar PostgreSQL (amb l'extensió PostGIS).
-
-1. **Inicia l'entorn amb Docker:**
-   Aquesta ordre aixecarà la base de dades i l'API.
-
-```bash
-docker compose up --build
-```
-
-Per al desenvolupament actiu, el flux de treball més eficient és separar el backend del frontend:
-
-1. **Backend (Infraestructura)**:
    ```bash
-   docker compose up --build
+   git clone https://github.com/la-teva-org/circuit-copilot.git
+   cd circuit-copilot
    ```
-   Això aixeca la base de dades i l'API en segon pla (Docker).
 
-2. **Frontend (Mobile)**:
+2. **Instal·la les dependències:**
+   > [!NOTE]
+   > Executa sempre aquesta ordre des de l'arrel per carregar totes les dependències del monorepo.
    ```bash
-   npm run start --workspace=mobile
+   npm install
    ```
-   Això inicia l'entorn de Metro per a l'app en la teva terminal local.
 
-### Comandos de Turbo
+## 🗄️ Pas 2: Base de dades i Infraestructura
 
-- `npm run dev`: Mode desenvolupament amb recàrrega en calent.
+Utilitzem Docker Compose per executar PostgreSQL amb l'extensió PostGIS.
+
+1. **Inicia l'entorn:**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Prepara la base de dades:**
+   ```bash
+   npm run migrate
+   ```
+
+## 💻 Pas 3: Flux de Treball
+
+> [!TIP]
+> Per al desenvolupament actiu, la forma més ràpida és utilitzar la comanda unificada:
+> ```bash
+> npm run dev
+> ```
+> Això aixecarà l'API i el Metro Bundler de Expo alhora.
+
+### Comandes Principals de l'Arrel
+
+- `npm run dev`: Mode desenvolupament total.
 - `npm run build`: Compila totes les aplicacions verificant tipus.
 - `npm run lint`: Executa l'eslint a tot el monorepo.
+- `npm run test`: Executa les proves unificades.
 
-### El mapa de Mapbox està en blanc
+### 🛠️ Gestió de BD (Drizzle)
 
-- **Causa:** Token invàlid o error de correspondència de l'ID del paquet (Bundle ID).
-- **Solució:** Assegura't que el teu Token de Mapbox tingui l'àmbit `Downloads:Read` i que el teu `bundleIdentifier` a `app.json` coincideixi amb el que has registrat a Mapbox.
+- `npm run generate`: Registra canvis en l'esquema.
+- `npm run migrate`: Empeny els canvis a la BD d'infraestructura.
+- `npm run studio`: Visor web de dades local.
 
-### Error de PostGIS: "function st_dwithin does not exist"
+## ❓ Solució de Problemes
 
-- **Causa:** L'extensió PostGIS no s'ha activat.
-- **Solució:** Connecta't a la base de dades i executa: `CREATE EXTENSION IF NOT EXISTS postgis;` (O comprova si les migracions s'han executat correctament).
+> [!WARNING]
+> **Token de Mapbox**: Si el mapa apareix en blanc, revisa que el teu token tingui els permisos adequats.
 
-### Diagrama de Topologia de Xarxa
+- **PostGIS no detectat**: Si l'API falla en consultes geoespacials, assegura't que el contenidor de Docker està actiu i has executat `npm run migrate`.
+- **Eerrors de Port 8081**: Expo utilitza el port 8081. Tanca altres instàncies de Metro o procesos que puguin estar utilitzant-lo.
 
-Com que connectar un dispositiu mòbil físic a un backend local de Docker és el punt de fallada més comú, visulitzar el flux de xarxa és d'ajuda:
+## 🌐 Topologia de Xarxa
 
 ```mermaid
 graph TD
-    A[Dispositiu Mòbil Físic] -- "WiFi (192.168.1.x)" --> B[Router WiFi]
-    B -- "Xarxa Local" --> C[El teu Ordinador]
-    C -- "Port 3000" --> D[Contenidor API]
-    D -- "Xarxa Docker" --> E[Contenidor PostGIS]
+    A["Dispositiu Mòbil (Expo Go)"] -- "WiFi Local" --> B["Host (Ordinador)"]
+    B -- "Port 3000" --> C["Contenidor API"]
+    C -- "Port 5432" --> D["Contenidor PostGIS"]
 ```

@@ -1,21 +1,21 @@
-# Esquema de Base de Datos: Circuit
-> **Proyecto:** Accessibilitat + Temps Real
-> **Contexto:** Gestión de rutas, accesibilidad y grupos para eventos en circuito.
+# Esquema de Base de Dades: Circuit Copilot
+> **Projecte:** Accessibilitat + Temps Real
+> **Context:** Gestió de rutes, accessibilitat i grups per a esdeveniments al circuit.
 
 ## 1. Diagrama Visual (ERD)
 
-Este diagrama representa las relaciones y entidades principales.
+Aquest diagrama representa les relacions i entitats principals.
 
 ```mermaid
 erDiagram
-    %% RELACIONES
-    USERS ||--o{ TICKETS : posee
+    %% RELACIONS
+    USERS ||--o{ TICKETS : posseeix
     USERS ||--o{ GROUPS : crea_admin
-    USERS ||--o{ GROUP_MEMBERS : "es miembro de"
-    GROUPS ||--o{ GROUP_MEMBERS : contiene
+    USERS ||--o{ GROUP_MEMBERS : "és membre de"
+    GROUPS ||--o{ GROUP_MEMBERS : conté
     USERS ||--o{ SAVED_LOCATIONS : guarda
 
-    %% ENTIDADES
+    %% ENTITATS
     USERS {
         int id PK
         string email
@@ -75,3 +75,4 @@ erDiagram
         string region_name
         float size_mb
     }
+```

@@ -8,7 +8,7 @@
     "dev": "tsx watch index.ts",
     "build": "tsc",
     "lint": "eslint \"**/*.ts\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "generate": "npm run generate --workspace=@app/db",
     "migrate": "npm run migrate --workspace=@app/db",
     "studio": "npm run studio --workspace=@app/db"

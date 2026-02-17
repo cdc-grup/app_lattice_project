@@ -8,6 +8,10 @@
     "build": "turbo build --filter=!//",
     "dev": "turbo dev --filter=!//",
     "lint": "turbo lint --filter=!//",
+    "test": "turbo test --filter=!//",
+    "generate": "turbo generate --filter=!//",
+    "migrate": "turbo migrate --filter=!//",
+    "studio": "turbo studio --filter=!//",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "workspaces": [
@@ -15,12 +19,12 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.21.0",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",
     "eslint": "^9.39.2",
     "eslint-config-expo": "^8.0.1",
-    "eslint-config-prettier": "^10.1.8",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -28,6 +32,11 @@
     "prettier": "^3.8.1",
     "turbo": "^2.4.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.55.0"
+    "typescript-eslint": "^8.55.0",
+    "vitest": "^3.0.5",
+    "jest": "^29.7.0"
+  },
+  "overrides": {
+    "eslint-plugin-react-hooks": "^5.2.0"
   }
 }

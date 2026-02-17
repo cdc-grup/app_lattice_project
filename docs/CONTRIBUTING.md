@@ -1,83 +1,45 @@
-# Contribuir a Circuit Copilot
+# 🤝 Contribuir a Circuit Copilot
 
-En primer lloc, gràcies per ajudar-nos a construir el millor acompanyant per als dies de cursa! Per mantenir una base de codi d'alta qualitat i un flux de treball fluid en el nostre monorepo, segueix aquestes pautes.
+Gràcies per ajudar-nos a millorar l'experiència al circuit! Segueix aquestes pautes per mantenir el projecte net i funcional.
 
-## Estratègia de Brancament (Branching)
+> [!TIP]
+> Aquest és un monorepo gestionat amb **Turborepo**. Pots executar la majoria de tasques des de l'arrel del projecte.
 
-Utilitzem un flux de treball de **Branca de Funcionalitat (Feature Branch)**. Crea sempre la branca a partir de `main` i fusiona-la mitjançant una Pull Request.
+## 🌿 Estratègia de Brancament
 
-- **Funcionalitat:** `feat/feature-name` (ex: `feat/ar-arrows`)
-- **Correcció d'errors (Bug Fix):** `fix/bug-name` (ex: `fix/socket-reconnection`)
-- **Documentació:** `docs/description`
-- **Refactorització:** `refactor/component-name`
+Utilitzem branques de funcionalitat:
+- `feat/nom-funcionalitat`: Noves característiques.
+- `fix/nom-error`: Correcció de bugs.
+- `docs/descripció`: Millores en la documentació.
 
-## Convenció de Missatges de Commit
+## 📝 Convenció de Commits
 
-Seguim els [Commits Convencionals](https://www.conventionalcommits.org/). Això ens permet autogenerar registres de canvis (changelogs) i gestionar versions fàcilment.
+Seguim els **Conventional Commits**: `tipus(àmbit): descripció`
+- `feat(mobile): afegeix seguiment d'usuari`
+- `fix(api): corregeix consulta PostGIS`
+- `chore(root): actualitza dependències`
 
-**Format:** `<tipus>(àmbit): <descripció>`
+## 🛠️ Estàndards de Desenvolupament
 
-- `feat(mobile): add mapbox user tracking`
-- `fix(api): correct postgis query for nearest toilets`
-- `docs(shared): update user ticket interface`
-- `chore(root): update dependencies`
+> [!IMPORTANT]
+> Abans de pujar codi, assegura't que el linter no dona errors.
 
-## Flux de Treball al Monorepo (Turborepo)
+### Lògica Compartida
+Si una funció o tipus s'utilitza en més d'un lloc, posa-ho a `packages/shared`.
 
-Com que estem en un monorepo, para atenció a on afegeixes el codi:
-
-1. **Lògica Compartida:** Si un tipus, interfície o utilitat s'utilitza tant a l'App com a l'API, posa-ho a `packages/shared`.
-2. **Scripts:** Utilitza el `package.json` arrel per executar tasques a tot el repositori:
-
-- `npm run dev`: Inicia totes les aplicacions (Backend + Mòbil) en paral·lel.
-- `npm run build`: Construeix tots els paquets.
-- `npm run lint`: Executa ESLint a totes les aplicacions.
-
-## Estàndards de Programació
-
-### TypeScript
-
-- **No `any`:** Utilitza el tipat correcte. Si no n'estàs segur, defineix una interfície a `packages/shared`.
-- **Retorns Explícits:** Defineix sempre el tipus de retorn de les teves funcions i punts finals de l'API.
-
-### Llinting i Format
-
-Utilitzem **ESLint** i **Prettier**. La majoria dels IDE li donaran format en desar, però pots executar-ho manualment:
-
+### Comandes Recomanades
 ```bash
-npm run lint:fix
+npm run dev     # Desenvolupament actiu
+npm run lint    # Verificació d'estil
+npm run test    # Execució de proves
+npm run format  # Formatat automàtic
 ```
 
-### Git Hooks (Husky)
+## 🚀 Procés de Pull Request
 
-Abans de cada commit, s'executa un hook de pre-commit per assegurar que el teu codi:
+1. **Auto-revisió:** Revisa el teu codi buscant `console.log` o codi mort.
+2. **Documentació:** Si canvies una funcionalitat, actualitza els documents rellevants a `docs/`.
+3. **Vídeo/GIF:** Si canvies la UI o AR, inclou una mostra visual a la PR.
 
-1. No té errors de linting.
-2. Passa les proves bàsiques.
-   **No et saltis aquests hooks.**
-
-## Procés de Pull Request (PR)
-
-1. **Actualitza la Documentació:** Si afegeixes un nou punt final a l'API, actualitza `api-contract.md`. Si canvies la lògica d'estats, actualitza `app-states.md`.
-2. **Auto-revisió:** Revisa el teu propi codi per si hi ha console logs o "TODOs" abans d'obrir la PR.
-3. **La Regla de l'"AR":** Si la teva PR canvia lògica d'AR, **has d'incloure** un vídeo curt o un GIF de la funcionalitat funcionant en un dispositiu físic a la descripció de la PR.
-4. **Revisors:** Almenys un altre desenvolupador ha d'aprovar la PR abans de fusionar-la a `main`.
-
-## Regles del Directori Compartit (Shared)
-
-Quan modifiquis `packages/shared`:
-
-1. Executa `npm run build` a la carpeta shared per assegurar-te que els fitxers de declaració de TypeScript s'actualitzen.
-2. Reinicia el Metro Bundler (Mòbil) i el Servidor API (Backend) per recollir els canvis.
-
-## Resolució de Problemes per a Col·laboradors
-
-- **"Tipus no trobat al Mòbil":** Si has afegit un tipus a `shared` però l'app mòbil no el veu, prova `npm install` a l'arrel i reinicia el servidor Expo.
-- **"Conflicte de ports a Docker":** Si no pots iniciar la base de dades, comprova si tens una altra instància de PostgreSQL executant-se al port `5432`.
-
-### **Estat Final del Projecte**
-
-Ara tens un conjunt de documentació de nivell professional:
-
-- **`.context/`**: La "Font de la Veritat" per al teu assistent d'IA.
-- **`docs/`**: Els "Procediments Operatius Estàndard" per al teu equip humà.
+> [!CAUTION]
+> No et saltis els **Git Hooks**. Estan per assegurar que el codi que s'envia és de qualitat.
