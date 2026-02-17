@@ -7,22 +7,22 @@ Aquest document detalla els microserveis integrats en l'entorn Docker.
 ### `gateway` (Api Gateway - Port 3000)
 - **Tecnologia:** Node.js, Express.
 - **Funció:** Punt d'entrada únic, encaminament de peticions als serveis interns.
-- **Docker:** Build multi-etapa (apps/gateway/Dockerfile).
+- **Docker:** Build multi-etapa (apps/server/gateway/Dockerfile).
 
 ### `auth-service` (Autenticació - Port 3001)
 - **Tecnologia:** Node.js, Fastify/Express, Drizzle ORM.
 - **Funció:** Autenticació d'usuaris, emissió de JWT, gestió de perfils.
-- **Docker:** Build multi-etapa (apps/auth-service/Dockerfile).
+- **Docker:** Build multi-etapa (apps/server/auth-service/Dockerfile).
 
 ### `geo-service` (Lògica Geogràfica - Port 3002)
 - **Tecnologia:** Node.js, PostGIS, Drizzle ORM.
 - **Funció:** Gestió de POIs, navegació, rutes d'accessibilitat.
-- **Docker:** Build multi-etapa (apps/geo-service/Dockerfile).
+- **Docker:** Build multi-etapa (apps/server/geo-service/Dockerfile).
 
 ### `social-service` (Social i Temps Real - Port 3003)
 - **Tecnologia:** Node.js, Socket.io.
 - **Funció:** Seguiment de companys en temps real, gestió de grups.
-- **Docker:** Build multi-etapa (apps/social-service/Dockerfile).
+- **Docker:** Build multi-etapa (apps/server/social-service/Dockerfile).
 
 ### `db` (Base de dades - Port 5432)
 - **Tecnologia:** PostgreSQL 15 amb l'extensió **PostGIS**.

@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY packages/shared ./packages/shared
 COPY packages/db ./packages/db
-COPY apps/social-service/package.json ./apps/social-service/
+COPY apps/server/geo-service/package.json ./apps/server/geo-service/
 
 # --- Builder Stage ---
 FROM base AS builder
@@ -16,17 +16,17 @@ RUN npm run build --workspace=@app/db || true
 # --- Development Stage ---
 FROM builder AS development
 ENV NODE_ENV=development
-CMD ["npm", "run", "dev", "--workspace=@app/social-service"]
+CMD ["npm", "run", "dev", "--workspace=@app/geo-service"]
 
 # --- Production Builder Stage ---
 FROM builder AS prod-builder
-RUN npm run build --workspace=@app/social-service
+RUN npm run build --workspace=@app/geo-service
 
 # --- Production Stage ---
 FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=prod-builder /app/apps/social-service/dist ./dist
-COPY --from=prod-builder /app/apps/social-service/package.json ./package.json
+COPY --from=prod-builder /app/apps/server/geo-service/dist ./dist
+COPY --from=prod-builder /app/apps/server/geo-service/package.json ./package.json
 RUN npm install --omit=dev --legacy-peer-deps
 CMD ["node", "dist/index.js"]

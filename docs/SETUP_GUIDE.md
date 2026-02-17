@@ -24,11 +24,14 @@ Utilitzem **Turborepo**. No cal executar `npm install` a cada carpeta individual
 /
 ├── apps/
 │   ├── mobile/         # Aplicació Expo (React Native)
-│   └── api/            # API en Node.js + Express (Gateway / Serveis)
+│   ├── gateway/        # API Gateway (Punt d'entrada)
+│   ├── auth-service/   # Servei d'Antenticació
+│   ├── geo-service/    # Servei de Mapes i Geo
+│   └── social-service/ # Servei de Grups i Ubicació en viu
 ├── packages/
 │   ├── shared/         # Tipus TypeScript compartits (@app/shared)
 │   └── db/             # Esquema de Drizzle i Migracions (@app/db)
-└── docker-compose.yml  # Orquestra la base de dades PostGIS
+└── docker-compose.yml  # Orquestra tota la infraestructura con Docker
 ```
 
 ## 🚀 Guia Ràpida
@@ -42,14 +45,18 @@ npm install
 ```
 
 ### 2. Configuració de l'entorn (.env) 🤫
-Vés a la carpeta `apps/api` (o el servei corresponent):
+Cada servei té el seu propi arxiu de configuració. Vés a `apps/server/gateway`, `apps/server/auth-service`, etc.:
 1. Còpia l'arxiu `.env.example` i anomena'l `.env.development`.
-2. Edita l'arxiu i posa la URL del servidor extern a `EXTERNAL_API_URL`.
+2. Edita l'arxiu amb les credencials corresponents.
 
-### 3. Arrancar el motor 🏎️
-Des de l'arrel del projecte, encén l'API:
+### 3. Arrancar el sistema 🏎️
+Des de l'arrel del projecte, pots arrancar tots els serveis:
 ```bash
 npm run dev
+```
+O via Docker (recomanat per a base de dades):
+```bash
+docker compose up --build
 ```
 
 ### 4. Túnel per a Mobile (Zrok) 🪄
@@ -60,12 +67,12 @@ zrok share public http://localhost:3000
 Còpia la URL que et doni (ex: `https://xxxx.zrok.io`) i posa-la a la configuració de la App d'Expo.
 
 ### 5. Verificació ✅
-Obre el navegador a: `http://localhost:3000/status`. Si veus `"status": "ok"`, ja funciona correctament.
+Obre el navegador a: `http://localhost:3000/status` (Gateway). Si veus `"status": "gateway_ok"`, ja funciona correctament.
 
 ## 🗄️ Infraestructura (Docker)
-L'API necessita una base de dades PostGIS. Pots aixecar-la amb:
+El sistema necessita una base de dades PostGIS. Pots aixecar-la i aplicar migracions amb:
 ```bash
-docker compose up -d
+docker compose up db -d
 npm run migrate # Aplica els canvis a la base de dades
 ```
 
@@ -73,9 +80,9 @@ npm run migrate # Aplica els canvis a la base de dades
 ```mermaid
 graph TD
     A["Mòbil (Expo Go)"] -- "Internet" --> B["Zrok Cloud (HTTPS)"]
-    B -- "Tunnel" --> C["Local API (Port 3000)"]
-    C -- "Proxy Fallback" --> D["Servidor Extern (QA/Prod)"]
-    C -- "Query" --> E["PostGIS (Docker)"]
+    B -- "Tunnel" --> C["Gateway (Port 3000)"]
+    C -- "Routing" --> D["Microserveis (Auth, Geo, Social)"]
+    D -- "Query" --> E["PostGIS (Docker)"]
 ```
 
 ## 💡 Troubleshooting (Resolució de Problemes)

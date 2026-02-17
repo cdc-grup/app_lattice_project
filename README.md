@@ -54,6 +54,6 @@ You can manage the entire project directly from the root of the monorepo:
 ## 🛠️ Technology Stack
 
 - **Frontend:** React Native via Expo (`apps/mobile`).
-- **Backend:** Node.js with Express (`apps/api`).
+- **Backend:** Node.js Microservices (`apps/server/*`).
 - **Shared:** Common types and logic (`packages/shared`).
 - **Infrastructure:** Postgres + PostGIS via Docker (`packages/db`).

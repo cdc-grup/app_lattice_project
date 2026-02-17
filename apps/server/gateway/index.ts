@@ -25,22 +25,22 @@ app.get('/status', (req: Request, res: Response) => {
 // --- ROUTING ---
 
 // Auth Service
-app.use(['/auth', '/users'], createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: ['/auth', '/users'],
   target: AUTH_SERVICE_URL,
   changeOrigin: true,
-  pathRewrite: {
-    // Keep paths as they are, service handles them
-  },
 }));
 
 // Geo Service
-app.use(['/pois', '/locations', '/navigation', '/map'], createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: ['/pois', '/locations', '/navigation', '/map'],
   target: GEO_SERVICE_URL,
   changeOrigin: true,
 }));
 
 // Social Service
-app.use('/groups', createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: '/groups',
   target: SOCIAL_SERVICE_URL,
   changeOrigin: true,
 }));

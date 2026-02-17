@@ -22,19 +22,19 @@ graph TD
 
 ## Serveis
 
-### 1. Gateway (`apps/gateway`)
+### 1. Gateway (`apps/server/gateway`)
 És el punt d'entrada únic per a l'aplicació mòbil. No conté lògica de negoci, la seva funció és **redirigir el trànsit**:
 - **Encaminament:** Rep totes les peticions i les envia al microservei corresponent.
 - **Seguretat i Control:** Gestiona la seguretat centralitzada i el límit de peticions (Rate Limiting).
 - **Abstracció:** Si un servei intern canvia d'adreça, el mòbil no necessita saber-ho, només parla amb el Gateway.
 
-### 2. Servei d'Autenticació (`apps/auth-service`)
+### 2. Servei d'Autenticació (`apps/server/auth-service`)
 S'encarrega de tot el relacionat amb qui és l'usuari i el seu accés:
 - **Sincronització d'entrades:** Enllaça el codi QR del tiquet amb un usuari.
 - **Gestió de perfils:** Guarda les preferències (si l'usuari va en cadira de rodes, si prefereix evitar escales, etc.).
 - **Seguretat:** Emissió i validació de tokens JWT.
 
-### 3. Servei Geo (`apps/geo-service`)
+### 3. Servei Geo (`apps/server/geo-service`)
 És el cervell geogràfic de l'aplicació, utilitzant la base de dades PostGIS:
 - **Punts d'Interès (POIs):** Retorna la llista de banys, restaurants, graderies i parkings.
 - **Navegació:** Calcula la ruta òptima des de la teva posició fins al teu seient o un servei, tenint en compte l'accessibilitat.
