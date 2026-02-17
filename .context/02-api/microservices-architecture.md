@@ -74,5 +74,6 @@ Assegura't de tenir una instància local de PostgreSQL en funcionament o utilitz
 
 ## Resolució de problemes
 
+- **Error de permisos (EACCES):** Si utilitzes Linux amb SELinux actiu, assegura't que els volums a `docker-compose.yml` tenen el sufix `:z` (ex: `.:/app:z`).
 - **Servei no accessible:** Comprova si el contenidor està funcionant amb `docker ps`.
 - **Error de connexió a la base de dades:** Assegura't que la `DATABASE_URL` és correcta a `.env.development`.

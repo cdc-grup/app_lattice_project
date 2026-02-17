@@ -1,106 +1,106 @@
-# Quality Control (QA) Protocol and Physical Testing: Circuit Copilot
+# Protocol de Control de Qualitat (QA) i Proves Físiques: Circuit Copilot
 
-## 1. The Challenge of the Environment
+## 1. El Repte de l'Entorn
 
-This application cannot be validated only with simulators. The Circuit de Barcelona-Catalunya presents hostile conditions for mobile hardware:
+Aquesta aplicació no es pot validar només amb simuladors. El Circuit de Barcelona-Catalunya presenta condicions hostils per al maquinari mòbil:
 
-1. **Direct Sunlight:** Affects screen visibility and camera sensors (AR).
-2. **Magnetic Interference:** Grandstands are made of steel and concrete, which decalibrates the digital compass.
-3. **GPS Shadow (Multipath):** Tall structures bounce the GPS signal.
-4. **Network Saturation:** 100,000 people competing for 4G/5G bandwidth.
+1. **Llum Solar Directa:** Afecta la visibilitat de la pantalla i els sensors de la càmera (AR).
+2. **Interferència Magnètica:** Les tribunes són d'acer i formigó, la qual cosa descalibra la brúixola digital.
+3. **Ombra GPS (Multipath):** Les estructures altes fan rebotar el senyal GPS.
+4. **Saturació de Xarxa:** 100.000 persones competint per l'ample de banda 4G/5G.
 
-## 2. Testing Pyramid: Automated Strategy
+## 2. Piràmide de Proves: Estratègia Automatitzada
 
-_Before leaving the office, the code must pass these filters:_
+_Abans de sortir de l'oficina, el codi ha de passar aquests filtres:_
 
-### A. Unit and Logic Tests (Shared & API)
+### A. Proves Unitàries i de Lògica (Shared & API)
 
 - **Framework:** [Vitest](https://vitest.dev/).
-- **Objective:** Validate critical algorithms without external dependencies.
-- **Examples:**
-  - Distance calculation between coordinates (POI proximity logic).
-  - Validation of GPS telemetry formats.
-  - Data transformation for Socket.io (MessagePack).
+- **Objectiu:** Validar algoritmes crítics sense dependències externes.
+- **Exemples:**
+  - Càlcul de distància entre coordenades (lògica de proximitat de POIs).
+  - Validació de formats de telemetria GPS.
+  - Transformació de dades per a Socket.io (MessagePack).
 
-### B. Endpoint Tests (API Integration)
+### B. Proves d'Endpoint (Integració API)
 
 - **Framework:** Vitest + [Supertest](https://github.com/ladjs/supertest).
-- **Objective:** Ensure API routes respond correctly with expected HTTP codes and data schemas.
+- **Objectiu:** Garantir que les rutes de l'API responen correctament amb els codis HTTP i esquemes de dades esperats.
 
-### C. Component Tests (Mobile)
+### C. Proves de Components (Mòbil)
 
 - **Framework:** [Jest](https://jestjs.io/) + [React Native Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/).
-- **Objective:** Check that screens and UI components react correctly to different states (without needing a real device).
-- **Example:** Verify that the AR button deactivates if `compass_accuracy` is null.
+- **Objectiu:** Comprovar que les pantalles i components de la UI reaccionen correctament a diferents estats (sense necessitat d'un dispositiu real).
+- **Exemple:** Verificar que el botó d'AR es desactiva si `compass_accuracy` és nul.
 
-## 3. Phase 1: Laboratory Simulations (Office)
+## 3. Fase 1: Simulacions de Laboratori (Oficina)
 
-_Before going to the circuit, check this:_
+_Abans d'anar al circuit, comprova això:_
 
-| Test Case                 | Action                                                                   | Expected Result                                                                                     |
+| Cas de Prova              | Acció                                                                    | Resultat Esperat                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **GPX Simulation**        | Load a `.gpx` file with a full lap of the circuit in the emulator.       | The blue dot moves smoothly along the track without jumps.                                         |
-| **Network Throttling**    | Set the phone to "2G / Edge" (Developer settings).                       | The base map loads (because it is in the offline cache) and the route is calculated in <3s.         |
-| **Compass Noise**         | Shake the phone violently while using AR.                                | Arrows should try to remain stable, not spin like crazy.                                            |
+| **Simulació GPX**         | Carrega un fitxer `.gpx` amb una volta completa al circuit a l'emulador. | El punt blau es mou suaument per la pista sense salts.                                              |
+| **Network Throttling**    | Posa el telèfon en mode "2G / Edge" (Ajustos de desenvolupador).         | El mapa base carrega (perquè està a la memòria cau offline) i la ruta es calcula en <3s.             |
+| **Soroll de Brúixola**    | Sacseja el telèfon violentament mentre utilitzes AR.                     | Les fletxes han d'intentar mantenir-se estables, no girar com boges.                                |
 
-## 3. Phase 2: Field Tests (In Situ)
+## 3. Fase 2: Proves de Camp (In Situ)
 
-_Mandatory tests on real ground._
+_Proves obligatòries sobre el terreny real._
 
-### A. The "Metal Grandstand" Test (Magnetic Interference)
+### A. La Prova de la "Tribuna de Metall" (Interferència Magnètica)
 
-**Context:** Mobile compasses fail near large masses of metal.
+**Context:** Les brúixoles dels mòbils fallen a prop de grans masses de metall.
 
-- **Location:** Under the Main Grandstand or in front of the straight fence.
-- **Action:** Open AR Mode.
-- **Observation:** Where does the arrow point?
-- **Critical Error:** The arrow points to the wall instead of the path.
-- **Solution:** If it fails, the app must detect `compass_accuracy_low` and suggest: _"Move 2 meters away from the metal structure"_ or automatically switch to 2D Map.
+- **Ubicació:** Sota la Tribuna Principal o davant de la tanca de la recta.
+- **Acció:** Obre el Mode AR.
+- **Observació:** Cap a on apunta la fletxa?
+- **Error Crític:** La fletxa apunta a la paret en lloc del camí.
+- **Solució:** Si falla, l'app ha de detectar `compass_accuracy_low` i suggerir: _"Allunya't 2 metres de l'estructura metàl·lica"_ o canviar automàticament a Mapa 2D.
 
-### B. The "Multipath" Test (GPS Signal Bounce)
+### B. La Prova "Multipath" (Rebot de Senyal GPS)
 
-**Context:** The GPS signal bounces off the stands and the phone thinks you are on the track.
+**Context:** El senyal GPS rebota a les grades i el telèfon pensa que ets a la pista.
 
-- **Location:** Narrow corridor between Grandstand G and Grandstand H.
-- **Action:** Walk in a straight line.
-- **Observation:** Check if the avatar on the map jumps from side to side (Zig-Zag).
-- **Validation:** The "Map Matching" algorithm (snapping to path) must keep the user on the pedestrian path, ignoring impossible coordinate jumps.
+- **Ubicació:** Passadís estret entre la Tribuna G i la Tribuna H.
+- **Acció:** Camina en línia recta.
+- **Observació:** Comprova si l'avatar al mapa fa salts d'un costat a l'altre (Zig-Zag).
+- **Validació:** L'algoritme de "Map Matching" (ajust al camí) ha de mantenir l'usuari sobre el camí de vianants, ignorant salts de coordenades impossibles.
 
-### C. "Extreme Sunlight" Test (AR Visibility)
+### C. Prova de "Llum Solar Extrema" (Visibilitat AR)
 
-**Context:** Direct sun "blinds" the camera and overheats the mobile.
+**Context:** El sol directe "encega" la càmera i sobreescalfa el mòbil.
 
-- **Time:** 12:00 PM - 02:00 PM (Zenithal Sun).
-- **Action:** Use AR for 5 continuous minutes pointing at the asphalt.
-- **Risks to measure:**
+- **Hora:** 12:00 PM - 02:00 PM (Sol Zenital).
+- **Acció:** Utilitza l'AR durant 5 minuts continus apuntant a l'asfalt.
+- **Riscos a mesurar:**
 
-1. **Contrast Loss:** Are virtual arrows visible on light gray asphalt? (They should have a black border or a strong shadow).
-2. **Tracking Loss:** If the ground has no texture (it is very smooth and shiny), ViroReact will lose its anchor.
-3. **Overheating:** Does the phone issue a temperature warning?
+1. **Pèrdua de Contrast:** Es veuen les fletxes virtuals sobre l'asfalt gris clar? (Haurien de tenir un vora negra o una ombra forta).
+2. **Pèrdua de Tracking:** Si el terra no té textura (és molt llis i brilla), ViroReact perdrà l'ancoratge.
+3. **Sobreescalfament:** El telèfon treu l'avís de temperatura?
 
-## 4. Phase 3: Stress Tests (Race Simulation)
+## 4. Fase 3: Proves d'Estrès (Simulació de Cursa)
 
-### The 1 km Journey
+### El Viatge d'1 km
 
-A tester must complete this entire journey without closing the app:
+Un tester ha de completar tot aquest recorregut sense tancar l'app:
 
-1. **Start:** Parking F.
-2. **Destination:** Seat in Grandstand N.
-3. **Conditions:**
-  - 100% screen brightness.
-  - Mobile data deactivated (Simulating network collapse).
-  - Bluetooth activated (Headphones).
+1. **Inici:** Pàrquing F.
+2. **Destí:** Seient a la Tribuna N.
+3. **Condicions:**
+  - 100% de brillantor de pantalla.
+  - Dades mòbils desactivades (Simulant col·lapse de xarxa).
+  - Bluetooth activat (Auriculars).
 
-4. **Acceptance Criteria:**
-  - **Battery:** Should not drop more than 8% during this journey (~15 minutes).
-  - **Navigation:** Should not require restarting the app.
-  - **Audio:** Voice instructions ("Turn right") must be audible above ambient noise (simulates engine noise or crowds).
+4. **Criteris d'Acceptació:**
+  - **Bateria:** No hauria de baixar més del 8% en aquest trajecte (~15 minuts).
+  - **Navegació:** No hauria de requerir reiniciar l'app.
+  - **Àudio:** Les instruccions de veu ("Gira a la dreta") han de ser audibles per sobre de la remor ambiental (simula soroll de motors o gent).
 
-## 5. Error Report (Standard Format)
+## 5. Report de l'Error (Format Estàndard)
 
-When testers report failures from the circuit, they must include:
+Quan els testers informin de fallades des del circuit, han d'incloure:
 
-- **Exact Coordinates:** (Copy and paste from debug mode).
-- **Sky Conditions:** (Sun / Clouds / Rain). _Rain affects the touch screen._
-- **Device Orientation:** (Portrait / Landscape).
-- **Screenshot of the AR debug world:** (To see virtual anchor points detected by the system).
+- **Coordenades Exactes:** (Copiar i enganxar des del mode debug).
+- **Condicions del Cel:** (Sol / Núvols / Pluja). _La pluja afecta la pantalla tàctil._
+- **Orientació del Dispositiu:** (Vertical / Horitzontal).
+- **Captura de pantalla del món debug d'AR:** (Per veure punts d'ancoratge virtual detectats pel sistema).

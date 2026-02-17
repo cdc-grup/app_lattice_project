@@ -1,34 +1,34 @@
-# 🛠️ Circuit Copilot: Developer Setup Guide
+# 🛠️ Circuit Copilot: Guia de Configuració per a Desenvolupadors
 
-This guide describes the local development environment setup for the **Circuit Copilot** monorepo.
+Aquesta guia descriu la configuració de l'entorn de desenvolupament local per al monorepo de **Circuit Copilot**.
 
 > [!IMPORTANT]
-> This project is designed to work optimally on **Linux** or **macOS**. For Windows, the use of **WSL2** is recommended.
+> Aquest projecte està dissenyat per funcionar de manera òptima en **Linux** o **macOS**. Per a Windows, es recomana l'ús de **WSL2**.
 
-## 📋 Prerequisites
+## 📋 Prerequisits
 
-Before cloning the repository, make sure you have the following installed:
+Abans de clonar el repositori, assegura't de tenir instal·lat el següent:
 
-1. **Node.js (LTS)**: v18.0.0 or higher.
-2. **Docker Desktop**: Running and updated (necessary for PostGIS and Redis).
-3. **Mobile Development Environment**:
-   - **iOS**: Xcode (Mac only).
+1. **Node.js (LTS)**: v18.0.0 o superior.
+2. **Docker Desktop**: En funcionament i actualitzat (necessari per a PostGIS i Redis).
+3. **Entorn de Desenvolupament Mòbil**:
+   - **iOS**: Xcode (només Mac).
    - **Android**: Android Studio + SDK Platform Tools.
-4. **Mapbox Account**: You need a public access token for the maps.
+4. **Compte de Mapbox**: Necessites un token d'accés públic per als mapes.
 
-## 🏗️ Repository Structure
+## 🏗️ Estructura del Repositori
 
-We use **Turborepo**. There is no need to run `npm install` in each individual folder.
+Utilitzem **Turborepo**. No cal executar `npm install` a cada carpeta individual.
 
 ```text
 /
 ├── apps/
-│   ├── mobile/         # Expo Application (React Native)
-│   └── api/            # Node.js + Express API
+│   ├── mobile/         # Aplicació Expo (React Native)
+│   └── api/            # API en Node.js + Express (Gateway / Serveis)
 ├── packages/
-│   ├── shared/         # Shared TypeScript types (@app/shared)
-│   └── db/             # Drizzle Schema and Migrations (@app/db)
-└── docker-compose.yml  # Orchestrates the PostGIS database
+│   ├── shared/         # Tipus TypeScript compartits (@app/shared)
+│   └── db/             # Esquema de Drizzle i Migracions (@app/db)
+└── docker-compose.yml  # Orquestra la base de dades PostGIS
 ```
 
 ## 🚀 Guia Ràpida
@@ -42,14 +42,14 @@ npm install
 ```
 
 ### 2. Configuració de l'entorn (.env) 🤫
-Vés a la carpeta `apps/api`:
+Vés a la carpeta `apps/api` (o el servei corresponent):
 1. Còpia l'arxiu `.env.example` i anomena'l `.env.development`.
 2. Edita l'arxiu i posa la URL del servidor extern a `EXTERNAL_API_URL`.
 
 ### 3. Arrancar el motor 🏎️
 Des de l'arrel del projecte, encén l'API:
 ```bash
-npm run dev --workspace=@app/api
+npm run dev
 ```
 
 ### 4. Túnel per a Mobile (Zrok) 🪄
@@ -60,15 +60,7 @@ zrok share public http://localhost:3000
 Còpia la URL que et doni (ex: `https://xxxx.zrok.io`) i posa-la a la configuració de la App d'Expo.
 
 ### 5. Verificació ✅
-Obre el navegador a: `http://localhost:3000/status`. Si veus `"status": "ok"`, ja funciona correctament
-
-## 🏗️ Estructura del Repositori
-Utilitzem **Turborepo** per gestionar el monorepo d'una sola vegada.
-
-- `/apps/mobile`: Aplicació Expo (React Native).
-- `/apps/api`: Backend en Node.js + Express.
-- `/packages/shared`: Tipus i lògica compartida.
-- `/packages/db`: Esquema de dades i migracions.
+Obre el navegador a: `http://localhost:3000/status`. Si veus `"status": "ok"`, ja funciona correctament.
 
 ## 🗄️ Infraestructura (Docker)
 L'API necessita una base de dades PostGIS. Pots aixecar-la amb:
@@ -85,6 +77,14 @@ graph TD
     C -- "Proxy Fallback" --> D["Servidor Extern (QA/Prod)"]
     C -- "Query" --> E["PostGIS (Docker)"]
 ```
+
+## 💡 Troubleshooting (Resolució de Problemes)
+
+### Error: EACCES: permission denied, open '/app/package.json'
+Si estàs utilitzant **Linux amb SELinux actiu** (ex: Fedora, RHEL, CentOS) i veus aquest error en executar Docker:
+1. Assegura't que els volums a `docker-compose.yml` tenen el flag `:z` (ex: `- .:/app:z`).
+2. Si el problema persisteix, potser cal etiquetar manualment el directori: `chcon -Rt svirt_sandbox_file_t .` (utilitza amb precaució).
+3. Alternativament, comprova si el teu usuari té els permisos correctes al directori amfitrió.
 
 > [!TIP]
 > Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[.context/02-api/dev-strategy.md](file:///home/kore/Documents/Code/Projects/app_25_26_tr3g3_cdc/.context/02-api/dev-strategy.md)**.

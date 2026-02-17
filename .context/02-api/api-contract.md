@@ -1,13 +1,13 @@
-# API Contract v1.0 - Circuit Copilot API
+# Contracte de l'API v1.0 - Circuit Copilot API
 
-## 1. General Standards
+## 1. Estàndards Generals
 
 - **Base URL:** `https://api.circuit-copilot.com/`
-- **Authentication:** Bearer Token (JWT) in headers. `Authorization: Bearer <token>`
-- **Data Format:** JSON for REST, MessagePack (binary) for WebSockets (location updates).
-- **Geo Format:** All coordinates must follow the **GeoJSON** standard: `[longitude, latitude]`.
+- **Autenticació:** Bearer Token (JWT) a les capçaleres. `Authorization: Bearer <token>`
+- **Format de Dades:** JSON per a REST, MessagePack (binari) per a WebSockets (actualitzacions d'ubicació).
+- **Format Geogràfic:** Totes les coordenades han de seguir l'estàndard **GeoJSON**: `[longitud, latitud]`.
 
-## 2. REST Endpoints (HTTP)
+## 2. Endpoints REST (HTTP)
 
 ### Autenticació i Onboarding (US1, US2)
 
@@ -110,7 +110,7 @@ Sol·licita una ruta per a vianants tenint en compte la congestió actual.
 }
 ```
 
-## 3. WebSocket Events (Real-Time)
+## 3. Esdeveniments WebSocket (Temps Real)
 
 **Protocol:** Socket.io
 **Espai de noms (Namespace):** `/live-track`

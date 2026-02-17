@@ -23,7 +23,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - .:/app
+      - .:/app:z
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -44,7 +44,7 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - .:/app
+      - .:/app:z
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -62,7 +62,7 @@ services:
     ports:
       - "3002:3002"
     volumes:
-      - .:/app
+      - .:/app:z
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -80,7 +80,7 @@ services:
     ports:
       - "3003:3003"
     volumes:
-      - .:/app
+      - .:/app:z
       - /app/node_modules
     environment:
       - NODE_ENV=development

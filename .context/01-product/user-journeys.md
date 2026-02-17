@@ -1,48 +1,48 @@
-# User Journeys
+# User Journeys (Viatges de l'Usuari)
 
-## Journey: Efficient Exit (Traffic Management)
+## Journey: Sortida Eficient (Gestió de Trànsit)
 
-- **Context:** The race has just finished. 100,000 people are leaving.
-- **Action:** The user opens the app to find their car (saved in US34).
-- **System:**
-  1. Checks the user's saved parking coordinates.
-  2. Queries the server for "Gate Congestion Levels".
-  3. Directs the user to a secondary exit gate that takes 5 more minutes on foot but has 20 minutes less queue.
-  4. Uses AR arrows to guide them through the crowd.
+- **Context:** La cursa acaba de finalitzar. 100.000 persones estan marxant.
+- **Acció:** L'usuari obre l'app per trobar el seu cotxe (guardat a US34).
+- **Sistema:**
+  1. Comprova les coordenades de pàrquing guardades de l'usuari.
+  2. Consulta al servidor els "Nivells de Congestió de les Portes".
+  3. Dirigeix l'usuari a una porta de sortida secundària que triga 5 minuts més a peu però té 20 minuts menys de cua.
+  4. Utilitza fletxes d'AR per guiar-los a través de la multitud.
 
-## Journey: Group Reunion
+## Journey: Retrobament de Grup
 
-- **Context:** User A is at Grandstand G, User B is at the Food Truck Area.
-- **Action:** User A presses "Find B".
-- **System:**
-  1. The server sends User B's last limited location (via Socket.io).
-  2. The app draws a dynamic line on the map.
-  3. As they get closer (<50m), the App suggests: "Switch to AR to locate your friend in the crowd."
+- **Context:** L'Usuari A està a la Tribuna G, l'Usuari B està a l'àrea de Food Trucks.
+- **Acció:** L'Usuari A prem "Troba el B".
+- **Sistema:**
+  1. El servidor envia l'última ubicació limitada de l'Usuari B (via Socket.io).
+  2. L'app dibuixa una línia dinàmica al mapa.
+  3. A mesura que s'apropen (<50m), l'App suggereix: "Canvia a AR per localitzar el teu amic en la multitud."
 
-## Journey: Finding Food and Drink (Restaurants)
+## Journey: Trobar Menjar i Beguda (Restaurants)
 
-- **Context:** The user wants to eat something during the race.
-- **Action:** The user searches for the "Restaurants" category in the app.
-- **System:**
-  1. Shows available food options nearby.
-  2. Indicates queue waiting time in real-time.
-  3. Allows making the order and payment from the mobile for pickup.
-  4. Sends a notification when the order is ready.
+- **Context:** L'usuari vol menjar alguna cosa durant la cursa.
+- **Acció:** L'usuari cerca la categoria "Restaurants" a l'app.
+- **Sistema:**
+  1. Mostra les opcions de menjar disponibles a prop.
+  2. Indica el temps d'espera en cua en temps real.
+  3. Permet fer la comanda i el pagament des del mòbil per recollir.
+  4. Envia una notificació quan la comanda està llesta.
 
-## Journey: Locating Services (Restrooms)
+## Journey: Localització de Serveis (Lavabos)
 
-- **Context:** The user needs to use the restrooms.
-- **Action:** The user selects "Restrooms" in the services menu or map.
-- **System:**
-  1. Locates the user's current position.
-  2. Shows the nearest restrooms and their occupancy status (free/busy/queues).
-  3. Guides the user to the chosen restroom with arrows on the map.
+- **Context:** L'usuari necessita anar als lavabos.
+- **Acció:** L'usuari selecciona "Lavabos" al menú de serveis o al mapa.
+- **Sistema:**
+  1. Localitza la posició actual de l'usuari.
+  2. Mostra els lavabos més propers i el seu estat d'ocupació (lliure/ocupat/cues).
+  3. Guia l'usuari fins al lavabo triat amb fletxes al mapa.
 
-## Journey: Arrival at Seat (Grandstand / Standing Area)
+## Journey: Arribada al Seient (Tribuna / Pelouse)
 
-- **Context:** The user has just entered and wants to find their assigned seat.
-- **Action:** The user selects "My Ticket" or scans the QR code.
-- **System:**
-  1. Identifies the zone, gate, row, and seat from the ticket.
-  2. Generates a step-by-step route from the current position to the exact spot.
-  3. Uses augmented reality (AR) to signal the path and precise location.
+- **Context:** L'usuari acaba d'entrar i vol trobar el seu seient assignat.
+- **Acció:** L'usuari selecciona "La meva entrada" o escaneja el codi QR.
+- **Sistema:**
+  1. Identifica la zona, porta, fila i seient a partir de l'entrada.
+  2. Genera una ruta pas a pas des de la posició actual fins al lloc exacte.
+  3. Utilitza realitat augmentada (AR) per senyalitzar el camí i la ubicació precisa.

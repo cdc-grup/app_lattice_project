@@ -1,61 +1,61 @@
-# 🚀 Deployment Guide: Circuit Copilot
+# 🚀 Guia de Desplegament: Circuit Copilot
 
-This document describes the production deployment process for both the API and the mobile application.
+Aquest document descriu el procés de desplegament a producció tant de l'API com de l'aplicació mòbil.
 
 > [!IMPORTANT]
-> Before deploying, make sure all tests pass by running `npm run test` at the root.
+> Abans de desplegar, assegura't que tots els tests passen executant `npm run test` a l'arrel.
 
 ## ☁️ 1. Desplegament de l'API (Node.js + PostGIS)
 
-The backend should be deployed in a provider that supports **Docker Containers** and **Persistent Volumes**.
+El backend s'ha de desplegar en un proveïdor que suporti **Contenidors Docker** i **Volums Persistents**.
 
-### Infrastructure Requirements
-1. **Database:** PostgreSQL 15+ with the **PostGIS** extension.
-2. **SSL/TLS:** Mandatory for HTTPS/WSS.
-3. **WebSockets:** The load balancer must allow persistent connections.
+### Requisits d'Infraestructura
+1. **Base de dades:** PostgreSQL 15+ amb l'extensió **PostGIS**.
+2. **SSL/TLS:** Obligatori per a HTTPS/WSS.
+3. **WebSockets:** El balancejador de càrrega ha de permetre connexions persistents.
 
-### 🔑 Environment Variables (Production)
+### 🔑 Variables d'Entorn (Producció)
 
-| Variable | Description |
+| Variable | Descripció |
 | :--- | :--- |
-| `DATABASE_URL` | Production connection string. |
-| `JWT_SECRET` | Secret key for authentication. |
-| `NODE_ENV` | Must be `production`. |
+| `DATABASE_URL` | Cadena de connexió de producció. |
+| `JWT_SECRET` | Clau secreta per a l'autenticació. |
+| `NODE_ENV` | Ha de ser `production`. |
 
 ## 📱 2. Desplegament de l'Aplicació Mòbil
 
-Utilitzem **EAS (Expo Application Services)** per gestionar les construccions.
+Utilitzem **EAS (Expo Application Services)** per gestionar les construccions (builds).
 
 > [!TIP]
-> Use **Over-the-Air (OTA)** updates to fix minor bugs without having to go through the Store review.
+> Utilitza les actualitzacions **Over-the-Air (OTA)** per corregir errors menors sense haver de passar per la revisió de la Store.
 
-### Build Profiles (`eas.json`)
-Make sure you have the production profile configured with the correct API URLs:
+### Perfils de Construcció (`eas.json`)
+Assegura't de tenir el perfil de producció configurat amb les URLs de l'API correctes:
 
 ```bash
-# For Android (.aab)
+# Per a Android (.aab)
 eas build --platform android --profile production
 
-# For iOS (.ipa)
+# Per a iOS (.ipa)
 eas build --platform ios --profile production
 ```
 
 ## 🧪 3. Verificació Post-Desplegament
 
 > [!CAUTION]
-> Always check the API logs after a deployment to ensure that migrations have been applied correctly.
+> Revisa sempre els logs de l'API després d'un desplegament per assegurar-te que les migracions s'han aplicat correctament.
 
-1. **Health Check:** Verify that `https://api.yourdomain.com/health` responds correctly.
-2. **WebSocket Handshake:** Confirm that the app connects correctly to the production socket.
-3. **Mapbox:** Verify that the production token is active and maps are loading.
+1. **Health Check:** Verifica que `https://api.elvostredomini.com/health` respon correctament.
+2. **WebSocket Handshake:** Confirma que l'app es connecta correctament al socket de producció.
+3. **Mapbox:** Verifica que el token de producció està actiu i els mapes carreguen.
 
 ## 🔄 Pipeline de CI/CD
 
 ```mermaid
 graph LR
-    A[Push to Main] --> B{Lint and Test}
-    B -- Pass --> C[Build Docker]
+    A[Push a Main] --> B{Lint i Test}
+    B -- Passa --> C[Build Docker]
     C --> D[Deploy API]
-    B -- Pass --> E[EAS Update]
+    B -- Passa --> E[EAS Update]
     E --> F[OTA Update]
 ```

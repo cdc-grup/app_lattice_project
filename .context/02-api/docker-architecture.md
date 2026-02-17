@@ -1,32 +1,47 @@
-# Microservices in Docker: Circuit Copilot
+# Microserveis a Docker: Circuit Copilot
 
-This document details the microservices integrated in the Docker environment and those recommended to be added to guarantee system performance in high-density environments.
+Aquest document detalla els microserveis integrats en l'entorn Docker.
 
-## 1. Current Microservices in Docker
+## 1. Microserveis Actuals a Docker
 
-### `api` (Backend - Node.js/Express)
-- **Technology:** Node.js, Express, Socket.io (with MessagePack).
-- **Function:** Manages business logic, JWT authentication, ticket synchronization, and real-time telemetry.
-- **Docker:** Multi-stage build defined in the application's `Dockerfile`.
+### `gateway` (Api Gateway - Port 3000)
+- **Tecnologia:** Node.js, Express.
+- **Funció:** Punt d'entrada únic, encaminament de peticions als serveis interns.
+- **Docker:** Build multi-etapa (apps/gateway/Dockerfile).
 
-### `db` (Database - PostgreSQL)
-- **Technology:** PostgreSQL 15 with the **PostGIS** extension.
-- **Function:** Persistent storage of Points of Interest (POIs), user data, and geographic metadata.
-- **Docker:** Official PostGIS image.
+### `auth-service` (Autenticació - Port 3001)
+- **Tecnologia:** Node.js, Fastify/Express, Drizzle ORM.
+- **Funció:** Autenticació d'usuaris, emissió de JWT, gestió de perfils.
+- **Docker:** Build multi-etapa (apps/auth-service/Dockerfile).
 
-## 2. Recommended Microservices (Detected Gaps)
+### `geo-service` (Lògica Geogràfica - Port 3002)
+- **Tecnologia:** Node.js, PostGIS, Drizzle ORM.
+- **Funció:** Gestió de POIs, navegació, rutes d'accessibilitat.
+- **Docker:** Build multi-etapa (apps/geo-service/Dockerfile).
 
-To comply with high-density requirements (over 100,000 people) and low latency, the integration of the following services is recommended:
+### `social-service` (Social i Temps Real - Port 3003)
+- **Tecnologia:** Node.js, Socket.io.
+- **Funció:** Seguiment de companys en temps real, gestió de grups.
+- **Docker:** Build multi-etapa (apps/social-service/Dockerfile).
+
+### `db` (Base de dades - Port 5432)
+- **Tecnologia:** PostgreSQL 15 amb l'extensió **PostGIS**.
+- **Funció:** Emmagatzematge persistent per a tots els serveis.
+- **Docker:** Imatge oficial de PostGIS.
+
+## 2. Microserveis Recomanats (Gaps Detectats)
+
+Per complir amb els requisits d'alta densitat (més de 100.000 persones) i baixa latència, es recomana la integració dels següents serveis:
 
 ### `cache` (Redis)
-- **Function:** Manage high-volume GPS position telemetry and live race status without overloading the main database.
-- **Benefit:** Drastic reduction of latency in Socket.io updates.
+- **Funció:** Gestionar el gran volum de telemetria de posicions GPS i estat de la cursa en viu sense sobrecarregar la base de dades principal.
+- **Benefici:** Reducció dràstica de la latència en les actualitzacions de Socket.io.
 
 ### `db-admin` (Drizzle Studio / pgAdmin)
-- **Function:** Graphical interface for data management and database visualization during development.
-- **Benefit:** Agility in debugging geographic data.
+- **Funció:** Interfície gràfica per a la gestió de dades i visualització de la base de dades durant el desenvolupament.
+- **Benefici:** Agilitat en la depuració de dades geogràfiques.
 
-## 3. Services Outside Docker
+## 3. Serveis Fora de Docker
 
 ### `mobile` (Frontend - Expo/React Native)
-- **Reason:** According to the project architecture (`.context/00-core/architecture.md`), the mobile application must run natively to optimize communication with Metro Bundler, accelerometers, GPS, and AR sensors (ViroReact) on physical devices.
+- **Motiu:** Requereix accés al maquinari físic (GPS, Bluetooth, Càmera) i integració amb Metro Bundler per al desenvolupament. S'executa en dispositius Android/iOS o simuladors.

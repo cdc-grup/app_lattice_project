@@ -1,45 +1,45 @@
-# 🤝 Contributing to Circuit Copilot
+# 🤝 Contribuint a Circuit Copilot
 
-Thank you for helping us improve the circuit experience! Follow these guidelines to keep the project clean and functional.
+Gràcies per ajudar-nos a millorar l'experiència al circuit! Segueix aquestes directrius per mantenir el projecte net i funcional.
 
 > [!TIP]
-> This is a monorepo managed with **Turborepo**. You can run most tasks from the project root.
+> Aquest és un monorepo gestionat amb **Turborepo**. Pots executar la majoria de tasques des de l'arrel del projecte.
 
-## 🌿 Branching Strategy
+## 🌿 Estratègia de Branques
 
-We use feature branches:
-- `feat/feature-name`: New features.
-- `fix/error-name`: Bug fixes.
-- `docs/description`: Documentation improvements.
+Utilitzem branques de funcionalitat (feature branches):
+- `feat/nom-funcionalitat`: Noves funcionalitats.
+- `fix/nom-error`: Correcció d'errors.
+- `docs/descripcio`: Millores en la documentació.
 
-## 📝 Commit Convention
+## 📝 Convenció de Commits
 
-We follow **Conventional Commits**: `type(scope): description`
+Seguim els **Conventional Commits**: `tipus(abast): descripció`
 - `feat(mobile): add user tracking`
 - `fix(api): fix PostGIS query`
 - `chore(root): update dependencies`
 
-## 🛠️ Development Standards
+## 🛠️ Estàndards de Desenvolupament
 
 > [!IMPORTANT]
-> Before pushing code, make sure the linter does not give errors.
+> Abans de pujar codi, assegura't que el linter no dona errors.
 
-### Shared Logic
-If a function or type is used in more than one place, put it in `packages/shared`.
+### Lògica Compartida
+Si una funció o tipus s'utilitza en més d'un lloc, posa'l a `packages/shared`.
 
-### Recommended Commands
+### Comandes Recomanades
 ```bash
-npm run dev     # Active development
-npm run lint    # Style verification
-npm run test    # Test execution
-npm run format  # Automatic formatting
+npm run dev     # Desenvolupament actiu
+npm run lint    # Verificació d'estil
+npm run test    # Execució de tests
+npm run format  # Formatat automàtic
 ```
 
-## 🚀 Pull Request Process
+## 🚀 Procés de Pull Request
 
-1. **Self-review:** Review your code looking for `console.log` or dead code.
-2. **Documentation:** If you change a feature, update the relevant documents in `docs/`.
-3. **Video/GIF:** If you change the UI or AR, include a visual sample in the PR.
+1. **Auto-revisió:** Revisa el teu codi buscant `console.log` o codi mort.
+2. **Documentació:** Si canvies una funcionalitat, actualitza els documents rellevants a `docs/`.
+3. **Vídeo/GIF:** Si canvies la interfície d'usuari (UI) o la Realitat Augmentada (AR), inclou una mostra visual a la PR.
 
 > [!CAUTION]
-> Do not skip the **Git Hooks**. They are there to ensure that the code sent is of quality.
+> No et saltis els **Git Hooks**. Estan per garantir que el codi enviat és de qualitat.
