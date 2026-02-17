@@ -5,9 +5,7 @@ This document describes the production deployment process for both the API and t
 > [!IMPORTANT]
 > Before deploying, make sure all tests pass by running `npm run test` at the root.
 
----
-
-## ☁️ 1. API Deployment (Node.js + PostGIS)
+## ☁️ 1. Desplegament de l'API (Node.js + PostGIS)
 
 The backend should be deployed in a provider that supports **Docker Containers** and **Persistent Volumes**.
 
@@ -24,11 +22,9 @@ The backend should be deployed in a provider that supports **Docker Containers**
 | `JWT_SECRET` | Secret key for authentication. |
 | `NODE_ENV` | Must be `production`. |
 
----
+## 📱 2. Desplegament de l'Aplicació Mòbil
 
-## 📱 2. Mobile Application Deployment
-
-We use **EAS (Expo Application Services)** to manage builds.
+Utilitzem **EAS (Expo Application Services)** per gestionar les construccions.
 
 > [!TIP]
 > Use **Over-the-Air (OTA)** updates to fix minor bugs without having to go through the Store review.
@@ -44,9 +40,7 @@ eas build --platform android --profile production
 eas build --platform ios --profile production
 ```
 
----
-
-## 🧪 3. Post-Deployment Verification
+## 🧪 3. Verificació Post-Desplegament
 
 > [!CAUTION]
 > Always check the API logs after a deployment to ensure that migrations have been applied correctly.
@@ -55,9 +49,7 @@ eas build --platform ios --profile production
 2. **WebSocket Handshake:** Confirm that the app connects correctly to the production socket.
 3. **Mapbox:** Verify that the production token is active and maps are loading.
 
----
-
-## 🔄 CI/CD Pipeline
+## 🔄 Pipeline de CI/CD
 
 ```mermaid
 graph LR

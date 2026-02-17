@@ -2,64 +2,64 @@
 
 ## 1. General Standards
 
-- **Base URL:** `https://api.circuit-copilot.com/v1`
+- **Base URL:** `https://api.circuit-copilot.com/`
 - **Authentication:** Bearer Token (JWT) in headers. `Authorization: Bearer <token>`
 - **Data Format:** JSON for REST, MessagePack (binary) for WebSockets (location updates).
 - **Geo Format:** All coordinates must follow the **GeoJSON** standard: `[longitude, latitude]`.
 
 ## 2. REST Endpoints (HTTP)
 
-### Authentication and Onboarding (US1, US2)
+### Autenticació i Onboarding (US1, US2)
 
 #### `POST /auth/ticket-sync`
 
-Links a physical/digital ticket with the user and extracts access metadata.
+Enllaça una entrada física/digital amb l'usuari i n'extreu les metadades d'accés.
 
-- **Body:**
+- **Cos (Body):**
 
 ```json
 {
-  "qr_code_data": "CRYPTIC_SCANNER_STRING",
+  "qr_code_data": "CADENA_CRÍPTICA_DEL_ESCÀNER",
   "device_id": "uuid-v4"
 }
 ```
 
-- **Response (200 OK):**
+- **Resposta (200 OK):**
 
 ```json
 {
   "user_id": "u-123",
-  "token": "jwt_token_here",
+  "token": "jwt_token_aquí",
   "ticket_info": {
-    "gate": "Gate 3",
-    "zone": "Grandstand G",
-    "seat": "Row 12, Seat 4",
-    "seat_coordinates": [2.2645, 41.5701] // Target for navigation
+    "gate": "Porta 3",
+    "zone": "Tribuna G",
+    "seat": "Fila 12, Seient 4",
+    "seat_coordinates": [2.2645, 41.5701] // Objectiu per a la navegació
   }
 }
 ```
 
 #### `PATCH /users/me/parking` (US34)
 
-Saves the car's location for the exit.
+Guarda la ubicació del cotxe per a la sortida.
 
-- **Body:**
+- **Cos (Body):**
 
 ```json
 {
   "location": [2.261, 41.569],
-  "notes": "Parking B, Row 4"
+  "notes": "Pàrquing B, Fila 4"
 }
 ```
 
-### Navigation and Map Data (US6, US9)
+### Navegació i Dades del Mapa (US6, US9)
 
 #### `GET /pois`
 
-Obtains static Points of Interest (POI). Can be stored in device cache (local SQLite).
+Obté els Punts d'Interès (POI) estàtics. Es poden emmagatzemar a la memòria cau del dispositiu (SQLite local).
 
-- **Query Params:** `?category=toilet,food&changed_since=2023-10-01`
-- **Response (200 OK):**
+- **Paràmetres de consulta (Query Params):** `?category=toilet,food&changed_since=2023-10-01`
+- **Resposta (200 OK):**
 
 ```json
 {
@@ -72,40 +72,40 @@ Obtains static Points of Interest (POI). Can be stored in device cache (local SQ
         "id": 101,
         "name": "Burger Truck #4",
         "category": "food",
-        "wait_time_minutes": 15 // Calculated based on crowd density
+        "wait_time_minutes": 15 // Calculat a partir de la densitat de la multitud
       }
     }
   ]
 }
 ```
 
-### Intelligent Routing (uses US4, US7)
+### Encaminament Intel·ligent (utilitza US4, US7)
 
 #### `POST /navigation/route`
 
-Requests a pedestrian route taking current congestion into account.
+Sol·licita una ruta per a vianants tenint en compte la congestió actual.
 
-- **Body:**
+- **Cos (Body):**
 
 ```json
 {
   "origin": [2.261, 41.568],
   "destination": [2.265, 41.572],
-  "mode": "walking" // Future: 'vip_shuttle'
+  "mode": "walking" // Futur: 'vip_shuttle'
 }
 ```
 
-- **Response (200 OK):**
+- **Resposta (200 OK):**
 
 ```json
 {
-  "route_geometry": "encoded_polyline_string", // Lightweight for Mapbox
+  "route_geometry": "cadena_polilínia_codificada", // Lleuger per a Mapbox
   "distance_meters": 450,
   "estimated_time_seconds": 380,
-  "congestion_level": "high", // UI activates warning color
+  "congestion_level": "alt", // La UI activa el color d'advertència
   "ar_checkpoints": [
-    // Nodes where AR arrows should appear
-    { "coords": [2.262, 41.569], "instruction": "Turn left at the Red Bull stand" }
+    // Nodes on han d'aparèixer fletxes d'AR
+    { "coords": [2.262, 41.569], "instruction": "Gira a l'esquerra a l'estand de Red Bull" }
   ]
 }
 ```
@@ -113,72 +113,72 @@ Requests a pedestrian route taking current congestion into account.
 ## 3. WebSocket Events (Real-Time)
 
 **Protocol:** Socket.io
-**Namespace:** `/live-track`
+**Espai de noms (Namespace):** `/live-track`
 
-### Client Emissions (What the mobile sends)
+### Emissions del Client (El que envia el mòbil)
 
-#### `user:update_location` (Throttled)
+#### `user:update_location` (Limitat)
 
-Sent at most 1 time every 30 seconds or if moved >20 m.
+Enviat com a màxim 1 vegada cada 30 segons o si s'ha mogut >20 m.
 
-- **Payload:**
+- **Càrrega útil (Payload):**
 
 ```json
 {
   "lat": 41.5701,
   "lng": 2.2645,
-  "accuracy": 12.5, // Meters. Ignore if > 50m
-  "heading": 180, // For AR orientation
+  "accuracy": 12.5, // Metres. Ignora si és > 50m
+  "heading": 180, // Per a l'orientació de l'AR
   "speed": 1.2 // m/s
 }
 ```
 
 #### `group:join`
 
-To join a group of friends.
+Per unir-se a un grup d'amics.
 
-- **Payload:** `{ "group_code": "FAST-CARS-24" }`
+- **Càrrega útil (Payload):** `{ "group_code": "FAST-CARS-24" }`
 
-### Server Emissions (What the mobile receives)
+### 📥 Emissions del Servidor (El que rep el mòbil)
 
 #### `group:locations`
 
-Friend positions on the map.
+Posicions dels amics al mapa.
 
-- **Payload:**
+- **Càrrega útil (Payload):**
 
 ```json
 [
-  { "user_id": "u-456", "name": "Marc", "coords": [2.26, 41.57], "last_seen": "10s ago" },
-  { "user_id": "u-789", "name": "Laia", "coords": [2.27, 41.58], "last_seen": "2min ago" } // UI shows an 'offline' icon
+  { "user_id": "u-456", "name": "Marc", "coords": [2.26, 41.57], "last_seen": "fa 10s" },
+  { "user_id": "u-789", "name": "Laia", "coords": [2.27, 41.58], "last_seen": "fa 2min" } // La UI mostra una icona de 'fora de línia'
 ]
 ```
 
 #### `race:status` (US11)
 
-Live race data (Low Latency).
+Dades de la cursa en viu (Baixa Latència).
 
-- **Payload:**
+- **Càrrega útil (Payload):**
 
 ```json
 {
   "lap": 45,
   "total_laps": 66,
-  "flag": "yellow", // Triggers a UI alert
+  "flag": "yellow", // Activa una alerta a la UI
   "leaderboard_top3": ["VER", "HAM", "NOR"]
 }
 ```
 
-## 4. Error Handling Standards
+## 4. Estàndards de Gestió d'Errors
 
-All error responses must follow this format so the Frontend can display consistent messages:
+Totes les respostes d'error han de seguir aquest format perquè el Frontend pugui mostrar missatges consistents:
 
 ```json
 {
   "error": {
     "code": "TICKET_INVALID",
     "message": "The QR code implies a generic entry, please select zone manually.",
-    "user_friendly_message": "We couldn't detect your zone. Please select it manually.",
+    "user_friendly_message": "No hem pogut detectar la teva zona. Selecciona-la manualment.",
     "status": 400
   }
 }

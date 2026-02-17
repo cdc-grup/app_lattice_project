@@ -15,10 +15,10 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
+  gateway:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/gateway/Dockerfile
       target: development
     ports:
       - "3000:3000"
@@ -27,6 +27,64 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - GEO_SERVICE_URL=http://geo-service:3002
+      - SOCIAL_SERVICE_URL=http://social-service:3003
+    depends_on:
+      - auth-service
+      - geo-service
+      - social-service
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+      target: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:password@db:5432/circuit_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  geo-service:
+    build:
+      context: .
+      dockerfile: apps/geo-service/Dockerfile
+      target: development
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - DATABASE_URL=postgresql://postgres:password@db:5432/circuit_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+  social-service:
+    build:
+      context: .
+      dockerfile: apps/social-service/Dockerfile
+      target: development
+    ports:
+      - "3003:3003"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
       - DATABASE_URL=postgresql://postgres:password@db:5432/circuit_db
     depends_on:
       db:
