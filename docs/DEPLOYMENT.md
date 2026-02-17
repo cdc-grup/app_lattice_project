@@ -5,8 +5,6 @@ Aquest document descriu el procés de desplegament a producció tant per a l'API
 > [!IMPORTANT]
 > Abans de desplegar, assegura't que totes les proves passen executant `npm run test` a l'arrel.
 
----
-
 ## ☁️ 1. Desplegament de l'API (Node.js + PostGIS)
 
 El backend s'ha de desplegar en un proveïdor que admeti **Contenidors Docker** i **Volums Persistents**.
@@ -23,8 +21,6 @@ El backend s'ha de desplegar en un proveïdor que admeti **Contenidors Docker** 
 | `DATABASE_URL` | Cadena de connexió de producció. |
 | `JWT_SECRET` | Clau secreta per a l'autenticació. |
 | `NODE_ENV` | Ha de ser `production`. |
-
----
 
 ## 📱 2. Desplegament de l'Aplicació Mòbil
 
@@ -44,8 +40,6 @@ eas build --platform android --profile production
 eas build --platform ios --profile production
 ```
 
----
-
 ## 🧪 3. Verificació Post-Desplegament
 
 > [!CAUTION]
@@ -54,8 +48,6 @@ eas build --platform ios --profile production
 1. **Health Check:** Verifica que `https://api.tudomini.com/health` respon correctament.
 2. **WebSocket Handshake:** Confirma que l'app es connecta correctament al socket de producció.
 3. **Mapbox:** Verifica que el token de producció està actiu i els mapes es carreguen.
-
----
 
 ## 🔄 Pipeline de CI/CD
 

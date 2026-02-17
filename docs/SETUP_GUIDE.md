@@ -31,72 +31,60 @@ Utilitzem **Turborepo**. No cal fer `npm install` a cada carpeta individual.
 └── docker-compose.yml  # Orquestra la base de dades PostGIS
 ```
 
----
+## 🚀 Guia Ràpida
 
-## 🚀 Pas 1: Instal·lació
+Segueix aquests 5 passos per posar-ho tot en marxa ràpidament:
 
-1. **Clona el repositori:**
-   ```bash
-   git clone https://github.com/la-teva-org/circuit-copilot.git
-   cd circuit-copilot
-   ```
+### 1. Instal·lació de dependències 📦
+Executa aquesta comanda a l'arrel del projecte:
+```bash
+npm install
+```
 
-2. **Instal·la les dependències:**
-   > [!NOTE]
-   > Executa sempre aquesta ordre des de l'arrel per carregar totes les dependències del monorepo.
-   ```bash
-   npm install
-   ```
+### 2. Configuració de l'entorn (.env) 🤫
+Vés a la carpeta `apps/api`:
+1. Còpia l'arxiu `.env.example` i anomena'l `.env.development`.
+2. Edita l'arxiu i posa la URL del servidor extern a `EXTERNAL_API_URL`.
 
-## 🗄️ Pas 2: Base de dades i Infraestructura
+### 3. Arrancar el motor 🏎️
+Des de l'arrel del projecte, encén l'API:
+```bash
+npm run dev --workspace=@app/api
+```
 
-Utilitzem Docker Compose per executar PostgreSQL amb l'extensió PostGIS.
+### 4. Túnel per a Mobile (Zrok) 🪄
+Si vols provar-ho en un mòbil real, obre una altra terminal i executa:
+```bash
+zrok share public http://localhost:3000
+```
+Còpia la URL que et doni (ex: `https://xxxx.zrok.io`) i posa-la a la configuració de la App d'Expo.
 
-1. **Inicia l'entorn:**
-   ```bash
-   docker compose up -d
-   ```
+### 5. Verificació ✅
+Obre el navegador a: `http://localhost:3000/status`. Si veus `"status": "ok"`, ja funciona correctament
 
-2. **Prepara la base de dades:**
-   ```bash
-   npm run migrate
-   ```
+## 🏗️ Estructura del Repositori
+Utilitzem **Turborepo** per gestionar el monorepo d'una sola vegada.
 
-## 💻 Pas 3: Flux de Treball
+- `/apps/mobile`: Aplicació Expo (React Native).
+- `/apps/api`: Backend en Node.js + Express.
+- `/packages/shared`: Tipus i lògica compartida.
+- `/packages/db`: Esquema de dades i migracions.
 
-> [!TIP]
-> Per al desenvolupament actiu, la forma més ràpida és utilitzar la comanda unificada:
-> ```bash
-> npm run dev
-> ```
-> Això aixecarà l'API i el Metro Bundler de Expo alhora.
+## 🗄️ Infraestructura (Docker)
+L'API necessita una base de dades PostGIS. Pots aixecar-la amb:
+```bash
+docker compose up -d
+npm run migrate # Aplica els canvis a la base de dades
+```
 
-### Comandes Principals de l'Arrel
-
-- `npm run dev`: Mode desenvolupament total.
-- `npm run build`: Compila totes les aplicacions verificant tipus.
-- `npm run lint`: Executa l'eslint a tot el monorepo.
-- `npm run test`: Executa les proves unificades.
-
-### 🛠️ Gestió de BD (Drizzle)
-
-- `npm run generate`: Registra canvis en l'esquema.
-- `npm run migrate`: Empeny els canvis a la BD d'infraestructura.
-- `npm run studio`: Visor web de dades local.
-
-## ❓ Solució de Problemes
-
-> [!WARNING]
-> **Token de Mapbox**: Si el mapa apareix en blanc, revisa que el teu token tingui els permisos adequats.
-
-- **PostGIS no detectat**: Si l'API falla en consultes geoespacials, assegura't que el contenidor de Docker està actiu i has executat `npm run migrate`.
-- **Eerrors de Port 8081**: Expo utilitza el port 8081. Tanca altres instàncies de Metro o procesos que puguin estar utilitzant-lo.
-
-## 🌐 Topologia de Xarxa
-
+## 🌐 Topologia de Xarxa (Amb Túnel)
 ```mermaid
 graph TD
-    A["Dispositiu Mòbil (Expo Go)"] -- "WiFi Local" --> B["Host (Ordinador)"]
-    B -- "Port 3000" --> C["Contenidor API"]
-    C -- "Port 5432" --> D["Contenidor PostGIS"]
+    A["Mòbil (Expo Go)"] -- "Internet" --> B["Zrok Cloud (HTTPS)"]
+    B -- "Tunnel" --> C["Local API (Port 3000)"]
+    C -- "Proxy Fallback" --> D["Servidor Extern (QA/Prod)"]
+    C -- "Query" --> E["PostGIS (Docker)"]
 ```
+
+> [!TIP]
+> Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[.context/02-api/dev-strategy.md](file:///home/kore/Documents/Code/Projects/app_25_26_tr3g3_cdc/.context/02-api/dev-strategy.md)**.
