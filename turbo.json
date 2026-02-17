@@ -12,6 +12,17 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "generate": {
+      "cache": false
+    },
+    "migrate": {
+      "cache": false,
+      "dependsOn": ["build"]
+    },
+    "studio": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

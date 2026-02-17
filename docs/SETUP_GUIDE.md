@@ -1,102 +1,103 @@
-# 🛠️ Circuit Copilot: Guia de Configuració para Desarrolladores
+# 🛠️ Circuit Copilot: Developer Setup Guide
 
-Aquesta guia descriu la configuració de l'entorn de desenvolupament local per al monorepo de **Circuit Copilot**.
+This guide describes the local development environment setup for the **Circuit Copilot** monorepo.
 
 > [!IMPORTANT]
-> Aquest projecte està dissenyat per funcionar de manera òptima en sistemes **Linux** o **macOS**. Per a Windows, es recomana l'ús de **WSL2**.
+> This project is designed to work optimally on **Linux** or **macOS**. For Windows, the use of **WSL2** is recommended.
 
-## 📋 Prerequisits
+## 📋 Prerequisites
 
-Abans de clonar el repositori, assegura't de tenir instal·lat el següent:
+Before cloning the repository, make sure you have the following installed:
 
-1. **Node.js (LTS)**: v18.0.0 o superior.
-2. **Docker Desktop**: En funcionament i actualitzat (necessari per a PostGIS i Redis).
-3. **Entorn de Desenvolupament Mòbil**:
-   - **iOS**: Xcode (només per a Mac).
+1. **Node.js (LTS)**: v18.0.0 or higher.
+2. **Docker Desktop**: Running and updated (necessary for PostGIS and Redis).
+3. **Mobile Development Environment**:
+   - **iOS**: Xcode (Mac only).
    - **Android**: Android Studio + SDK Platform Tools.
-4. **Compte de Mapbox**: Necessites un token d'accés públic per als mapes.
+4. **Mapbox Account**: You need a public access token for the maps.
 
-## 🏗️ Estructura del Repositori
+## 🏗️ Repository Structure
 
-Utilitzem **Turborepo**. No cal fer `npm install` a cada carpeta individual.
+We use **Turborepo**. There is no need to run `npm install` in each individual folder.
 
 ```text
 /
 ├── apps/
-│   ├── mobile/         # Aplicació Expo (React Native)
-│   └── api/            # API Node.js + Express
+│   ├── mobile/         # Expo Application (React Native)
+│   └── api/            # Node.js + Express API
 ├── packages/
-│   ├── shared/         # Tipus TypeScript compartits (@app/shared)
-│   └── db/             # Esquema de Drizzle i Migracions (@app/db)
-└── docker-compose.yml  # Orquestra la base de dades PostGIS
+│   ├── shared/         # Shared TypeScript types (@app/shared)
+│   └── db/             # Drizzle Schema and Migrations (@app/db)
+└── docker-compose.yml  # Orchestrates the PostGIS database
 ```
 
 ---
 
-## 🚀 Pas 1: Instal·lació
+## 🚀 Step 1: Installation
 
-1. **Clona el repositori:**
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/la-teva-org/circuit-copilot.git
+   git clone https://github.com/your-org/circuit-copilot.git
    cd circuit-copilot
    ```
 
-2. **Instal·la les dependències:**
+2. **Install dependencies:**
    > [!NOTE]
-   > Executa sempre aquesta ordre des de l'arrel per carregar totes les dependències del monorepo.
+   > Always run this command from the root to load all monorepo dependencies.
    ```bash
    npm install
    ```
 
-## 🗄️ Pas 2: Base de dades i Infraestructura
+## 🗄️ Step 2: Database and Infrastructure
 
-Utilitzem Docker Compose per executar PostgreSQL amb l'extensió PostGIS.
+We use Docker Compose to run PostgreSQL with the PostGIS extension.
 
-1. **Inicia l'entorn:**
+1. **Start the environment:**
    ```bash
    docker compose up -d
    ```
 
-2. **Prepara la base de dades:**
+2. **Prepare the database:**
    ```bash
    npm run migrate
    ```
 
-## 💻 Pas 3: Flux de Treball
+## 💻 Step 3: Workflow
 
 > [!TIP]
-> Per al desenvolupament actiu, la forma més ràpida és utilitzar la comanda unificada:
+> For active development, the fastest way is to use the unified command:
 > ```bash
 > npm run dev
 > ```
-> Això aixecarà l'API i el Metro Bundler de Expo alhora.
+> This will start the API and the Expo Metro Bundler at the same time.
 
-### Comandes Principals de l'Arrel
+### Main Root Commands
 
-- `npm run dev`: Mode desenvolupament total.
-- `npm run build`: Compila totes les aplicacions verificant tipus.
-- `npm run lint`: Executa l'eslint a tot el monorepo.
-- `npm run test`: Executa les proves unificades.
+- `npm run dev`: Full development mode.
+- `npm run build`: Compiles all applications verifying types.
+- `npm run lint`: Runs eslint across the entire monorepo.
+- `npm run test`: Runs unified tests.
 
-### 🛠️ Gestió de BD (Drizzle)
+### 🛠️ Database Management (Drizzle)
 
-- `npm run generate`: Registra canvis en l'esquema.
-- `npm run migrate`: Empeny els canvis a la BD d'infraestructura.
-- `npm run studio`: Visor web de dades local.
+- `npm run generate`: Records schema changes.
+- `npm run migrate`: Pushes changes to the infrastructure DB (PostGIS).
+- `npm run seed`: Fills the database with initial test data.
+- `npm run studio`: Interactive web viewer to explore data.
 
-## ❓ Solució de Problemes
+## ❓ Troubleshooting
 
 > [!WARNING]
-> **Token de Mapbox**: Si el mapa apareix en blanc, revisa que el teu token tingui els permisos adequats.
+> **Mapbox Token**: If the map appears blank, check that your token has the appropriate permissions.
 
-- **PostGIS no detectat**: Si l'API falla en consultes geoespacials, assegura't que el contenidor de Docker està actiu i has executat `npm run migrate`.
-- **Eerrors de Port 8081**: Expo utilitza el port 8081. Tanca altres instàncies de Metro o procesos que puguin estar utilitzant-lo.
+- **PostGIS not detected**: If the API fails on geospatial queries, ensure the Docker container is active and you have run `npm run migrate`.
+- **Port 8081 Errors**: Expo uses port 8081. Close other Metro instances or processes that might be using it.
 
-## 🌐 Topologia de Xarxa
+## 🌐 Network Topology
 
 ```mermaid
 graph TD
-    A["Dispositiu Mòbil (Expo Go)"] -- "WiFi Local" --> B["Host (Ordinador)"]
-    B -- "Port 3000" --> C["Contenidor API"]
-    C -- "Port 5432" --> D["Contenidor PostGIS"]
+    A["Mobile Device (Expo Go)"] -- "Local WiFi" --> B["Host (Computer)"]
+    B -- "Port 3000" --> C["API Container"]
+    C -- "Port 5432" --> D["PostGIS Container"]
 ```

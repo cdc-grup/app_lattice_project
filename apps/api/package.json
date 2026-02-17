@@ -8,15 +8,12 @@
     "dev": "tsx watch index.ts",
     "build": "tsc",
     "lint": "eslint \"**/*.ts\"",
-    "test": "vitest run",
-    "generate": "npm run generate --workspace=@app/db",
-    "migrate": "npm run migrate --workspace=@app/db",
-    "studio": "npm run studio --workspace=@app/db"
+    "test": "vitest run"
   },
   "dependencies": {
     "@app/db": "*",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.30.9",
+    "drizzle-orm": "^0.33.0",
     "express": "^4.21.2"
 
   },
