@@ -1,12 +1,13 @@
 # Dependencies
+**/dist/
 node_modules/
-dist/
 .turbo/
 
 # Environment Variables
 .env
 .env.*
 !.env.example
+.env.*.local
 
 # Expo / Mobile
 .expo/
@@ -15,6 +16,11 @@ expo-env.d.ts
 /apps/mobile/ios/
 /apps/mobile/android/
 *.tsbuildinfo
+**/*.tsbuildinfo
+
+# Monorepo lockfiles
+apps/**/package-lock.json
+packages/**/package-lock.json
 
 # Debug / Logs
 npm-debug.log*
