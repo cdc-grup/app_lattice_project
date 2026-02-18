@@ -24,14 +24,17 @@ Utilitzem **Turborepo**. No cal executar `npm install` a cada carpeta individual
 /
 ├── apps/
 │   ├── mobile/         # Aplicació Expo (React Native)
-│   ├── gateway/        # API Gateway (Punt d'entrada)
-│   ├── auth-service/   # Servei d'Antenticació
-│   ├── geo-service/    # Servei de Mapes i Geo
-│   └── social-service/ # Servei de Grups i Ubicació en viu
+│   └── api/            # Directori de microserveis
+│       ├── gateway/    # API Gateway (Punt d'entrada)
+│       ├── auth/       # Servei d'Antenticació
+│       ├── geo/        # Servei de Mapes i Geo
+│       └── social/     # Servei de Grups i Ubicació en viu
 ├── packages/
-│   ├── shared/         # Tipus TypeScript compartits (@app/shared)
+│   ├── types-schema/   # Tipus i esquemes compartits (@app/types-schema)
+│   ├── core/           # Middleware i utilitats de backend (@app/core)
 │   └── db/             # Esquema de Drizzle i Migracions (@app/db)
-└── docker-compose.yml  # Orquestra tota la infraestructura con Docker
+├── docs/               # Documentació tècnica i d'arquitectura
+└── docker-compose.yml  # Orquestra tota la infraestructura amb Docker
 ```
 
 ## 🚀 Guia Ràpida
@@ -94,4 +97,4 @@ Si estàs utilitzant **Linux amb SELinux actiu** (ex: Fedora, RHEL, CentOS) i ve
 3. Alternativament, comprova si el teu usuari té els permisos correctes al directori amfitrió.
 
 > [!TIP]
-> Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[.context/02-api/dev-strategy.md](file:///home/kore/Documents/Code/Projects/app_25_26_tr3g3_cdc/.context/02-api/dev-strategy.md)**.
+> Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[docs/api/dev-strategy.md](file:///home/nildi/app_25_26_tr3g3_cdc/docs/api/dev-strategy.md)**.

@@ -1,7 +1,7 @@
 {
-  "name": "@app/gateway",
+  "name": "@app/geo",
   "version": "1.0.0",
-  "description": "Circuit Copilot API Gateway",
+  "description": "Circuit Copilot Geo Service",
   "main": "index.ts",
   "type": "module",
   "scripts": {
@@ -11,10 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@app/db": "*",
+    "@app/types-schema": "*",
+    "@app/core": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "http-proxy-middleware": "^3.0.5"
+    "drizzle-orm": "^0.30.9"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

@@ -1,7 +1,7 @@
 {
-  "name": "@app/geo-service",
+  "name": "@app/auth",
   "version": "1.0.0",
-  "description": "Circuit Copilot Geo Service",
+  "description": "Circuit Copilot Auth Service",
   "main": "index.ts",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@app/db": "*",
-    "@app/shared": "*",
+    "@app/types-schema": "*",
+    "@app/core": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",

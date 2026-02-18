@@ -1,5 +1,5 @@
 {
-  "name": "@app/shared",
+  "name": "@app/types-schema",
   "version": "1.0.0",
   "description": "Shared types and logic for Circuit Copilot",
   "main": "./index.ts",

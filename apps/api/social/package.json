@@ -1,7 +1,7 @@
 {
-  "name": "@app/auth-service",
+  "name": "@app/social",
   "version": "1.0.0",
-  "description": "Circuit Copilot Auth Service",
+  "description": "Circuit Copilot Social Service",
   "main": "index.ts",
   "type": "module",
   "scripts": {
@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "@app/db": "*",
-    "@app/shared": "*",
+    "@app/types-schema": "*",
+    "@app/core": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "drizzle-orm": "^0.30.9"
+    "drizzle-orm": "^0.30.9",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

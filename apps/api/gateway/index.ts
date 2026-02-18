@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { logger } from '@app/core';
 
 // Load environment variables
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
@@ -16,6 +17,7 @@ const GEO_SERVICE_URL = process.env.GEO_SERVICE_URL || 'http://localhost:3002';
 const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL || 'http://localhost:3003';
 
 app.use(cors());
+app.use(logger);
 
 // Health Check
 app.get('/status', (req: Request, res: Response) => {
