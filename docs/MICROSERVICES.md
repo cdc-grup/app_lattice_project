@@ -18,29 +18,33 @@ graph TD
     AuthService --> DB[(PostgreSQL + PostGIS)]
     GeoService --> DB
     SocialService --> DB
+    AuthService -.-> Core[(@app/core)]
+    GeoService -.-> Core
+    SocialService -.-> Core
+    Gateway -.-> Core
 ```
 
 ## Serveis
 
-### 1. Gateway (`apps/server/gateway`)
+### 1. Gateway (`apps/api/gateway`)
 És el punt d'entrada únic per a l'aplicació mòbil. No conté lògica de negoci, la seva funció és **redirigir el trànsit**:
 - **Encaminament:** Rep totes les peticions i les envia al microservei corresponent.
 - **Seguretat i Control:** Gestiona la seguretat centralitzada i el límit de peticions (Rate Limiting).
 - **Abstracció:** Si un servei intern canvia d'adreça, el mòbil no necessita saber-ho, només parla amb el Gateway.
 
-### 2. Servei d'Autenticació (`apps/server/auth-service`)
+### 2. Servei d'Autenticació (`apps/api/auth`)
 S'encarrega de tot el relacionat amb qui és l'usuari i el seu accés:
 - **Sincronització d'entrades:** Enllaça el codi QR del tiquet amb un usuari.
 - **Gestió de perfils:** Guarda les preferències (si l'usuari va en cadira de rodes, si prefereix evitar escales, etc.).
 - **Seguretat:** Emissió i validació de tokens JWT.
 
-### 3. Servei Geo (`apps/server/geo-service`)
+### 3. Servei Geo (`apps/api/geo`)
 És el cervell geogràfic de l'aplicació, utilitzant la base de dades PostGIS:
-- **Punts d'Interès (POIs):** Retorna la llista de banys, restaurants, graderies i parkings.
+- **Punts d'Interès (POIs)::** Retorna la llista de banys, restaurants, graderies i parkings.
 - **Navegació:** Calcula la ruta òptima des de la teva posició fins al teu seient o un servei, tenint en compte l'accessibilitat.
 - **Ubicacions guardades:** On has deixat el cotxe o punts de trobada personals.
 
-### 4. Servei Social (`apps/social-service`)
+### 4. Servei Social (`apps/api/social`)
 S'encarrega de la interacció entre persones durant l'esdeveniment:
 - **Gestió de Grups:** Crear grups d'amics i unir-se mitjançant un codi d'invitació (ex. `FAST-CARS`).
 - **Seguiment en viu:** Utilitza WebSockets (`Socket.io`) per compartir la teva posició amb els teus amics en temps real sobre el mapa sense saturar la resta de l'API.

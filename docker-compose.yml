@@ -18,7 +18,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: apps/server/gateway/Dockerfile
+      dockerfile: apps/api/gateway/Dockerfile
       target: development
     ports:
       - "3000:3000"
@@ -28,18 +28,18 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - AUTH_SERVICE_URL=http://auth-service:3001
-      - GEO_SERVICE_URL=http://geo-service:3002
-      - SOCIAL_SERVICE_URL=http://social-service:3003
+      - AUTH_SERVICE_URL=http://auth:3001
+      - GEO_SERVICE_URL=http://geo:3002
+      - SOCIAL_SERVICE_URL=http://social:3003
     depends_on:
-      - auth-service
-      - geo-service
-      - social-service
+      - auth
+      - geo
+      - social
 
-  auth-service:
+  auth:
     build:
       context: .
-      dockerfile: apps/server/auth-service/Dockerfile
+      dockerfile: apps/api/auth/Dockerfile
       target: development
     ports:
       - "3001:3001"
@@ -54,10 +54,10 @@ services:
       db:
         condition: service_healthy
 
-  geo-service:
+  geo:
     build:
       context: .
-      dockerfile: apps/server/geo-service/Dockerfile
+      dockerfile: apps/api/geo/Dockerfile
       target: development
     ports:
       - "3002:3002"
@@ -72,10 +72,10 @@ services:
       db:
         condition: service_healthy
 
-  social-service:
+  social:
     build:
       context: .
-      dockerfile: apps/server/social-service/Dockerfile
+      dockerfile: apps/api/social/Dockerfile
       target: development
     ports:
       - "3003:3003"
