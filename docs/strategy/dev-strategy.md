@@ -24,4 +24,4 @@ Perquè els dispositivos físics (iOS/Android) puguin connectar-se al Gateway qu
 - **Port del Gateway:** 3000
 - **Compartir túnel:** `zrok share public http://localhost:3000`
 
-Per més detalls, consulta el fitxer [ZROK_GUIDE.md](file:///home/kore/Documents/Code/Projects/app_25_26_tr3g3_cdc/docs/ZROK_GUIDE.md).
+Per més detalls, consulta el fitxer [zrok-guide.md](../guides/zrok-guide.md).

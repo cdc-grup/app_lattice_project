@@ -97,4 +97,4 @@ Si estàs utilitzant **Linux amb SELinux actiu** (ex: Fedora, RHEL, CentOS) i ve
 3. Alternativament, comprova si el teu usuari té els permisos correctes al directori amfitrió.
 
 > [!TIP]
-> Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[docs/api/dev-strategy.md](file:///home/nildi/app_25_26_tr3g3_cdc/docs/api/dev-strategy.md)**.
+> Per a una explicació més detallada de l'estratègia de desenvolupament, consulta **[strategy/dev-strategy.md](../strategy/dev-strategy.md)**.
