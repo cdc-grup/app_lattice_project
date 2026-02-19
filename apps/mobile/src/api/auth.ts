@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore, Ticket } from '../store/useAuthStore';
 
 // TODO: Move to environment variables
 const API_BASE_URL = 'http://localhost:3000/api/v1';
@@ -21,7 +21,7 @@ export const useSyncTicket = () => {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { ticket: Ticket }) => {
       setTicket(data.ticket);
     },
   });
