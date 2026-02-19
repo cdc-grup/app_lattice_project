@@ -22,11 +22,11 @@ async function check() {
     `);
     console.log('Column info:', columnInfo.rows[0]);
 
-    // Check if mobility_profile type exists
+    // Check if mobility_mode enum exists
     const typeInfo = await client.query(`
-      SELECT typname FROM pg_type WHERE typname = 'mobility_profile'
+      SELECT typname FROM pg_type WHERE typname = 'mobility_mode'
     `);
-    console.log('mobility_profile exists:', typeInfo.rows.length > 0);
+    console.log('mobility_mode enum exists:', typeInfo.rows.length > 0);
 
     // Check migrations table
     const migrations = await client.query('SELECT * FROM drizzle_migrations');

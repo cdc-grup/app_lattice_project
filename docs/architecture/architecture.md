@@ -11,6 +11,14 @@
 - **Base de dades:** PostgreSQL amb l'extensió **PostGIS** activada.
 - **Temps real:** Socket.io amb analitzador **MessagePack** (per a compressió binària).
 
+## Conceptes Tècnics Detallats
+
+- [**Gestió d'Estat**](./state-management.md): Estratègia amb React Query i Zustand.
+- [**Estratègia Offline**](./offline-strategy.md): Com funciona l'app sense connexió.
+- [**Localització**](../guides/i18n-localization.md): Gestió multi-idioma.
+- [**Bones Pràctiques**](../guides/mobile-best-practices.md): Estàndards de codi React Native.
+- [**Desplegament**](../guides/deployment-eas.md): Distribució amb Expo EAS.
+
 ## Estratègia d'Eficiència de Dades (Entorn d'Alta Densitat)
 
 1. **Limitació de Telemetria:**
