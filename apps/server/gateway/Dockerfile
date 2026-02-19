@@ -5,7 +5,7 @@ COPY package.json package-lock.json* ./
 COPY packages/types-schema ./packages/types-schema
 COPY packages/db ./packages/db
 COPY packages/core ./packages/core
-COPY apps/api/gateway/package.json ./apps/api/gateway/
+COPY apps/server/gateway/package.json ./apps/server/gateway/
 
 # --- Builder Stage ---
 FROM base AS builder
@@ -28,7 +28,7 @@ RUN npm run build --workspace=@app/gateway
 FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=prod-builder /app/apps/api/gateway/dist ./dist
-COPY --from=prod-builder /app/apps/api/gateway/package.json ./package.json
+COPY --from=prod-builder /app/apps/server/gateway/dist ./dist
+COPY --from=prod-builder /app/apps/server/gateway/package.json ./package.json
 RUN npm install --omit=dev --legacy-peer-deps
 CMD ["node", "dist/index.js"]
