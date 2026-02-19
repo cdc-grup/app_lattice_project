@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore, Ticket } from '../store/useAuthStore';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
@@ -20,7 +20,7 @@ export const useSyncTicket = () => {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { ticket: Ticket }) => {
       setTicket(data.ticket);
     },
   });

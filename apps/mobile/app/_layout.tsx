@@ -12,7 +12,7 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = (segments[0] as string) === '(auth)';
     
     if (!token && !inAuthGroup) {
       // router.replace("/(auth)/login"); // Enable when login screen is ready
