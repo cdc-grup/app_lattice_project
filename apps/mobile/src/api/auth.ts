@@ -1,8 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../store/useAuthStore';
 
-// TODO: Move to environment variables
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
 export const useSyncTicket = () => {
   const setTicket = useAuthStore((state) => state.setTicket);
