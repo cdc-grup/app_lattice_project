@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Semantic Colors from colors.ts */
+    --background: 240 10% 4%; /* #0F0F10 */
+    --foreground: 0 0% 100%;
+    
+    --primary: 3 100% 59%; /* #FF382E */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 5% 10%; /* #181110 */
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 240 5% 64%; /* #9CA3AF */
+    --muted-foreground: 240 5% 46%; /* #71717A */
+    
+    --accent: 3 100% 59%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 15%; /* #27272A */
+    --input: 240 5% 15%;
+    --ring: 3 100% 59%;
+  }
+}

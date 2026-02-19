@@ -18,7 +18,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: apps/api/gateway/Dockerfile
+      dockerfile: apps/server/gateway/Dockerfile
       target: development
     ports:
       - "3000:3000"
@@ -39,7 +39,7 @@ services:
   auth:
     build:
       context: .
-      dockerfile: apps/api/auth/Dockerfile
+      dockerfile: apps/server/auth/Dockerfile
       target: development
     ports:
       - "3001:3001"
@@ -57,7 +57,7 @@ services:
   geo:
     build:
       context: .
-      dockerfile: apps/api/geo/Dockerfile
+      dockerfile: apps/server/geo/Dockerfile
       target: development
     ports:
       - "3002:3002"
@@ -75,7 +75,7 @@ services:
   social:
     build:
       context: .
-      dockerfile: apps/api/social/Dockerfile
+      dockerfile: apps/server/social/Dockerfile
       target: development
     ports:
       - "3003:3003"
