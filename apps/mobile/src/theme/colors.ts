@@ -1,36 +1,33 @@
 export const colors = {
   text: {
     primary: '#FFFFFF',    // White
-    secondary: '#9CA3AF',  // Gray 400 (titles/subtitles)
-    tertiary: '#71717A',   // Zinc 500 (muted text)
+    secondary: '#9CA3AF',  // Gray 400
+    muted: '#71717A',      // Zinc 500
     accent: '#FF382E',     // Red 500
-    error: '#7F1D1D',      // Red 900
+    error: '#EF4444',      // Red 500 (Standard error)
     inverse: '#000000',    // Black
   },
   background: {
-    primary: '#0F0F10',    // Stone 950 (main bg)
+    primary: '#0F0F10',    // Stone 950
     secondary: '#181110',  // Neutral 900
     tertiary: '#281B1B',   // Stone 900
     surface: '#18181B',    // Zinc 900
-    card: '#27272A',       // Zinc 800
     overlay: 'rgba(0, 0, 0, 0.6)',
   },
-  button: {
-    primary: '#FF382E',    // Red 500
-    primaryText: '#FFFFFF',
-    secondary: '#1F2937',  // Gray 800
-    secondaryText: '#FFFFFF',
-    disabled: '#4B5563',   // Gray 600
+  primary: {
+    DEFAULT: '#FF382E',
+    light: '#FF5C54',
+    dark: '#D12D25',
+    glow: 'rgba(255, 56, 46, 0.4)',
   },
   border: {
     default: '#27272A',    // Zinc 800
     muted: '#334155',      // Slate 700
-    accent: '#FF382E',     // Red 500
   },
   status: {
-    success: '#4ADE80',    // Green 400
-    warning: '#EAB308',    // Yellow 500
-    error: '#FF382E',      // Red 500
+    success: '#4ADE80',
+    warning: '#EAB308',
+    error: '#FF382E',
   }
 } as const;
 

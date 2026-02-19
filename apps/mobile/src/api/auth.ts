@@ -1,0 +1,27 @@
+import { useMutation } from '@tanstack/react-query';
+import { useAuthStore, Ticket } from '../store/useAuthStore';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+
+export const useSyncTicket = () => {
+  const setTicket = useAuthStore((state) => state.setTicket);
+
+  return useMutation({
+    mutationFn: async (ticketCode: string) => {
+      const response = await fetch(`${API_BASE_URL}/auth/sync-ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: ticketCode }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync ticket');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data: { ticket: Ticket }) => {
+      setTicket(data.ticket);
+    },
+  });
+};
