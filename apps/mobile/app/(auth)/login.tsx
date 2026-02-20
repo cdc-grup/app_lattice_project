@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSyncTicket, useLogin, useRegister } from '../../src/api/auth';
 import { Ionicons } from '@expo/vector-icons';
+import { Box } from '../../src/components/ui/Box';
 
 export default function LoginScreen() {
   const [activeTab, setActiveTab] = useState<'ticket' | 'account'>('ticket');
@@ -122,7 +123,7 @@ export default function LoginScreen() {
 
               {/* Main Auth Card */}
               <View className="py-4 w-full">
-                <View className="p-1.5 bg-white/5 rounded-[32px] border border-white/10 w-full overflow-hidden">
+                <Box variant="glass" className="p-1.5">
                   
                   {/* Glassmorphism Tab Switcher */}
                   <View className="flex-row p-1 bg-black/40 rounded-3xl gap-1">
@@ -170,14 +171,14 @@ export default function LoginScreen() {
                           </View>
                         </View>
 
-                        <View className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex-row gap-4 items-center">
+                        <Box variant="outline" className="p-4 bg-primary/5 border-primary/10 flex-row gap-4 items-center">
                           <View className="w-10 h-10 rounded-full bg-primary/20 justify-center items-center">
                             <Text className="text-primary text-lg">💡</Text>
                           </View>
                           <Text className="text-muted text-xs font-medium leading-5 flex-1">
                             Find the 8-digit code on your pass or email.
                           </Text>
-                        </View>
+                        </Box>
                       </View>
                     ) : (
                       <View className="gap-5">
@@ -260,7 +261,7 @@ export default function LoginScreen() {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                </View>
+                  </Box>
               </View>
 
               {/* Footer / Socials */}

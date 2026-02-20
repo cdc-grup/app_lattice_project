@@ -17,7 +17,12 @@ Utilitzem un sistema de **Tokens Semàntics** basat en `colors.ts` i variables C
 ## 📐 Tipografia i Radi
 
 - **Radi de Vora:** Utilitzem radis grans (`rounded-2xl`, `rounded-3xl`) per a un aspecte modern i suau.
-- **Tipografia:** Es prioritza la llegibilitat en entorns d'alta vibració (com un circuit).
+- **Tipografia:** Hem implementat la font **Inter** com el pilar central de lectura.
+  - `font-sans`: Inter Regular (400)
+  - `font-medium`: Inter Medium (500)
+  - `font-bold`: Inter Bold (700)
+  - `font-black`: Inter Black (900)
+- **Escalabilitat tipogràfica:** Les fonts s'integren mitjançant un sistema de *Font Mapping* centralitzat.
 
 ## ✨ Efectes Premium
 
@@ -55,6 +60,26 @@ Les definicions de `colors.ts` es traslladen a variables CSS en l'arrel de l'apl
 El motor de Tailwind consumeix les variables CSS.
 - **Configuració:** S'estén el tema de Tailwind per mapar els colors semàntics (ex: `primary`) a les variables CSS (`var(--primary)`).
 - **Consum:** Els desenvolupadors utilitzen classes estàndard com `text-primary` o `bg-background`.
+
+## 📦 Arquitectura de Components (Atomicity)
+
+L'aplicació segueix un enfocament de **Components Atòmics** per garantir la coherència visual i la reutilització de codi.
+
+### 1. El UI Kit (`src/components/ui`)
+Conté els "madrilles" bàsics de la interfície. Aquests components són totalment visuals i no tenen lògica de negoci.
+- **`Box`**: El contenidor universal. Gestiona el glassmorphism, les vores i el fons semàntic.
+- **`Button / Typography / TextField`**: (Projectats) Components que asseguren que el feedback visual i hàptic sigui idèntic en tota l'app.
+
+### 2. Components de Negoci (`src/components/...)
+Components més complexos que utilitzen el UI Kit però que tenen consciència de les dades del circuit.
+
+## 🔡 Sistema de Tipografia (Sincronització)
+
+Igual que amb els colors, la tipografia segueix un flux professional:
+
+1. **Configuració (`src/theme/typography.ts`)**: Defineix el mapa semàntic de les fonts.
+2. **Càrrega (`src/hooks/useAppFonts.ts`)**: Hook centralitzat que gestiona la càrrega d'assets i la `SplashScreen`.
+3. **Mapatge Tailwind**: Registre al `tailwind.config.js` per permetre l'ús de classes `font-*`.
 
 ## 📈 Beneficis de l'Enfocament
 - **Manteniment Centralitzat:** Un únic canvi a `colors.ts` es propaga instantàniament a tota la infraestructura visual (JS i CSS).
