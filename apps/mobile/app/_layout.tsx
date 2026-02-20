@@ -12,14 +12,23 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    const inAuthGroup = (segments[0] as string) === '(auth)';
+    // Check if the router is ready before navigating
+    // segments can be empty on first load
+    if (segments === undefined) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
     
-    if (!token && !inAuthGroup) {
-      // router.replace("/(auth)/login"); // Enable when login screen is ready
-    } else if (token && inAuthGroup) {
-      // router.replace("/");
-    }
-  }, [token, segments]);
+    // Use a small timeout to ensure the layout has mounted
+    const timeout = setTimeout(() => {
+      if (!token && !inAuthGroup) {
+        router.replace("/(auth)/login");
+      } else if (token && inAuthGroup) {
+        router.replace("/");
+      }
+    }, 1);
+
+    return () => clearTimeout(timeout);
+  }, [token, segments, router]);
 
   return (
     <QueryClientProvider client={queryClient}>

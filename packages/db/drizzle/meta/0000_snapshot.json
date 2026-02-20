@@ -1,10 +1,8 @@
 {
-  "id": "a7a16747-b73e-4432-a834-c19b8c2673f7",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "group_members": {
+    "public.group_members": {
       "name": "group_members",
       "schema": "",
       "columns": {
@@ -44,28 +42,28 @@
         "group_members_user_id_users_id_fk": {
           "name": "group_members_user_id_users_id_fk",
           "tableFrom": "group_members",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "group_members_group_id_groups_id_fk": {
           "name": "group_members_group_id_groups_id_fk",
           "tableFrom": "group_members",
-          "tableTo": "groups",
           "columnsFrom": [
             "group_id"
           ],
+          "tableTo": "groups",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -77,9 +75,12 @@
           ]
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "groups": {
+    "public.groups": {
       "name": "groups",
       "schema": "",
       "columns": {
@@ -125,29 +126,32 @@
         "groups_created_by_users_id_fk": {
           "name": "groups_created_by_users_id_fk",
           "tableFrom": "groups",
-          "tableTo": "users",
           "columnsFrom": [
             "created_by"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "groups_invite_code_unique": {
           "name": "groups_invite_code_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "invite_code"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "offline_packages": {
+    "public.offline_packages": {
       "name": "offline_packages",
       "schema": "",
       "columns": {
@@ -185,9 +189,12 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "path_segments": {
+    "public.path_segments": {
       "name": "path_segments",
       "schema": "",
       "columns": {
@@ -238,9 +245,12 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "points_of_interest": {
+    "public.points_of_interest": {
       "name": "points_of_interest",
       "schema": "",
       "columns": {
@@ -298,9 +308,12 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "saved_locations": {
+    "public.saved_locations": {
       "name": "saved_locations",
       "schema": "",
       "columns": {
@@ -340,21 +353,24 @@
         "saved_locations_user_id_users_id_fk": {
           "name": "saved_locations_user_id_users_id_fk",
           "tableFrom": "saved_locations",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "tickets": {
+    "public.tickets": {
       "name": "tickets",
       "schema": "",
       "columns": {
@@ -425,29 +441,32 @@
         "tickets_user_id_users_id_fk": {
           "name": "tickets_user_id_users_id_fk",
           "tableFrom": "tickets",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "tickets_code_unique": {
           "name": "tickets_code_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "code"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -517,62 +536,75 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     }
   },
   "enums": {
-    "crowd_level": {
+    "public.crowd_level": {
       "name": "crowd_level",
-      "values": {
-        "low": "low",
-        "moderate": "moderate",
-        "high": "high",
-        "blocked": "blocked"
-      }
+      "schema": "public",
+      "values": [
+        "low",
+        "moderate",
+        "high",
+        "blocked"
+      ]
     },
-    "mobility_profile": {
+    "public.mobility_profile": {
       "name": "mobility_profile",
-      "values": {
-        "standard": "standard",
-        "wheelchair": "wheelchair",
-        "reduced_mobility": "reduced_mobility",
-        "visual_impairment": "visual_impairment",
-        "family_stroller": "family_stroller"
-      }
+      "schema": "public",
+      "values": [
+        "standard",
+        "wheelchair",
+        "reduced_mobility",
+        "visual_impairment",
+        "family_stroller"
+      ]
     },
-    "poi_type": {
+    "public.poi_type": {
       "name": "poi_type",
-      "values": {
-        "restaurant": "restaurant",
-        "wc": "wc",
-        "grandstand": "grandstand",
-        "gate": "gate",
-        "medical": "medical",
-        "shop": "shop",
-        "parking": "parking",
-        "meetup_point": "meetup_point"
-      }
+      "schema": "public",
+      "values": [
+        "restaurant",
+        "wc",
+        "grandstand",
+        "gate",
+        "medical",
+        "shop",
+        "parking",
+        "meetup_point"
+      ]
     },
-    "surface_type": {
+    "public.surface_type": {
       "name": "surface_type",
-      "values": {
-        "asphalt": "asphalt",
-        "grass": "grass",
-        "gravel": "gravel",
-        "stairs": "stairs",
-        "ramp": "ramp"
-      }
+      "schema": "public",
+      "values": [
+        "asphalt",
+        "grass",
+        "gravel",
+        "stairs",
+        "ramp"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "a7a16747-b73e-4432-a834-c19b8c2673f7",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "sequences": {},
+  "policies": {},
+  "views": {},
+  "roles": {}
 }

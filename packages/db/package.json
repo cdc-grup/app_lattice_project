@@ -14,15 +14,15 @@
     "lint": "eslint \"**/*.ts\""
   },
   "dependencies": {
-    "drizzle-orm": "^0.33.0",
-    "pg": "^8.11.5",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.11.5"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.24.0",
+    "@types/node": "^20.11.24",
     "@types/pg": "^8.11.5",
+    "drizzle-kit": "^0.31.9",
     "tsx": "^4.7.1",
-    "typescript": "^5.3.3",
-    "@types/node": "^20.11.24"
+    "typescript": "^5.3.3"
   }
 }

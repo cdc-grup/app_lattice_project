@@ -23,3 +23,6 @@ Per mantenir el codi net, eficient i fàcil de mantenir.
 - **Instal·lació de Paquets:** Utilitza SEMPRE `npx expo install [package-name]`. Això garanteix que la versió del paquet sigui compatible amb la versió d'SDK d'Expo actual.
 - **Expo Go vs Development Builds:** El projecte utilitza mòduls natius personalitzats (MMKV, Reanimated, Nitro). Per tant, **NO es pot utilitzar Expo Go**. S'ha d'utilitzar una **Development Build** instal·lada al dispositiu/emulador via `npx expo run:android` o `npx expo run:ios`.
 - **EAS Build:** Les compilacions per a test o producció es gestionen a través d'Expo Application Services (EAS).
+## 6. Experiència Premium (UX)
+- **Haptics:** Utilitza `expo-haptics` per donar feedback tàctil en accions importants (clics en botons principals, errors o successos). Això augmenta la sensació de qualitat de l'app.
+- **Micro-animacions:** Usa `react-native-reanimated` per a transicions suaus entre estats.

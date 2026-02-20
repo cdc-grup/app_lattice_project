@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { pool } from './index';
+import { pool } from './index.js';
 
 async function check() {
   const client = await pool.connect();
@@ -12,7 +12,7 @@ async function check() {
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
-    console.log('Tables:', tables.rows.map(r => r.table_name).join(', '));
+    console.log('Tables:', tables.rows.map((r: any) => r.table_name).join(', '));
 
     // Check mobility_mode column type in users table
     const columnInfo = await client.query(`

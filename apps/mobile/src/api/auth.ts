@@ -9,7 +9,7 @@ export const useSyncTicket = () => {
 
   return useMutation({
     mutationFn: async (ticketCode: string) => {
-      const response = await fetch(`${API_BASE_URL}/auth/sync-ticket`, {
+      const response = await fetch(`${API_BASE_URL}/auth/ticket-sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ qr_code_data: ticketCode, device_id: 'mobile-app' }),
