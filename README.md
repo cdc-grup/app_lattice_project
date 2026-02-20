@@ -29,7 +29,7 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 1.  **Install**: `npm install` at the root.
 2.  **Infrastructure**: `docker compose up -d` to start PostgreSQL and PostGIS.
-3.  **Mobile Build**: `npx expo run:android --workspace=mobile` (Run this at least once to create the Development Build).
+3.  **Mobile Build**: `npm run android -w mobile` (Run this at least once to create the Development Build).
 4.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
 
 ## 🛠️ Available Commands (Root)
@@ -43,6 +43,7 @@ You can manage the entire project directly from the root of the monorepo:
 | `npm run lint` | Runs the linter across the entire project. |
 | `npm run test` | Runs unit and integration tests. |
 | `npm run format` | Formats code across the entire project with Prettier. |
+| `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
 
 ### 🗄️ Database Management
 
