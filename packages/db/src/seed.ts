@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { db, pool } from './index';
-import { users, pointsOfInterest } from './schema';
+import { db, pool } from './index.js';
+import { users, pointsOfInterest } from './schema.js';
 import { sql } from 'drizzle-orm';
 
 async function seed() {

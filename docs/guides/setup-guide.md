@@ -70,13 +70,16 @@ Has de crear una **Development Build** i instal·lar-la al teu dispositiu o emul
 
 **Per a Android:**
 ```bash
-npx expo run:android --workspace=mobile
+npm run android -w mobile
 ```
 
 **Per a iOS:**
 ```bash
-npx expo run:ios --workspace=mobile
+npm run ios -w mobile
 ```
+
+> [!TIP]
+> El flag `-w` és una abreviació de `--workspace`. Permet executar comandes d'un paquet específic des de l'arrel del projecte.
 
 Un cop la "Development Build" estigui instal·lada al teu mòbil, ja no caldrà tornar a executar aquesta comanda tret que afegeixis nous paquets amb codi natiu. Per al desenvolupament diari, només caldrà tenir el Metro Bundler obert (`npm run dev`).
 

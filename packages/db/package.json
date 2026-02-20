@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Shared database schema and connection logic",
   "main": "src/index.ts",
+  "type": "module",
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
-    "generate": "drizzle-kit generate:pg",
+    "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
     "seed": "tsx src/seed.ts",
     "studio": "drizzle-kit studio",
