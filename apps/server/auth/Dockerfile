@@ -2,15 +2,15 @@
 FROM node:20-slim AS base
 WORKDIR /app
 COPY package.json package-lock.json* ./
-COPY packages/types-schema ./packages/types-schema
-COPY packages/db ./packages/db
-COPY packages/core ./packages/core
+COPY packages/types-schema/package.json ./packages/types-schema/
+COPY packages/db/package.json ./packages/db/
+COPY packages/core/package.json ./packages/core/
 COPY apps/server/auth/package.json ./apps/server/auth/
 
 # --- Builder Stage ---
 FROM base AS builder
-COPY . .
 RUN npm install --legacy-peer-deps
+COPY . .
 RUN npm run build --workspace=@app/types-schema || true
 RUN npm run build --workspace=@app/db || true
 RUN npm run build --workspace=@app/core || true
