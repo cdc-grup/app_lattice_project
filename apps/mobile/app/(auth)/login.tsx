@@ -3,11 +3,11 @@ import {
   View, 
   Text, 
   ScrollView, 
-  SafeAreaView, 
   TouchableOpacity, 
   StatusBar,
   TextInput
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSyncTicket } from '../../src/api/auth';
 
 export default function LoginScreen() {

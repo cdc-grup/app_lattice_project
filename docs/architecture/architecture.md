@@ -3,6 +3,8 @@
 ## Definició de l'Stack Tecnològic
 
 - **Framework Mòbil:** Expo (React Native).
+  - **IMPORTANT:** Tots els paquets de dependències han de ser compatibles amb Expo. S'ha de prioritzar sempre l'ús de `npx expo install` en comptes de `npm install` per garantir la compatibilitat de versions.
+  - **Development Builds:** A causa de l'ús de mòduls natius personalitzats (MMKV, Nitro, etc.), l'app s'ha d'executar mitjançant **Development Builds** (`npx expo run:android`), no amb l'app estàndard d'Expo Go.
 - **Motor de Mapes:** **Mapbox SDK** (`@rnmapbox/maps`).
   - _Motiu:_ Necessari per a tiles vectorials personalitzats del circuit i el graf de navegació offline.
 - **Motor d'AR:** **ViroCommunity (ViroReact)**.
