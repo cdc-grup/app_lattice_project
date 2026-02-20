@@ -53,7 +53,7 @@ Cada servei té el seu propi arxiu de configuració. Vés a `apps/server/gateway
 2. Edita l'arxiu amb les credencials corresponents.
 
 ### 3. Arrancar el sistema 🏎️
-Des de l'arrel del projecte, pots arrancar tots els serveis:
+Des de l'arrel del projecte, pots arrancar tots els serveis (API + Bundler de Mobile):
 ```bash
 npm run dev
 ```
@@ -62,14 +62,32 @@ O via Docker (recomanat per a base de dades):
 docker compose up --build
 ```
 
-### 4. Túnel per a Mobile (Zrok) 🪄
+### 4. Compilar i Executar al Mòbil 📱
+> [!CAUTION]
+> **Aquest projecte NO és compatible amb l'app estàndard "Expo Go"** a causa de l'ús de mòduls natius personalitzats (MMKV, Nitro).
+
+Has de crear una **Development Build** i instal·lar-la al teu dispositiu o emulador:
+
+**Per a Android:**
+```bash
+npx expo run:android --workspace=mobile
+```
+
+**Per a iOS:**
+```bash
+npx expo run:ios --workspace=mobile
+```
+
+Un cop la "Development Build" estigui instal·lada al teu mòbil, ja no caldrà tornar a executar aquesta comanda tret que afegeixis nous paquets amb codi natiu. Per al desenvolupament diari, només caldrà tenir el Metro Bundler obert (`npm run dev`).
+
+### 5. Túnel per a Mobile (Zrok) 🪄
 Si vols provar-ho en un mòbil real, obre una altra terminal i executa:
 ```bash
 zrok share public http://localhost:3000
 ```
-Còpia la URL que et doni (ex: `https://xxxx.zrok.io`) i posa-la a la configuració de la App d'Expo.
+Còpia la URL que et doni (ex: `https://xxxx.zrok.io`) i posa-la a la configuració `.env` de la App de Mobile (`EXPO_PUBLIC_API_URL`).
 
-### 5. Verificació ✅
+### 6. Verificació ✅
 Obre el navegador a: `http://localhost:3000/status` (Gateway). Si veus `"status": "gateway_ok"`, ja funciona correctament.
 
 ## 🗄️ Infraestructura (Docker)
@@ -82,7 +100,7 @@ npm run migrate # Aplica els canvis a la base de dades
 ## 🌐 Topologia de Xarxa (Amb Túnel)
 ```mermaid
 graph TD
-    A["Mòbil (Expo Go)"] -- "Internet" --> B["Zrok Cloud (HTTPS)"]
+    A["Mòbil (Development Build)"] -- "Internet" --> B["Zrok Cloud (HTTPS)"]
     B -- "Tunnel" --> C["Gateway (Port 3000)"]
     C -- "Routing" --> D["Microserveis (Auth, Geo, Social)"]
     D -- "Query" --> E["PostGIS (Docker)"]

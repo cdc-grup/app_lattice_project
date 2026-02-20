@@ -11,15 +11,16 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 ### 🧠 Project Context (AI-Ready)
 
-- **[System Prompt](.context/00-core/system-prompt.md)**: Code style guidelines, language, and agent behavior.
-- **[Architecture](.context/00-core/architecture.md)**: Technical structure and data flow details.
-- **[User Journeys](.context/01-product/user-journeys.md)**: Business logic and main user flows.
+- **[System Prompt](docs/product/system-prompt.md)**: Code style guidelines and agent behavior.
+- **[Architecture](docs/architecture/architecture.md)**: Technical structure and data flow details.
+- **[User Journeys](docs/product/user-journeys.md)**: Business logic and main user flows.
+- **[Mobile Best Practices](docs/guides/mobile-best-practices.md)**: Expo guidelines and code style.
 
 ### 🛠️ Specifications and Guides
 
-- **[Setup Guide](docs/SETUP_GUIDE.md)**: How to set up the local environment with Docker.
-- **[Deployment Guide](docs/DEPLOYMENT.md)**: How to take the application to production.
-- **[Contributor Guide](docs/CONTRIBUTING.md)**: Rules for branches, commits, and Pull Requests.
+- **[Setup Guide](docs/guides/setup-guide.md)**: How to set up the local environment with Docker.
+- **[Deployment Guide](docs/guides/deployment.md)**: How to take the application to production.
+- **[Contributor Guide](docs/guides/contributing.md)**: Rules for branches, commits, and Pull Requests.
 
 ## ⚡ Quick Start
 
@@ -28,7 +29,8 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 1.  **Install**: `npm install` at the root.
 2.  **Infrastructure**: `docker compose up -d` to start PostgreSQL and PostGIS.
-3.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
+3.  **Mobile Build**: `npx expo run:android --workspace=mobile` (Run this at least once to create the Development Build).
+4.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
 
 ## 🛠️ Available Commands (Root)
 

@@ -18,3 +18,8 @@ Per mantenir el codi net, eficient i fàcil de mantenir.
 ## 4. Rendiment (Battery & CPU)
 - **GPS:** No demanis el GPS més del necessari. Usa la telemetria intel·ligent descrita a l'arquitectura.
 - **AR:** El mode AR consumeix molta bateria. Implementa un `timeout` si l'usuari no es mou o tanca la càmera automàticament.
+
+## 5. Ecosistema Expo
+- **Instal·lació de Paquets:** Utilitza SEMPRE `npx expo install [package-name]`. Això garanteix que la versió del paquet sigui compatible amb la versió d'SDK d'Expo actual.
+- **Expo Go vs Development Builds:** El projecte utilitza mòduls natius personalitzats (MMKV, Reanimated, Nitro). Per tant, **NO es pot utilitzar Expo Go**. S'ha d'utilitzar una **Development Build** instal·lada al dispositiu/emulador via `npx expo run:android` o `npx expo run:ios`.
+- **EAS Build:** Les compilacions per a test o producció es gestionen a través d'Expo Application Services (EAS).

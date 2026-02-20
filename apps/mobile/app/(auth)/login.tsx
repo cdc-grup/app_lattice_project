@@ -3,13 +3,13 @@ import {
   View, 
   Text, 
   ScrollView, 
-  SafeAreaView, 
   TouchableOpacity, 
   StatusBar,
   TextInput,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSyncTicket, useLogin, useRegister } from '../../src/api/auth';
 
 export default function LoginScreen() {
