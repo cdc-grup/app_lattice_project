@@ -113,7 +113,7 @@ export default function LoginScreen() {
                 <Text className="text-foreground text-3xl font-bold text-center leading-9 mb-2 tracking-tight">
                   {activeTab === 'ticket' ? 'Race Ready' : (authMode === 'login' ? 'Welcome Back' : 'Join the Grid')}
                 </Text>
-                <Text className="text-muted text-sm text-center font-normal px-4">
+                <Text className="text-muted text-sm font-sans text-center font-normal px-4">
                   {activeTab === 'ticket' 
                     ? 'Sync your racing pass for full track access and live AR data.' 
                     : 'Access your account or create a new one to track your stats.'}

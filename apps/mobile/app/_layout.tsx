@@ -4,21 +4,26 @@ import { useAuthStore } from "../src/store/useAuthStore";
 import { useEffect } from "react";
 import { useRouter, useSegments } from "expo-router";
 
+import { useAppFonts } from "../src/hooks/useAppFonts";
+import * as SplashScreen from 'expo-splash-screen';
+
 const queryClient = new QueryClient();
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const { loaded: fontsLoaded, error: fontError } = useAppFonts();
+
   const token = useAuthStore((state) => state.token);
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    // Check if the router is ready before navigating
-    // segments can be empty on first load
-    if (segments === undefined) return;
+    // Check if the fonts are loaded and router is ready before navigating
+    if (!fontsLoaded || segments === undefined) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     
-    // Use a small timeout to ensure the layout has mounted
     const timeout = setTimeout(() => {
       if (!token && !inAuthGroup) {
         router.replace("/(auth)/login");
@@ -28,7 +33,11 @@ export default function RootLayout() {
     }, 1);
 
     return () => clearTimeout(timeout);
-  }, [token, segments, router]);
+  }, [token, segments, router, fontsLoaded]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
