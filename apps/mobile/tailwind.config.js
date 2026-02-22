@@ -1,5 +1,5 @@
 module.exports = {
-  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -31,6 +31,10 @@ module.exports = {
         ring: "hsl(var(--ring))",
       },
       borderRadius: {
+        xl: "1rem",
+        "2xl": "1.5rem",
+        "3xl": "2rem",
+        full: "9999px",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -40,6 +44,9 @@ module.exports = {
         medium: ["Inter-Medium"],
         bold: ["Inter-Bold"],
         black: ["Inter-Black"],
+      },
+      backdropBlur: {
+        xs: "2px",
       },
     },
   },

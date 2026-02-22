@@ -5,7 +5,6 @@ export const typography = {
     bold: 'Inter-Bold',
     black: 'Inter-Black',
   },
-  // Aquí podries afegir una font 'secondary' si en tinguéssis una altra
 } as const;
 
 export default typography;

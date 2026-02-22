@@ -67,8 +67,8 @@ L'aplicació segueix un enfocament de **Components Atòmics** per garantir la co
 
 ### 1. El UI Kit (`src/components/ui`)
 Conté els "madrilles" bàsics de la interfície. Aquests components són totalment visuals i no tenen lògica de negoci.
-- **`Box`**: El contenidor universal. Gestiona el glassmorphism, les vores i el fons semàntic.
-- **`Button / Typography / TextField`**: (Projectats) Components que asseguren que el feedback visual i hàptic sigui idèntic en tota l'app.
+- **`Typography`**: Gestiona els diferents pesos de la font Inter de forma consistent.
+- **`Button / TextField`**: (Projectats) Components que asseguren que el feedback visual i hàptic sigui idèntic en tota l'app.
 
 ### 2. Components de Negoci (`src/components/...)
 Components més complexos que utilitzen el UI Kit però que tenen consciència de les dades del circuit.
