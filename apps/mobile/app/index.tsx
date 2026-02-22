@@ -10,6 +10,7 @@ import { SearchBar } from "../src/components/ui/SearchBar";
 import { FilterChip } from "../src/components/ui/FilterChip";
 import { POICard } from "../src/components/ui/POICard";
 import { BottomNav } from "../src/components/ui/BottomNav";
+import { colors } from "../src/theme/colors";
 
 // Config - Custom "Digital Non-Real" HUD Style
 const HUD_STYLE = {
@@ -37,7 +38,7 @@ const HUD_STYLE = {
       id: "background",
       type: "background",
       paint: {
-        "background-color": "#0F0F10", // Match app background
+        "background-color": colors.background.primary, // Match app background precisely
       },
     },
   ],
@@ -88,14 +89,14 @@ export default function MapScreen() {
       <SafeAreaView className="flex-1 pointer-events-none" edges={['top']}>
         
         {/* Top Section: Intelligent Search */}
-        <View className="px-4 pt-4 pointer-events-auto">
+        <View className="px-5 pt-4 pointer-events-auto">
           <SearchBar onARToggle={() => console.log('AR Navigation Requested')} />
           
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
-            className="mt-4"
-            contentContainerStyle={{ paddingBottom: 8 }}
+            className="mt-5"
+            contentContainerStyle={{ paddingRight: 20 }}
           >
             {categories.map((cat) => (
               <FilterChip
@@ -113,17 +114,17 @@ export default function MapScreen() {
 
         {/* Floating Digital Controls */}
         <View className="absolute right-4 bottom-72 gap-3 pointer-events-auto">
-          <TouchableOpacity className="w-10 h-10 bg-black/60 rounded-full items-center justify-center border border-white/10 backdrop-blur-md shadow-lg">
+          <TouchableOpacity className="w-10 h-10 bg-black/60 rounded-full items-center justify-center border border-border/50 backdrop-blur-md shadow-lg">
             <Ionicons name="layers-outline" size={20} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity className="w-10 h-10 bg-black/60 rounded-full items-center justify-center border border-white/10 backdrop-blur-md shadow-lg">
+          <TouchableOpacity className="w-10 h-10 bg-black/60 rounded-full items-center justify-center border border-border/50 backdrop-blur-md shadow-lg">
             <Ionicons name="locate" size={20} color="white" />
           </TouchableOpacity>
         </View>
 
         {/* Stylized Information Layer */}
         {showPOI && (
-          <View className="px-4 mb-4 pointer-events-auto">
+          <View className="px-5 mb-6 pointer-events-auto">
             <POICard 
               title="Paddock Club Grill"
               category="Food Court"

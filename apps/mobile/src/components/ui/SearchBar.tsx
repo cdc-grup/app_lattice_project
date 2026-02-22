@@ -16,24 +16,25 @@ export const SearchBar = ({
 }: SearchBarProps) => {
   return (
     <View className="flex-row gap-3">
-      <View className="flex-1 bg-black/50 border border-white/10 rounded-full h-12 px-4 flex-row items-center backdrop-blur-xl">
-        <Ionicons name="search" size={20} color="#9CA3AF" />
+      <View className="flex-1 bg-white/10 border border-white/20 rounded-2xl h-14 px-5 flex-row items-center backdrop-blur-2xl">
+        <Ionicons name="search-outline" size={20} color="#D1D5DB" />
         <TextInput
-          className="flex-1 ml-2 text-white font-medium text-sm"
+          className="flex-1 ml-3 text-white font-medium text-base"
           placeholder={placeholder}
           placeholderTextColor="#9CA3AF"
           onChangeText={onSearch}
         />
-        <TouchableOpacity>
-          <Ionicons name="mic" size={20} color="#9CA3AF" />
+        <TouchableOpacity activeOpacity={0.7}>
+          <Ionicons name="mic-outline" size={20} color="#D1D5DB" />
         </TouchableOpacity>
       </View>
       
       <TouchableOpacity 
         onPress={onARToggle}
-        className="w-12 h-12 bg-black/50 border border-white/10 rounded-full items-center justify-center backdrop-blur-xl"
+        activeOpacity={0.7}
+        className="w-14 h-14 bg-white/10 border border-white/20 rounded-2xl items-center justify-center backdrop-blur-2xl"
       >
-        <Ionicons name="cube-outline" size={22} color="white" />
+        <Ionicons name="cube-outline" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );

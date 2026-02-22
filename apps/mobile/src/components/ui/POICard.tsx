@@ -25,64 +25,67 @@ export const POICard = ({
   onShare,
 }: POICardProps) => {
   return (
-    <Box variant="glass" className="p-4 shadow-2xl backdrop-blur-3xl">
+    <View className="bg-black/60 border border-white/20 rounded-[32px] p-5 shadow-2xl backdrop-blur-3xl overflow-hidden">
       <View className="flex-row justify-between items-start">
         <View>
-          <View className="flex-row items-center gap-2 mb-1">
-            <View className="bg-primary/20 px-2 py-0.5 rounded">
-              <Text className="text-primary text-[10px] font-black uppercase">{category}</Text>
+          <View className="flex-row items-center gap-2 mb-2">
+            <View className="bg-primary px-2.5 py-1 rounded-lg">
+              <Text className="text-white text-[10px] font-black uppercase tracking-wider">{category}</Text>
             </View>
-            <View className="flex-row items-center gap-1">
-              <View className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}`} />
-              <Text className={`${isOpen ? 'text-green-400' : 'text-red-400'} text-[10px] font-medium`}>
+            <View className="flex-row items-center gap-1.5 ml-1">
+              <View className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-500' : 'bg-destructive'}`} />
+              <Text className={`${isOpen ? 'text-green-500' : 'text-destructive'} text-[11px] font-bold`}>
                 {isOpen ? 'Open Now' : 'Closed'}
               </Text>
             </View>
           </View>
-          <Text className="text-white text-lg font-bold">{title}</Text>
-          <View className="flex-row items-center gap-1 mt-1">
-            <Ionicons name="time-outline" size={14} color="#9CA3AF" />
-            <Text className="text-muted text-xs font-medium">{waitTime} • {distance}</Text>
+          <Text className="text-white text-2xl font-bold tracking-tight">{title}</Text>
+          <View className="flex-row items-center gap-1.5 mt-2">
+            <Ionicons name="time-outline" size={16} color="#D1D5DB" />
+            <Text className="text-white/80 text-sm font-medium">{waitTime} walk ({distance})</Text>
           </View>
         </View>
         <TouchableOpacity 
           onPress={onClose}
-          className="w-8 h-8 bg-white/5 rounded-full items-center justify-center"
+          activeOpacity={0.7}
+          className="w-10 h-10 bg-white/10 border border-white/20 rounded-full items-center justify-center"
         >
-          <Ionicons name="close" size={18} color="#9CA3AF" />
+          <Ionicons name="close" size={20} color="#D1D5DB" />
         </TouchableOpacity>
       </View>
 
-      {/* Placeholder for POI Preview Images */}
-      <View className="flex-row mt-4 gap-3">
-        <View className="w-28 h-20 rounded-xl bg-white/10 overflow-hidden border border-white/5 items-center justify-center">
-          <Ionicons name="image-outline" size={24} color="rgba(255,255,255,0.2)" />
+      {/* POI Preview Images */}
+      <View className="flex-row mt-6 gap-3">
+        <View className="flex-1 aspect-[4/3] rounded-2xl bg-white/5 overflow-hidden border border-white/10 items-center justify-center">
+          <Ionicons name="image-outline" size={24} color="#374151" />
         </View>
-        <View className="w-28 h-20 rounded-xl bg-white/10 overflow-hidden border border-white/5 items-center justify-center">
-          <Ionicons name="image-outline" size={24} color="rgba(255,255,255,0.2)" />
+        <View className="flex-1 aspect-[4/3] rounded-2xl bg-white/5 overflow-hidden border border-white/10 items-center justify-center">
+          <Ionicons name="image-outline" size={24} color="#374151" />
         </View>
-        <View className="w-20 h-20 rounded-xl bg-white/5 items-center justify-center border border-white/5">
-          <Text className="text-muted text-xs font-bold">+4</Text>
+        <View className="w-20 aspect-square rounded-2xl bg-white/5 items-center justify-center border border-white/10">
+          <Text className="text-white/60 text-sm font-bold">+4 more</Text>
         </View>
       </View>
 
       {/* Action Buttons */}
-      <View className="flex-row mt-4 gap-3">
+      <View className="flex-row mt-6 gap-3">
         <TouchableOpacity 
           onPress={onNavigate}
-          className="flex-1 h-12 bg-primary rounded-xl flex-row items-center justify-center gap-2 shadow-lg shadow-primary/30"
+          activeOpacity={0.8}
+          className="flex-1 h-14 bg-primary rounded-2xl flex-row items-center justify-center gap-3 shadow-[0_8px_20px_rgba(255,56,46,0.3)]"
         >
-          <Ionicons name="navigate" size={18} color="white" />
-          <Text className="text-white font-bold text-sm">Navigate Here</Text>
+          <Ionicons name="navigate" size={20} color="white" />
+          <Text className="text-white font-black text-base italic uppercase">Navigate Here</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           onPress={onShare}
-          className="w-12 h-12 bg-white/5 rounded-xl border border-white/10 items-center justify-center"
+          activeOpacity={0.7}
+          className="w-14 h-14 bg-white/5 rounded-2xl border border-white/10 items-center justify-center"
         >
-          <Ionicons name="share-outline" size={20} color="white" />
+          <Ionicons name="share-outline" size={22} color="white" />
         </TouchableOpacity>
       </View>
-    </Box>
+    </View>
   );
 };
 

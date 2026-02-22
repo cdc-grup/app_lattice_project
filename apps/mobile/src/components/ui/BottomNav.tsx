@@ -10,7 +10,7 @@ interface NavItemProps {
 }
 
 const NavItem = ({ label, icon, isActive, onPress }: NavItemProps) => {
-  const color = isActive ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))';
+  const color = isActive ? '#FF382E' : '#9CA3AF';
   
   return (
     <TouchableOpacity 
