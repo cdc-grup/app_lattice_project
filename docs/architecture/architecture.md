@@ -5,8 +5,8 @@
 - **Framework Mòbil:** Expo (React Native).
   - **IMPORTANT:** Tots els paquets de dependències han de ser compatibles amb Expo. S'ha de prioritzar sempre l'ús de `npx expo install` en comptes de `npm install` per garantir la compatibilitat de versions.
   - **Development Builds:** A causa de l'ús de mòduls natius personalitzats (MMKV, Nitro, etc.), l'app s'ha d'executar mitjançant **Development Builds** (`npx expo run:android`), no amb l'app estàndard d'Expo Go.
-- **Motor de Mapes:** **Mapbox SDK** (`@rnmapbox/maps`).
-  - _Motiu:_ Necessari per a tiles vectorials personalitzats del circuit i el graf de navegació offline.
+- **Motor de Mapes:** **MapLibre GL** (`@maplibre/maplibre-react-native`).
+  - _Motiu:_ Arquitectura Open Source, d'alt rendiment i sense dependència forçada de tokens de pagament per al desenvolupament base. Permet estils "Digital Non-Real" personalitzats.
 - **Motor d'AR:** **ViroCommunity (ViroReact)**.
   - _Motiu:_ Suport natiu per a objectes 3D geo-anclats (Location-based AR).
 - **Backend:** Node.js (Express).

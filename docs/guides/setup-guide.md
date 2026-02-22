@@ -14,7 +14,7 @@ Abans de clonar el repositori, assegura't de tenir instal·lat el següent:
 3. **Entorn de Desenvolupament Mòbil**:
    - **iOS**: Xcode (només Mac).
    - **Android**: Android Studio + SDK Platform Tools.
-4. **Compte de Mapbox**: Necessites un token d'accés públic per als mapes.
+4. **Mapes**: Utilitzem MapLibre (Open Source), pel que no cal un token obligatori per al desenvolupament inicial.
 
 ## 🏗️ Estructura del Repositori
 

@@ -49,7 +49,7 @@ Per garantir la màxima escalabilitat i mantenibilitat, hem implementat un model
 ### 1. El Nucli (`src/theme/colors.ts`)
 Aquest fitxer és l'origen de totes les definicions cromàtiques.
 - **Funció:** Defineix els valors Hexadecimals/RGBA en un objecte TypeScript.
-- **Utilitat:** Proporciona suport natiu per a llibreries de tercers (Mapbox, Reanimated, Charts) que requereixen dades tipades en temps d'execució.
+- **Utilitat:** Proporciona suport natiu per a llibreries de tercers (MapLibre, Reanimated, Charts) que requereixen dades tipades en temps d'execució.
 
 ### 2. El Pont de Sincronització (`global.css`)
 Les definicions de `colors.ts` es traslladen a variables CSS en l'arrel de l'aplicació.

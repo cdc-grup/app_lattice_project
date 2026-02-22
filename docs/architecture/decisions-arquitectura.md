@@ -20,3 +20,11 @@ Totes les rutes de comunicació externa utilitzen el prefix `/api/v1`.
 
 ### Implementació al Gateway
 El Gateway central està configurat per encaminar tant les rutes amb prefix `/api/v1` com les rutes directes, assegurant una transició suau.
+
+## 4. Pivot de Motor de Mapes: De Mapbox a MapLibre
+S'ha decidit migrar de `@rnmapbox/maps` a `@maplibre/maplibre-react-native`.
+
+### Motius de la decisió:
+1. **Llibertat i Cost**: Evitem el bloqueig de proveïdor (vendor lock-in) y la necessitat de tokens de pagament per a builds nacionals/bàsiques.
+2. **Escalabilitat Open Source**: MapLibre permet una personalització total dels estils (JSON) sense limitacions de servei.
+3. **Optimització**: L'arquitectura actual permet un renderitzat fluid de mapes "Digital Non-Real" a escala exacta sense dependències externes pesades.
