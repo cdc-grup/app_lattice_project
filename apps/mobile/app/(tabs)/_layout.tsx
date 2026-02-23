@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ComponentProps } from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
@@ -7,6 +7,19 @@ type IconProps = {
   color: string;
   size: number;
 };
+
+interface TabConfig {
+  name: string;
+  title: string;
+  icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+}
+
+const TABS: TabConfig[] = [
+  { name: 'home', title: 'Home', icon: 'home' },
+  { name: 'schedule', title: 'Schedule', icon: 'calendar-month' },
+  { name: 'index', title: 'Map', icon: 'map' },
+  { name: 'profile', title: 'Profile', icon: 'account' },
+];
 
 export default function TabsLayout() {
   return (
@@ -20,23 +33,26 @@ export default function TabsLayout() {
           height: 60,
           paddingBottom: 10,
         },
-        tabBarActiveTintColor: '#FF3B30',
-        tabBarInactiveTintColor: '#64748b',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: {
           fontSize: 10,
           fontFamily: 'Inter-Medium',
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Circuit',
-          tabBarIcon: ({ color, size }: IconProps) => (
-            <MaterialCommunityIcons name="map-marker-radius" size={size} color={color} />
-          ),
-        }}
-      />
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, size }: IconProps) => (
+              <MaterialCommunityIcons name={tab.icon as any} size={size} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
