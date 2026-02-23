@@ -9,7 +9,7 @@ async function seed() {
   // 1. Seed a test user
   const [testUser] = await db.insert(users).values({
     email: 'kore@example.com',
-    passwordHash: 'hashed_password_here', // In a real app, this would be a bcrypt hash
+    passwordHash: 'password123', // Updated for easier testing
     fullName: 'Kore User',
     mobilityMode: 'standard',
   }).onConflictDoNothing().returning();
