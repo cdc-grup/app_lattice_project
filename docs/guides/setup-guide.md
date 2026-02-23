@@ -97,8 +97,12 @@ Obre el navegador a: `http://localhost:3000/status` (Gateway). Si veus `"status"
 El sistema necessita una base de dades PostGIS. Pots aixecar-la i aplicar migracions amb:
 ```bash
 docker compose up db -d
-npm run migrate # Aplica els canvis a la base de dades
+npm run migrate # Aplica els canvis a l'esquema de la base de dades
+npm run seed -- --filter=@app/db # Pobla la base de dades amb dades inicials (POIs, etc.)
 ```
+
+> [!NOTE]
+> L'script de `seed` s'encarrega d'inserir els Punts d'Interès (POIs) del Circuit de Barcelona-Catalunya per poder provar el mapa i l'API `geo` correctament.
 
 ## 🌐 Topologia de Xarxa (Amb Túnel)
 ```mermaid

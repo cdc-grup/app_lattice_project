@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
+import { useAuthStore } from '../../src/hooks/useAuthStore';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const token = useAuthStore((state) => state.token);
   const [authMode, setAuthMode] = React.useState<'ticket' | 'account'>('ticket');
+
+  useEffect(() => {
+    if (token) {
+      router.replace('/(tabs)');
+    }
+  }, [token]);
   const [ticketId, setTicketId] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');

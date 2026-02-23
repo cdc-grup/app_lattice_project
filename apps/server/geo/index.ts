@@ -27,6 +27,8 @@ app.get('/pois', async (req: Request, res: Response) => {
       name: pointsOfInterest.name,
       type: pointsOfInterest.type,
       description: pointsOfInterest.description,
+      crowdLevel: pointsOfInterest.crowdLevel,
+      isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
       geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`
     }).from(pointsOfInterest);
 
@@ -37,7 +39,9 @@ app.get('/pois', async (req: Request, res: Response) => {
         id: poi.id,
         name: poi.name,
         category: poi.type,
-        description: poi.description
+        description: poi.description,
+        crowdLevel: poi.crowdLevel,
+        isWheelchairAccessible: poi.isWheelchairAccessible
       }
     }));
 

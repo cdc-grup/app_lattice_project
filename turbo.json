@@ -20,6 +20,9 @@
       "cache": false,
       "dependsOn": ["build"]
     },
+    "seed": {
+      "cache": false
+    },
     "studio": {
       "cache": false,
       "persistent": true
