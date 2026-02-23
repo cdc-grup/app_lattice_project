@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TextInput, Text } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Typography from '../../src/components/ui/Typography';
-import Button from '../../src/components/ui/Button';
-import Input from '../../src/components/ui/Input';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -36,12 +33,12 @@ export default function LoginScreen() {
               <View className="w-16 h-16 mb-6 rounded-2xl bg-primary items-center justify-center shadow-lg shadow-primary/50">
                 <MaterialCommunityIcons name="racing-helmet" size={40} color="white" />
               </View>
-              <Typography variant="h1" className="text-center mb-2">
+              <Text className="text-h1 font-black text-white text-center mb-2">
                 Welcome to the Grid
-              </Typography>
-              <Typography variant="small" className="text-muted text-center">
+              </Text>
+              <Text className="text-small text-muted text-center">
                 Sync your pass or login to access race data.
-              </Typography>
+              </Text>
             </View>
 
             {/* Auth Mode Selector */}
@@ -50,25 +47,21 @@ export default function LoginScreen() {
                 onPress={() => setAuthMode('ticket')}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'ticket' ? 'bg-primary' : ''}`}
               >
-                <Typography 
-                  weight="medium" 
-                  variant="small"
-                  className={authMode === 'ticket' ? 'text-white' : 'text-muted'}
+                <Text 
+                  className={`text-small font-medium ${authMode === 'ticket' ? 'text-white' : 'text-muted'}`}
                 >
                   Fast Ticket Sync
-                </Typography>
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={() => setAuthMode('account')}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'account' ? 'bg-primary' : ''}`}
               >
-                <Typography 
-                  weight="medium" 
-                  variant="small"
-                  className={authMode === 'account' ? 'text-white' : 'text-muted'}
+                <Text 
+                  className={`text-small font-medium ${authMode === 'account' ? 'text-white' : 'text-muted'}`}
                 >
                   Account Sync
-                </Typography>
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -76,36 +69,79 @@ export default function LoginScreen() {
             <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 backdrop-blur-lg">
               {authMode === 'ticket' ? (
                 <View>
-                  <Input 
-                    label="Enter Ticket ID"
-                    value={ticketId}
-                    onChangeText={setTicketId}
-                    autoCapitalize="characters"
-                    rightElement={
+                  {/* Standard Input replacement */}
+                  <View className="mb-6">
+                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
+                      Ticket ID
+                    </Text>
+                    <View className="flex-row items-center border-b border-slate-700 py-1">
+                      <TextInput 
+                        className="flex-1 text-white text-lg py-2"
+                        value={ticketId}
+                        onChangeText={setTicketId}
+                        autoCapitalize="characters"
+                        placeholder="EX: CIRCUIT25"
+                        placeholderTextColor="#4b5563"
+                      />
                       <TouchableOpacity className="p-1">
                         <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FF3B30" />
                       </TouchableOpacity>
-                    }
-                  />
+                    </View>
+                  </View>
                   
                   <View className="flex-row items-start bg-primary/10 border border-primary/20 p-3 rounded-xl mb-8">
                     <MaterialCommunityIcons name="information-outline" size={16} color="#FF3B30" className="mt-0.5 mr-2" />
-                    <Typography variant="tiny" className="text-primary/80 flex-1 leading-relaxed">
+                    <Text className="text-tiny text-primary/80 flex-1 leading-relaxed">
                       Use the 8-digit code found on your physical pass or email confirmation.
-                    </Typography>
+                    </Text>
                   </View>
 
-                  <Button 
-                    title="SYNC ACCESS"
+                  {/* Standard Button replacement */}
+                  <TouchableOpacity 
                     onPress={handleSyncAccess}
-                    icon={<MaterialCommunityIcons name="flash-outline" size={20} color="white" />}
-                  />
+                    className="bg-primary py-4 px-6 rounded-xl flex-row items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
+                  >
+                    <View className="mr-2">
+                       <MaterialCommunityIcons name="flash-outline" size={20} color="white" />
+                    </View>
+                    <Text className="text-white font-bold">
+                      SYNC ACCESS
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ) : (
                 <View>
-                  <Input label="Email Address" keyboardType="email-address" autoCapitalize="none" />
-                  <Input label="Password" secureTextEntry />
-                  <Button title="LOGIN TO ACCOUNT" onPress={handleSyncAccess} />
+                  <View className="mb-6">
+                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
+                      Email Address
+                    </Text>
+                    <TextInput 
+                      className="border-b border-slate-700 text-white text-lg py-3"
+                      keyboardType="email-address" 
+                      autoCapitalize="none" 
+                      placeholder="user@example.com"
+                      placeholderTextColor="#4b5563"
+                    />
+                  </View>
+                  <View className="mb-8">
+                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
+                      Password
+                    </Text>
+                    <TextInput 
+                      className="border-b border-slate-700 text-white text-lg py-3"
+                      secureTextEntry 
+                      placeholder="••••••••"
+                      placeholderTextColor="#4b5563"
+                    />
+                  </View>
+                  <TouchableOpacity 
+                    onPress={handleSyncAccess}
+                    className="bg-primary py-4 px-6 rounded-xl items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
+                  >
+                    <Text className="text-white font-bold">
+                      LOGIN TO ACCOUNT
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -113,28 +149,28 @@ export default function LoginScreen() {
             {/* Footer Actions */}
             <View className="items-center gap-y-6">
               <TouchableOpacity className="flex-row items-center">
-                <Typography variant="small" className="text-muted mr-1">
+                <Text className="text-small text-muted mr-1">
                   Need help finding your ticket?
-                </Typography>
+                </Text>
                 <MaterialCommunityIcons name="arrow-right" size={16} color="#FF3B30" />
               </TouchableOpacity>
 
               <View className="flex-row items-center w-full py-4 mt-4">
                 <View className="flex-1 h-[1px] bg-slate-800" />
-                <Typography variant="tiny" className="mx-4 text-slate-500 uppercase tracking-widest">
+                <Text className="text-tiny mx-4 text-slate-500 uppercase tracking-widest">
                   Or continue with
-                </Typography>
+                </Text>
                 <View className="flex-1 h-[1px] bg-slate-800" />
               </View>
 
               <View className="flex-row w-full gap-x-4">
                 <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl">
                   <MaterialCommunityIcons name="apple" size={20} color="white" className="mr-2" />
-                  <Typography weight="medium" variant="small">Apple</Typography>
+                  <Text className="text-small font-medium text-white">Apple</Text>
                 </TouchableOpacity>
                 <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl">
                   <MaterialCommunityIcons name="google" size={20} color="white" className="mr-2" />
-                  <Typography weight="medium" variant="small">Google</Typography>
+                  <Text className="text-small font-medium text-white">Google</Text>
                 </TouchableOpacity>
               </View>
             </View>

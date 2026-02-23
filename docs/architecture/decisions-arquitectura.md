@@ -5,10 +5,19 @@ Aquest document detalla les convencions i decisions estratègiques preses per ga
 ## 1. Backend: Carpeta `apps/server`
 S'utilitza `server` com a contenidor de tots els microserveis del backend per diferenciar clarament el codi de servidor del codi mòbil.
 
-## 2. Frontend: `api` vs `services`
-Dins de `apps/mobile/src`:
-- **`api` (Network Layer)**: Exclusivament per a la comunicació externa (hooks de React Query, instàncies de fetch).
-- **`services` (Business Logic)**: Per a la lògica de negoci, càlculs locals i interacció amb hardware (GPS, AR).
+## 2. Frontend: Estructura de `apps/mobile`
+S'utilitza una separació clara entre la navegació i la lògica per optimitzar el rendiment i la claredat:
+
+- **`/app`**: EXCLUSIVAMENT per a rutes i layouts (Expo Router). Conté els fitxers de navegació com `_layout.tsx`, `index.tsx` i subcarpetes de ruta (ex: `(auth)/login.tsx`).
+- **`/src`**: Tota la lògica de negoci, components reutilitzables i estils de l'aplicació.
+  - **`components/`**: Components UI base (Botons, Inputs, Cards).
+  - **`hooks/`**: Lògica de dades (Data Logic), estat global (Zustand) i custom hooks.
+  - **`services/`**: Trucades a l'API (Fetch/Axios) i serveis externs.
+  - **`styles/`**: Temes, colors, tipografies i variables de disseny globals.
+
+### Tipografia (Design Tokens)
+Per garantir el màxim rendiment, no utilitzem un component `Typography` personalitzat. Utilitzem **Tailwind Design Tokens** configurats a `tailwind.config.js`. Això permet usar el component `Text` estàndard amb classes semàntiques (`text-h1`, `text-body`, etc.).
+village
 
 ## 3. Versionat de l'API (`/v1`)
 Totes les rutes de comunicació externa utilitzen el prefix `/api/v1`.

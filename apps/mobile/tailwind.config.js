@@ -39,6 +39,14 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontSize: {
+        h1: ["2.25rem", { lineHeight: "2.5rem" }],
+        h2: ["1.5rem", { lineHeight: "2rem" }],
+        h3: ["1.25rem", { lineHeight: "1.75rem" }],
+        body: ["1rem", { lineHeight: "1.5rem" }],
+        small: ["0.875rem", { lineHeight: "1.25rem" }],
+        tiny: ["0.75rem", { lineHeight: "1rem" }],
+      },
       fontFamily: {
         sans: ["Inter-Regular"],
         medium: ["Inter-Medium"],

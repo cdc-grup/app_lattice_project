@@ -7,7 +7,7 @@ import {
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { typography } from '../theme/typography';
+import { typography } from '../styles/typography';
 
 export function useAppFonts() {
   const [loaded, error] = useFonts({

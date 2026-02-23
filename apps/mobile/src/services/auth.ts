@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useAuthStore, Ticket, User } from '../store/useAuthStore';
+import { useAuthStore, Ticket, User } from '../hooks/useAuthStore';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
