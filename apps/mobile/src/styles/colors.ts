@@ -1,6 +1,8 @@
 export const colors = {
   primary: '#FF3B30', // Racing Red
-  background: '#0A0A0B', // Premium Dark
+  background: '#170D0E', // Updated Background
+  navbar: '#0F0F10',
+  border: '#1A1A1B',
   surface: '#18181B', // Dark Gray Surface
   muted: '#9CA3AF', // Slate 400
   accent: '#FF3B30',

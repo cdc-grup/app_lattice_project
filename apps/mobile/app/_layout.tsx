@@ -10,6 +10,11 @@ import {
   Inter_900Black 
 } from "@expo-google-fonts/inter";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Initialize QueryClient
+const queryClient = new QueryClient();
+
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
@@ -32,8 +37,11 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)/login" options={{ animation: 'fade' }} />
-    </Stack>
+    <QueryClientProvider client={queryClient}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)/login" options={{ animation: 'fade' }} />
+        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+      </Stack>
+    </QueryClientProvider>
   );
 }

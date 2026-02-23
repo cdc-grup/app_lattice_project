@@ -1,25 +1,63 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TextInput, Text } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSyncTicket, useLogin } from '../../src/services/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [authMode, setAuthMode] = useState<'ticket' | 'account'>('ticket');
-  const [ticketId, setTicketId] = useState('');
+  const [authMode, setAuthMode] = React.useState<'ticket' | 'account'>('ticket');
+  const [ticketId, setTicketId] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  const syncTicket = useSyncTicket();
+  const login = useLogin();
 
   const handleSyncAccess = () => {
-    console.log('Syncing access for ticket:', ticketId);
-    // router.replace('/(tabs)');
+    if (authMode === 'ticket') {
+      if (!ticketId) {
+        Alert.alert('Error', 'Please enter a ticket ID');
+        return;
+      }
+      
+      syncTicket.mutate(ticketId, {
+        onSuccess: () => {
+          console.log('Syncing access for ticket:', ticketId);
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Sync Failed', error.message);
+        }
+      });
+    } else {
+      if (!email || !password) {
+        Alert.alert('Error', 'Email and password are required');
+        return;
+      }
+
+      login.mutate({ email, password }, {
+        onSuccess: () => {
+          console.log('Login successful for:', email);
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Login Failed', error.message);
+        }
+      });
+    }
   };
+
+  const isLoading = syncTicket.isPending || login.isPending;
 
   return (
     <View className="flex-1 bg-background">
       <StatusBar style="light" />
       <Stack.Screen options={{ headerShown: false }} />
 
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
@@ -45,6 +83,7 @@ export default function LoginScreen() {
             <View className="bg-black/20 p-1 rounded-2xl mb-8 flex-row border border-white/10">
               <TouchableOpacity 
                 onPress={() => setAuthMode('ticket')}
+                disabled={isLoading}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'ticket' ? 'bg-primary' : ''}`}
               >
                 <Text 
@@ -55,6 +94,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={() => setAuthMode('account')}
+                disabled={isLoading}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'account' ? 'bg-primary' : ''}`}
               >
                 <Text 
@@ -69,7 +109,6 @@ export default function LoginScreen() {
             <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 backdrop-blur-lg">
               {authMode === 'ticket' ? (
                 <View>
-                  {/* Standard Input replacement */}
                   <View className="mb-6">
                     <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
                       Ticket ID
@@ -82,8 +121,9 @@ export default function LoginScreen() {
                         autoCapitalize="characters"
                         placeholder="EX: CIRCUIT25"
                         placeholderTextColor="#4b5563"
+                        editable={!isLoading}
                       />
-                      <TouchableOpacity className="p-1">
+                      <TouchableOpacity className="p-1" disabled={isLoading}>
                         <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FF3B30" />
                       </TouchableOpacity>
                     </View>
@@ -96,17 +136,23 @@ export default function LoginScreen() {
                     </Text>
                   </View>
 
-                  {/* Standard Button replacement */}
                   <TouchableOpacity 
                     onPress={handleSyncAccess}
+                    disabled={isLoading}
                     className="bg-primary py-4 px-6 rounded-xl flex-row items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
                   >
-                    <View className="mr-2">
-                       <MaterialCommunityIcons name="flash-outline" size={20} color="white" />
-                    </View>
-                    <Text className="text-white font-bold">
-                      SYNC ACCESS
-                    </Text>
+                    {isLoading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <>
+                        <View className="mr-2">
+                           <MaterialCommunityIcons name="flash-outline" size={20} color="white" />
+                        </View>
+                        <Text className="text-white font-bold">
+                          SYNC ACCESS
+                        </Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -121,6 +167,9 @@ export default function LoginScreen() {
                       autoCapitalize="none" 
                       placeholder="user@example.com"
                       placeholderTextColor="#4b5563"
+                      value={email}
+                      onChangeText={setEmail}
+                      editable={!isLoading}
                     />
                   </View>
                   <View className="mb-8">
@@ -132,15 +181,23 @@ export default function LoginScreen() {
                       secureTextEntry 
                       placeholder="••••••••"
                       placeholderTextColor="#4b5563"
+                      value={password}
+                      onChangeText={setPassword}
+                      editable={!isLoading}
                     />
                   </View>
                   <TouchableOpacity 
                     onPress={handleSyncAccess}
+                    disabled={isLoading}
                     className="bg-primary py-4 px-6 rounded-xl items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
                   >
-                    <Text className="text-white font-bold">
-                      LOGIN TO ACCOUNT
-                    </Text>
+                    {isLoading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text className="text-white font-bold">
+                        LOGIN TO ACCOUNT
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
@@ -148,7 +205,7 @@ export default function LoginScreen() {
 
             {/* Footer Actions */}
             <View className="items-center gap-y-6">
-              <TouchableOpacity className="flex-row items-center">
+              <TouchableOpacity className="flex-row items-center" disabled={isLoading}>
                 <Text className="text-small text-muted mr-1">
                   Need help finding your ticket?
                 </Text>
@@ -164,11 +221,11 @@ export default function LoginScreen() {
               </View>
 
               <View className="flex-row w-full gap-x-4">
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl">
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl" disabled={isLoading}>
                   <MaterialCommunityIcons name="apple" size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Apple</Text>
                 </TouchableOpacity>
-                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl">
+                <TouchableOpacity className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl" disabled={isLoading}>
                   <MaterialCommunityIcons name="google" size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Google</Text>
                 </TouchableOpacity>
