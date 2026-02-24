@@ -15,6 +15,13 @@
       "when": 1771317717589,
       "tag": "0001_thick_baron_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771922750874,
+      "tag": "0002_solid_grey_gargoyle",
+      "breakpoints": true
     }
   ]
 }

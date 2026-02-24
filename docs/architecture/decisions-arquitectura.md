@@ -37,3 +37,16 @@ S'ha decidit migrar de `@rnmapbox/maps` a `@maplibre/maplibre-react-native`.
 1. **Llibertat i Cost**: Evitem el bloqueig de proveïdor (vendor lock-in) y la necessitat de tokens de pagament per a builds nacionals/bàsiques.
 2. **Escalabilitat Open Source**: MapLibre permet una personalització total dels estils (JSON) sense limitacions de servei.
 3. **Optimització**: L'arquitectura actual permet un renderitzat fluid de mapes "Digital Non-Real" a escala exacta sense dependències externes pesades.
+
+## 5. Geolocalització i Permisos
+S'ha escollit `expo-location` per sobre de `react-native-geolocation-service`.
+
+### Raons:
+1. **Consistència Expo**: Millor integració amb el cicle de vida d'Expo i les configuracions de `app.json`.
+2. **Gestió de Permisos**: Facilita la sol·licitud de permisos tant en primer com en segon pla (foreground/background) de manera unificada.
+
+## 6. Rendiment del Mapa en Android
+S'ha activat `surfaceView={true}` forçadament a Android.
+
+### Context:
+Per defecte, MapLibre utilitza `TextureView`, que pot causar lag en el renderitzat quan es combina amb altres capes d'UI complexes en React Native. `SurfaceView` ofereix un canal de renderitzat directe a la GPU, reduint el lag significativament.

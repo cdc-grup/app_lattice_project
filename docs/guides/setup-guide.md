@@ -24,7 +24,7 @@ Utilitzem **Turborepo**. No cal executar `npm install` a cada carpeta individual
 /
 ├── apps/
 │   ├── mobile/         # Aplicació Expo (React Native)
-│   └── api/            # Directori de microserveis
+│   └── server/         # Directori de microserveis
 │       ├── gateway/    # API Gateway (Punt d'entrada)
 │       ├── auth/       # Servei d'Antenticació
 │       ├── geo/        # Servei de Mapes i Geo
@@ -98,7 +98,8 @@ El sistema necessita una base de dades PostGIS. Pots aixecar-la i aplicar migrac
 ```bash
 docker compose up db -d
 npm run migrate # Aplica els canvis a l'esquema de la base de dades
-npm run seed -- --filter=@app/db # Pobla la base de dades amb dades inicials (POIs, etc.)
+npm run seed:pedralbes # Pobla la base de dades amb POIs pel test a l'Institut Pedralbes
+npm run seed # Pobla els POIs del Circuit (opcional)
 ```
 
 > [!NOTE]

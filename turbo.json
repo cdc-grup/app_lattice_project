@@ -23,6 +23,9 @@
     "seed": {
       "cache": false
     },
+    "seed:pedralbes": {
+      "cache": false
+    },
     "studio": {
       "cache": false,
       "persistent": true

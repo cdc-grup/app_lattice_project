@@ -10,6 +10,7 @@
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
     "seed": "tsx src/seed.ts",
+    "seed:pedralbes": "tsx src/seed-pedralbes.ts",
     "studio": "drizzle-kit studio",
     "lint": "eslint \"**/*.ts\""
   },

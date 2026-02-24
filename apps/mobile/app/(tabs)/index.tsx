@@ -1,16 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions, Pressable, StyleSheet } from 'react-native';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
-import { MAP_FILTERS } from '../../src/constants/mockData';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
+import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, LinearTransition } from 'react-native-reanimated';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useLocationPermission } from '../../src/hooks/useLocationPermission';
+
+// Configure MapLibre
+MapLibreGL.setAccessToken(null);
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -21,27 +24,24 @@ interface POIMarkerProps {
   isSelected: boolean;
   onPress: (id: number) => void;
   getIcon: (category?: string) => any;
-  index: number;
 }
 
-const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon, index }: POIMarkerProps) => {
-  const top = 35 + (index * 10) % 40;
-  const left = index % 2 === 0 ? 30 + (index * 2) % 40 : 10 + (index * 5) % 80;
-
+const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon }: POIMarkerProps) => {
   return (
-    <TouchableOpacity 
-      onPress={() => onPress(feature.properties.id)}
-      className={`absolute items-center justify-center w-10 h-10 rounded-full border-2 border-white shadow-lg ${
-        isSelected ? 'bg-primary' : 'bg-slate-800'
-      }`}
-      style={{ top: `${top}%`, left: `${left}%` }}
-    >
-      <MaterialCommunityIcons 
-        name={getIcon(feature.properties.category)} 
-        size={22} 
-        color="white" 
-      />
-    </TouchableOpacity>
+    <MapLibreGL.MarkerView coordinate={feature.geometry.coordinates}>
+      <TouchableOpacity 
+        onPress={() => onPress(feature.properties.id)}
+        className={`items-center justify-center w-10 h-10 rounded-full border-2 border-white shadow-lg ${
+          isSelected ? 'bg-primary' : 'bg-slate-800'
+        }`}
+      >
+        <MaterialCommunityIcons 
+          name={getIcon(feature.properties.category)} 
+          size={22} 
+          color="white" 
+        />
+      </TouchableOpacity>
+    </MapLibreGL.MarkerView>
   );
 });
 
@@ -50,7 +50,10 @@ const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon, index }: 
 const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#0A0A0A',
+  },
+  map: {
+    flex: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -58,36 +61,22 @@ const styles = StyleSheet.create({
   filtersContainer: {
     paddingHorizontal: 16,
   },
-  userLocationPulse: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginLeft: -12,
-    marginTop: -12,
-  },
-  controlsContainer: {
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    gap: 12,
-  }
 });
 
 export default function MapScreen() {
+  const camera = React.useRef<MapLibreGL.CameraRef>(null);
+  const [followUser, setFollowUser] = useState(false);
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null);
-  const [activeFilterId, setActiveFilterId] = useState('2'); // 'Food' active by default
+  const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
   const { status: locationStatus, requestPermission } = useLocationPermission();
-
-  // --- MAP POSITIONING STATE ---
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const context = useSharedValue({ x: 0, y: 0 });
+  const { data: categories } = useCategories();
 
   // --- DATA FETCHING ---
   const activeCategory = useMemo(() => {
-    const filter = MAP_FILTERS.find(f => f.id === activeFilterId);
+    if (!activeFilterId || !categories) return undefined;
+    const filter = categories.find(f => f.id === activeFilterId);
     return filter ? filter.category : undefined;
-  }, [activeFilterId]);
+  }, [activeFilterId, categories]);
 
   const { data: poisData, isLoading, error } = usePOIs(activeCategory);
 
@@ -110,69 +99,89 @@ export default function MapScreen() {
     };
   }, [selectedPoiId, poisData]);
 
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = { x: translateX.value, y: translateY.value };
-    })
-    .onUpdate((event) => {
-      translateX.value = event.translationX + context.value.x;
-      translateY.value = event.translationY + context.value.y;
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-    ],
-  }));
-
-  const handleRecenter = async () => {
+  const handleRecenter = useCallback(async () => {
     const granted = await requestPermission();
     if (granted) {
-      translateX.value = withSpring(0);
-      translateY.value = withSpring(0);
+      setFollowUser(true);
     }
-  };
+  }, [requestPermission]);
 
-  const handleFilterPress = (id: string) => {
+  const handleFilterPress = useCallback((id: string) => {
     setActiveFilterId(prev => prev === id ? '' : id);
-  };
+  }, []);
 
   return (
     <View className="flex-1 bg-black">
-      {/* MAP LAYER (PANNABLE) */}
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.mapContainer, animatedStyle]}>
-          <Pressable 
-            style={StyleSheet.absoluteFill} 
-            onPress={() => setSelectedPoiId(null)} 
+      {/* REAL MAP LAYER */}
+      <View style={styles.mapContainer}>
+        <MapLibreGL.MapView
+          style={styles.map}
+          mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+          logoEnabled={false}
+          attributionEnabled={false}
+          onPress={() => setSelectedPoiId(null)}
+          onRegionWillChange={() => {
+            if (followUser) setFollowUser(false);
+          }}
+          surfaceView={true}
+        >
+          <MapLibreGL.Camera
+            ref={camera}
+            followUserLocation={followUser}
+            followUserMode={MapLibreGL.UserTrackingMode.FollowWithHeading}
+            minZoomLevel={10}
+            maxBounds={{
+              ne: [2.404, 41.611],
+              sw: [1.808, 41.161],
+            }}
+            defaultSettings={{
+              centerCoordinate: [2.1060698, 41.3863034], // Institut Pedralbes (Testing)
+              zoomLevel: 19,
+            }}
+          />
+
+          {/* Floor Plan Overlay */}
+          <MapLibreGL.ImageSource
+            id="pedralbes-floorplan"
+            coordinates={[
+              [2.1052698, 41.3869034], // Top Left
+              [2.1068698, 41.3869034], // Top Right
+              [2.1068698, 41.3857034], // Bottom Right
+              [2.1052698, 41.3857034], // Bottom Left
+            ]}
+            url={require('../../assets/background_institutpedralbes.png')}
+          >
+            <MapLibreGL.RasterLayer
+              id="pedralbes-floorplan-layer"
+              style={{
+                rasterOpacity: 1, // Full opacity as requested (only lines)
+              }}
+            />
+          </MapLibreGL.ImageSource>
+
+          <MapLibreGL.UserLocation 
+            visible={true}
+            renderMode="native"
+            showsUserHeadingIndicator={true}
           />
           
-          <View style={styles.userLocationPulse}>
-            <View className="relative flex h-6 w-6">
-              <View className="absolute h-full w-full rounded-full bg-primary opacity-40 animate-ping" />
-              <View className="h-6 w-6 rounded-full bg-primary border-2 border-white" />
-            </View>
-          </View>
+          {poisData?.features.map((feature: POIGeoJSON) => (
+            <POIMarker 
+              key={feature.properties.id}
+              feature={feature}
+              isSelected={selectedPoiId === feature.properties.id}
+              onPress={setSelectedPoiId}
+              getIcon={getCategoryIcon}
+            />
+          ))}
+        </MapLibreGL.MapView>
 
-          {isLoading ? (
-            <View className="absolute inset-0 items-center justify-center">
-              <ActivityIndicator color={colors.primary} size="large" />
-            </View>
-          ) : (
-            poisData?.features.map((feature: POIGeoJSON, index: number) => (
-              <POIMarker 
-                key={feature.properties.id}
-                feature={feature}
-                isSelected={selectedPoiId === feature.properties.id}
-                onPress={setSelectedPoiId}
-                getIcon={getCategoryIcon}
-                index={index}
-              />
-            ))
-          )}
-        </Animated.View>
-      </GestureDetector>
+        {isLoading && (
+          <View className="absolute inset-0 items-center justify-center bg-black/20">
+            <ActivityIndicator color={colors.primary} size="large" />
+          </View>
+        )}
+      </View>
 
       {error && (
         <View className="absolute bottom-40 left-4 right-4 bg-red-500/80 p-3 rounded-lg">
@@ -191,7 +200,7 @@ export default function MapScreen() {
               showsHorizontalScrollIndicator={false} 
               contentContainerStyle={styles.filtersContainer}
             >
-              {MAP_FILTERS.map(filter => (
+              {categories?.map(filter => (
                 <FilterChip 
                   key={filter.id}
                   label={filter.label}
