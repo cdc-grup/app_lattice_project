@@ -38,9 +38,9 @@ export const MOCK_POIS: POI[] = [
 ];
 
 export const MAP_FILTERS = [
-  { id: '1', label: 'Grandstands', icon: 'stadium-variant' },
-  { id: '2', label: 'Food', icon: 'food' },
-  { id: '3', label: 'Parking', icon: 'parking' },
-  { id: '4', label: 'Merch', icon: 'shopping' },
-  { id: '5', label: 'Toilets', icon: 'toilet' },
+  { id: '1', label: 'Grandstands', icon: 'stadium-variant', category: 'grandstand' },
+  { id: '2', label: 'Food', icon: 'food', category: 'restaurant' },
+  { id: '3', label: 'Parking', icon: 'parking', category: 'parking' },
+  { id: '4', label: 'Shopping', icon: 'shopping', category: 'shop' },
+  { id: '5', label: 'Toilets', icon: 'toilet', category: 'wc' },
 ];

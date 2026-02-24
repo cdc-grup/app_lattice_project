@@ -20,9 +20,9 @@ async function seed() {
     console.log('Test user already exists.');
   }
 
-  // 2. Clear existing POIs to ensure a fresh, consistent seed
-  await db.delete(pointsOfInterest);
-  console.log('Cleared existing points of interest.');
+  // 2. We skip clearing POIs to preserve any manual changes or telemetry data
+  // await db.delete(pointsOfInterest);
+  console.log('Synchronizing points of interest...');
 
   // 3. Seed Points of Interest (POIs) - Professional Circuit Set
   const pois = [
@@ -84,7 +84,7 @@ async function seed() {
       location: poi.location,
       isWheelchairAccessible: poi.isWheelchairAccessible,
       crowdLevel: poi.crowdLevel,
-    });
+    }).onConflictDoNothing();
   }
   
   console.log(`Seeded ${pois.length} points of interest.`);

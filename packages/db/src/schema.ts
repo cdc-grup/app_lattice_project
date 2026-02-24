@@ -70,7 +70,7 @@ export const tickets = pgTable('tickets', {
 
 export const pointsOfInterest = pgTable('points_of_interest', {
   id: serial('id').primaryKey(),
-  name: varchar('name').notNull(),
+  name: varchar('name').unique().notNull(),
   description: text('description'),
   type: poiTypeEnum('type').notNull(),
   location: geometry('location').notNull(),
