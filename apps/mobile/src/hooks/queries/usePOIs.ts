@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+import { apiClient } from '../../services/apiClient';
 
 export interface POIGeoJSON {
   type: 'Feature';
@@ -27,17 +26,6 @@ export interface POICollection {
 export const usePOIs = (category?: string) => {
   return useQuery({
     queryKey: ['pois', category],
-    queryFn: async (): Promise<POICollection> => {
-      const url = new URL(`${API_BASE_URL}/pois`);
-      if (category) {
-        url.searchParams.append('category', category);
-      }
-
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error('Failed to fetch POIs');
-      }
-      return response.json();
-    },
+    queryFn: () => apiClient.get<POICollection>('/pois', category ? { category } : undefined),
   });
 };

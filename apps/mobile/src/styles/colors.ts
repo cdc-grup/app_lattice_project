@@ -6,6 +6,7 @@ export const colors = {
   surface: '#18181B',
   muted: '#9CA3AF',
   accent: '#FF3B30',
+  glass: 'rgba(255, 255, 255, 0.1)',
   white: '#FFFFFF',
   black: '#000000',
   red: {

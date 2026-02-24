@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore, Ticket, User } from '../hooks/useAuthStore';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+import { apiClient } from './apiClient';
 
 export const useSyncTicket = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -9,20 +8,12 @@ export const useSyncTicket = () => {
 
   return useMutation({
     mutationFn: async (ticketCode: string) => {
-      const response = await fetch(`${API_BASE_URL}/auth/ticket-sync`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qr_code_data: ticketCode, device_id: 'mobile-app' }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.user_friendly_message || 'Failed to sync ticket');
-      }
-
-      return response.json();
+      return apiClient.post<{ user: User; token: string; ticket_info: Ticket }>(
+        '/auth/ticket-sync',
+        { qr_code_data: ticketCode, device_id: 'mobile-app' }
+      );
     },
-    onSuccess: (data: { user: User; token: string; ticket_info: Ticket }) => {
+    onSuccess: (data) => {
       setAuth(data.token, data.user);
       setTicket(data.ticket_info);
     },
@@ -34,20 +25,12 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      return apiClient.post<{ user: User; token: string }>('/auth/login', {
+        email,
+        password,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.user_friendly_message || 'Login failed');
-      }
-
-      return response.json();
     },
-    onSuccess: (data: { user: User; token: string }) => {
+    onSuccess: (data) => {
       setAuth(data.token, data.user);
     },
   });
@@ -58,20 +41,13 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: async ({ email, password, fullName }: any) => {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName }),
+      return apiClient.post<{ user: User; token: string }>('/auth/register', {
+        email,
+        password,
+        fullName,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.user_friendly_message || 'Registration failed');
-      }
-
-      return response.json();
     },
-    onSuccess: (data: { user: User; token: string }) => {
+    onSuccess: (data) => {
       setAuth(data.token, data.user);
     },
   });

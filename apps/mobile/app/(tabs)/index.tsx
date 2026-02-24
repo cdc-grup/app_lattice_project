@@ -12,6 +12,65 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Eas
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// --- HELPER COMPONENTS ---
+
+interface POIMarkerProps {
+  feature: any;
+  isSelected: boolean;
+  onPress: (id: number) => void;
+  getIcon: (category?: string) => any;
+  index: number;
+}
+
+const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon, index }: POIMarkerProps) => {
+  const top = 35 + (index * 10) % 40;
+  const left = index % 2 === 0 ? 30 + (index * 2) % 40 : 10 + (index * 5) % 80;
+
+  return (
+    <TouchableOpacity 
+      onPress={() => onPress(feature.properties.id)}
+      className={`absolute items-center justify-center w-10 h-10 rounded-full border-2 border-white shadow-lg ${
+        isSelected ? 'bg-primary' : 'bg-slate-800'
+      }`}
+      style={{ top: `${top}%`, left: `${left}%` }}
+    >
+      <MaterialCommunityIcons 
+        name={getIcon(feature.properties.category)} 
+        size={22} 
+        color="white" 
+      />
+    </TouchableOpacity>
+  );
+});
+
+// --- STYLES ---
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  filtersContainer: {
+    paddingHorizontal: 16,
+  },
+  userLocationPulse: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -12,
+    marginTop: -12,
+  },
+  controlsContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 12,
+  }
+});
+
 export default function MapScreen() {
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null);
   const [activeFilterId, setActiveFilterId] = useState('2'); // 'Food' active by default
@@ -28,6 +87,17 @@ export default function MapScreen() {
   }, [activeFilterId]);
 
   const { data: poisData, isLoading, error } = usePOIs(activeCategory);
+
+  const getCategoryIcon = (category?: string) => {
+    switch (category?.toLowerCase()) {
+      case 'restaurant': return 'food';
+      case 'parking': return 'parking';
+      case 'shop': return 'shopping';
+      case 'wc': return 'toilet';
+      case 'grandstand': return 'stadium-variant';
+      default: return 'map-marker';
+    }
+  };
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId || !poisData) return null;
@@ -69,20 +139,21 @@ export default function MapScreen() {
     translateY.value = withSpring(0);
   };
 
+  const handleFilterPress = (id: string) => {
+    setActiveFilterId(prev => prev === id ? '' : id);
+  };
+
   return (
     <View className="flex-1 bg-black">
       {/* MAP LAYER (PANNABLE) */}
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[{ flex: 1, backgroundColor: '#121212' }, animatedStyle]}>
+        <Animated.View style={[styles.mapContainer, animatedStyle]}>
           <Pressable 
             style={StyleSheet.absoluteFill} 
             onPress={() => setSelectedPoiId(null)} 
           />
           
-          <View 
-            className="absolute top-1/2 left-1/2 -ml-3 -mt-3"
-            style={{ transform: [{ translateX: 0 }, { translateY: 0 }] }}
-          >
+          <View style={styles.userLocationPulse}>
             <View className="relative flex h-6 w-6">
               <View className="absolute h-full w-full rounded-full bg-primary opacity-40 animate-ping" />
               <View className="h-6 w-6 rounded-full bg-primary border-2 border-white" />
@@ -94,24 +165,16 @@ export default function MapScreen() {
               <ActivityIndicator color={colors.primary} size="large" />
             </View>
           ) : (
-            poisData?.features.map((feature, index) => {
-              const top = 35 + (index * 10) % 40;
-              const left = index % 2 === 0 ? 30 + (index * 2) % 40 : 10 + (index * 5) % 80;
-
-              return (
-                <TouchableOpacity 
-                  key={feature.properties.id}
-                  onPress={() => setSelectedPoiId(feature.properties.id)}
-                  className="absolute items-center"
-                  style={{ top: `${top}%`, left: `${left}%` }}
-                >
-                  <MaterialCommunityIcons name="map-marker" size={32} color={colors.primary} />
-                  <View className="bg-primary px-2 py-0.5 rounded shadow-lg mt-1">
-                    <Text className="text-white text-[10px] font-bold">{feature.properties.name}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+            poisData?.features.map((feature, index) => (
+              <POIMarker 
+                key={feature.properties.id}
+                feature={feature}
+                isSelected={selectedPoiId === feature.properties.id}
+                onPress={setSelectedPoiId}
+                getIcon={getCategoryIcon}
+                index={index}
+              />
+            ))
           )}
         </Animated.View>
       </GestureDetector>
@@ -123,7 +186,7 @@ export default function MapScreen() {
       )}
 
       {/* UI LAYERS (STATIC) */}
-      <View pointerEvents="box-none" className="absolute inset-x-0 inset-y-0">
+      <View pointerEvents="box-none" style={styles.overlay}>
         <View pointerEvents="auto">
           <SearchBar />
           
@@ -131,7 +194,7 @@ export default function MapScreen() {
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false} 
-              contentContainerStyle={{ paddingHorizontal: 16 }}
+              contentContainerStyle={styles.filtersContainer}
             >
               {MAP_FILTERS.map(filter => (
                 <FilterChip 
@@ -139,7 +202,7 @@ export default function MapScreen() {
                   label={filter.label}
                   icon={filter.icon as any}
                   active={activeFilterId === filter.id}
-                  onPress={() => setActiveFilterId(filter.id)}
+                  onPress={() => handleFilterPress(filter.id)}
                 />
               ))}
             </ScrollView>

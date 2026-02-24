@@ -13,6 +13,7 @@ module.exports = {
         surface: colors.surface,
         muted: colors.muted,
         accent: colors.accent,
+        glass: colors.glass,
         red: colors.red,
         slate: colors.slate,
       },
