@@ -10,6 +10,7 @@ import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, LinearTransition } from 'react-native-reanimated';
+import { useLocationPermission } from '../../src/hooks/useLocationPermission';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
 export default function MapScreen() {
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null);
   const [activeFilterId, setActiveFilterId] = useState('2'); // 'Food' active by default
+  const { status: locationStatus, requestPermission } = useLocationPermission();
 
   // --- MAP POSITIONING STATE ---
   const translateX = useSharedValue(0);
@@ -124,9 +126,12 @@ export default function MapScreen() {
     ],
   }));
 
-  const handleRecenter = () => {
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
+  const handleRecenter = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      translateX.value = withSpring(0);
+      translateY.value = withSpring(0);
+    }
   };
 
   const handleFilterPress = (id: string) => {

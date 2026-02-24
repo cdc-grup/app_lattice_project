@@ -41,6 +41,14 @@
           }
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "locationWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
       "@maplibre/maplibre-react-native"
     ],
     "experiments": {
