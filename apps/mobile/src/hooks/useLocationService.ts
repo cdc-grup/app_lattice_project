@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import { useLocationPermission, PermissionStatus } from './useLocationPermission';
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
@@ -52,6 +52,7 @@ const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon }: POIMark
     </MapLibreGL.MarkerView>
   );
 });
+POIMarker.displayName = 'POIMarker';
 
 // --- STYLES ---
 

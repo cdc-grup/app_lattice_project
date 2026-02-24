@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { ComponentProps } from 'react';
 import { TouchableOpacity, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
-import { ComponentProps } from 'react';
 
 interface FilterChipProps {
   label: string;
