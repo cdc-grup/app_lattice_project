@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions, Pressable, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
@@ -10,8 +10,8 @@ import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import Animated, { LinearTransition } from 'react-native-reanimated';
-import { useLocationPermission } from '../../src/hooks/useLocationPermission';
-import * as Location from 'expo-location';
+import { useLocationService } from '../../src/hooks/useLocationService';
+import { useMapControls } from '../../src/hooks/useMapControls';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -24,8 +24,6 @@ MapLibreGL.Logger.setLogCallback((log) => {
   }
   return false;
 });
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // --- HELPER COMPONENTS ---
 
@@ -74,11 +72,13 @@ const styles = StyleSheet.create({
 });
 
 export default function MapScreen() {
-  const camera = React.useRef<MapLibreGL.CameraRef>(null);
-  const [followUser, setFollowUser] = useState(false);
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null);
   const [activeFilterId, setActiveFilterId] = useState<string | null>(null);
-  const { status: locationStatus, requestPermission } = useLocationPermission();
+  
+  // Custom hooks for logic extraction
+  const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
+  const { camera, followUser, setFollowUser, handleRecenter } = useMapControls(userCoords, requestPermission);
+  
   const { data: categories } = useCategories();
 
   // --- DATA FETCHING ---
@@ -109,89 +109,6 @@ export default function MapScreen() {
       time: '5 min',
     };
   }, [selectedPoiId, poisData]);
-
-  const [userCoords, setUserCoords] = useState<number[] | null>(null);
-
-  // Independent location watcher to bypass MapLibre native location issues on emulators
-  React.useEffect(() => {
-    let subscription: Location.LocationSubscription | null = null;
-
-    if (locationStatus === 'granted') {
-      (async () => {
-        try {
-          // 1. Try to get last known position first (fastest)
-          const lastKnown = await Location.getLastKnownPositionAsync();
-          if (lastKnown) {
-            setUserCoords([lastKnown.coords.longitude, lastKnown.coords.latitude]);
-          }
-
-          // 2. Try to get current position (forces a refresh)
-          const initial = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-          }).catch(() => null); // Ignore if fails, we have watcher
-          
-          if (initial) {
-            setUserCoords([initial.coords.longitude, initial.coords.latitude]);
-          }
-
-          // Then start watching
-          subscription = await Location.watchPositionAsync(
-            {
-              accuracy: Location.Accuracy.High,
-              timeInterval: 2000,
-              distanceInterval: 1,
-            },
-            (location) => {
-              setUserCoords([location.coords.longitude, location.coords.latitude]);
-            }
-          );
-        } catch (err) {
-          console.warn('Location tracking failed to start:', err);
-        }
-      })();
-    }
-
-    return () => {
-      subscription?.remove();
-    };
-  }, [locationStatus]);
-
-  const handleRecenter = useCallback(async () => {
-    try {
-      const granted = await requestPermission();
-      if (!granted) return;
-
-      // Use our independently verified coords if available
-      if (userCoords && camera.current) {
-        camera.current.setCamera({
-          centerCoordinate: userCoords,
-          zoomLevel: 19,
-          animationDuration: 1000,
-        });
-        setFollowUser(true);
-        return;
-      }
-
-      // Fallback: manually get location if no coords yet
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      }).catch(() => null);
-
-      if (location && camera.current) {
-        camera.current.setCamera({
-          centerCoordinate: [location.coords.longitude, location.coords.latitude],
-          zoomLevel: 19,
-          animationDuration: 1000,
-        });
-        setFollowUser(true);
-      } else {
-        setFollowUser(true);
-      }
-    } catch (err) {
-      console.warn('Manual recenter failed:', err);
-      setFollowUser(true);
-    }
-  }, [requestPermission, userCoords]);
 
   const handleFilterPress = useCallback((id: string) => {
     setActiveFilterId(prev => prev === id ? '' : id);
@@ -234,11 +151,6 @@ export default function MapScreen() {
                 visible={true}
                 renderMode="normal"
                 showsUserHeadingIndicator={true}
-                onUpdate={(location) => {
-                  if (location.coords) {
-                    setUserCoords([location.coords.longitude, location.coords.latitude]);
-                  }
-                }}
               />
               {userCoords && (
                 <MapLibreGL.ShapeSource

@@ -42,3 +42,10 @@
   - _PostgreSQL/PostGIS:_ Imatge oficial.
   - _API:_ Dockerfile multi-etapa (dev/prod).
 - **Frontend (Mòbil):** Execució nativa (fora de Docker) per optimitzar la connexió amb Metro Bundler i els dispositius físics.
+
+## Proves i Garantia de Qualitat
+
+L'estratègia de proves es divideix en dues branques per optimitzar el cicle de desenvolupament:
+- **Lògica i Utilitats:** Mitjançant **Vitest** per a una execució instantània en entorns virtuals.
+- **Interfície d'Usuari:** Mitjançant **Jest** i **React Native Testing Library** per validar components Expo.
+- Consulteu la [Guia de QA](../guides/qa-testing-guide.md) per a més detalls sobre proves de camp i simulacions.

@@ -45,6 +45,24 @@ You can manage the entire project directly from the root of the monorepo:
 | `npm run format` | Formats code across the entire project with Prettier. |
 | `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
 
+## 🧪 Infraestructura de Proves
+
+Hem implementat una arquitectura de proves dual professional a `apps/mobile`:
+
+- **Logic Engine (Vitest):** Per a proves ràpides de lògica, utilitats i hooks.
+  - Comanda: `npm run test:logic -w mobile`
+- **UI Engine (Jest + RTL):** Per a validació de components i interfície d'usuari Expo.
+  - Comanda: `npm run test:components -w mobile`
+- **Full Suite:** `npm run test -w mobile`
+
+Més detalls al **[Protocol de QA](docs/guides/qa-testing-guide.md)**.
+
+## 🏗️ Refactorització i Estat del Codi
+
+Recentment hem millorat la mantenibilitat de l'aplicació mòbil:
+- **Extracció de Lògica:** S'han desacoblat els controls del mapa i els serveis de localització de la vista principal (`MapScreen`) mitjançant hooks personalitzats (`useLocationService`, `useMapControls`).
+- **SSOT de Disseny:** S'està implementant un sistema de Single Source of Truth per a colors i tipografia segons la **[Guia de Disseny](docs/guides/design-system.md)**.
+
 ### 🗄️ Database Management
 
 > [!CAUTION]

@@ -21,6 +21,7 @@ export const FilterChip: React.FC<FilterChipProps> = ({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
+      testID="filter-chip"
       className={`flex-row items-center px-4 h-9 rounded-full mr-3 border ${
         active 
           ? 'bg-primary border-primary' 

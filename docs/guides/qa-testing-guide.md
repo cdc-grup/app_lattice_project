@@ -16,11 +16,12 @@ _Abans de sortir de l'oficina, el codi ha de passar aquests filtres:_
 ### A. Proves Unitàries i de Lògica (Shared & API)
 
 - **Framework:** [Vitest](https://vitest.dev/).
-- **Objectiu:** Validar algoritmes crítics sense dependències externes.
+- **Objectiu:** Validar algoritmes crítics, hooks de lògica i utilitats sense dependències natives.
+- **Script:** `npm run test:logic -w mobile`
+- **Configuració:** `vitest.config.ts` utilitza `setupTests.vitest.ts` per mockejar mòduls d'Expo i MapLibre.
 - **Exemples:**
   - Càlcul de distància entre coordenades (lògica de proximitat de POIs).
-  - Validació de formats de telemetria GPS.
-  - Transformació de dades per a Socket.io (MessagePack).
+  - Validació de formats de telemetria GPS (`poiUtils.ts`).
 
 ### B. Proves d'Endpoint (Integració API)
 
@@ -30,8 +31,17 @@ _Abans de sortir de l'oficina, el codi ha de passar aquests filtres:_
 ### C. Proves de Components (Mòbil)
 
 - **Framework:** [Jest](https://jestjs.io/) + [React Native Testing Library](https://testing-library.com/docs/react-native-testing-library/intro/).
-- **Objectiu:** Comprovar que les pantalles i components de la UI reaccionen correctament a diferents estats (sense necessitat d'un dispositiu real).
-- **Exemple:** Verificar que el botó d'AR es desactiva si `compass_accuracy` és nul.
+- **Objectiu:** Comprovar que les pantalles i components de la UI reaccionen correctament a diferents estats.
+- **Script:** `npm run test:components -w mobile`
+- **Configuració:** `jest.config.js` utilitza el preset `jest-expo` i `setupTests.jest.ts`.
+- **Exemple:** Verificar que el botó d'AR es desactiva si `compass_accuracy` és nul o que els chips de filtrat canvien d'estat.
+
+### D. Resum de Comandes de Prova
+
+Des de l'arrel del projecte:
+- `npm run test -w mobile`: Executa totes les proves (Vitest + Jest).
+- `npm run test:logic -w mobile`: Només proves de lògica (més ràpides).
+- `npm run test:components -w mobile`: Només proves de components UI.
 
 ## 3. Fase 1: Simulacions de Laboratori (Oficina)
 
