@@ -6,7 +6,8 @@ import { POICard } from '../../src/components/POICard';
 import { MAP_FILTERS } from '../../src/constants/mockData';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
-import { usePOIs } from '../../src/hooks/queries/usePOIs';
+import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
+import { getCategoryIcon } from '../../src/utils/poiUtils';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, LinearTransition } from 'react-native-reanimated';
 
@@ -15,7 +16,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // --- HELPER COMPONENTS ---
 
 interface POIMarkerProps {
-  feature: any;
+  feature: POIGeoJSON;
   isSelected: boolean;
   onPress: (id: number) => void;
   getIcon: (category?: string) => any;
@@ -88,20 +89,9 @@ export default function MapScreen() {
 
   const { data: poisData, isLoading, error } = usePOIs(activeCategory);
 
-  const getCategoryIcon = (category?: string) => {
-    switch (category?.toLowerCase()) {
-      case 'restaurant': return 'food';
-      case 'parking': return 'parking';
-      case 'shop': return 'shopping';
-      case 'wc': return 'toilet';
-      case 'grandstand': return 'stadium-variant';
-      default: return 'map-marker';
-    }
-  };
-
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId || !poisData) return null;
-    const feature = poisData.features.find(feature => feature.properties.id === selectedPoiId);
+    const feature = poisData.features.find((f: POIGeoJSON) => f.properties.id === selectedPoiId);
     if (!feature) return null;
     
     return {
@@ -165,7 +155,7 @@ export default function MapScreen() {
               <ActivityIndicator color={colors.primary} size="large" />
             </View>
           ) : (
-            poisData?.features.map((feature, index) => (
+            poisData?.features.map((feature: POIGeoJSON, index: number) => (
               <POIMarker 
                 key={feature.properties.id}
                 feature={feature}
