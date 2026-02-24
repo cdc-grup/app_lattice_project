@@ -17,7 +17,15 @@ export interface UserTicketSyncResponse {
   ticket_info: TicketInfo;
 }
 
-export type POIType = 'restaurant' | 'wc' | 'grandstand' | 'gate' | 'medical' | 'shop' | 'parking' | 'meetup_point';
+export type POIType =
+  | 'restaurant'
+  | 'wc'
+  | 'grandstand'
+  | 'gate'
+  | 'medical'
+  | 'shop'
+  | 'parking'
+  | 'meetup_point';
 
 export interface POI {
   id: number;

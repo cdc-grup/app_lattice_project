@@ -24,21 +24,30 @@ interface POICardProps {
 
 const getCrowdColor = (level: string) => {
   switch (level) {
-    case 'low': return 'text-green-400';
-    case 'moderate': return 'text-yellow-400';
+    case 'low':
+      return 'text-green-400';
+    case 'moderate':
+      return 'text-yellow-400';
     case 'high':
-    case 'blocked': return 'text-red-400';
-    default: return 'text-white';
+    case 'blocked':
+      return 'text-red-400';
+    default:
+      return 'text-white';
   }
 };
 
 const getCrowdLabel = (level: string) => {
   switch (level) {
-    case 'low': return 'Low crowds';
-    case 'moderate': return 'Moderate crowds';
-    case 'high': return 'High crowds';
-    case 'blocked': return 'Access blocked';
-    default: return 'Crowd status unknown';
+    case 'low':
+      return 'Low crowds';
+    case 'moderate':
+      return 'Moderate crowds';
+    case 'high':
+      return 'High crowds';
+    case 'blocked':
+      return 'Access blocked';
+    default:
+      return 'Crowd status unknown';
   }
 };
 
@@ -57,9 +66,11 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
                 {poi.type}
               </Text>
             </View>
-            
+
             <View className="flex-row items-center border border-white/10 px-2 py-0.5 rounded bg-white/5">
-              <View className={`w-1.5 h-1.5 rounded-full mr-1 ${getCrowdColor(poi.crowdLevel).replace('text-', 'bg-')}`} />
+              <View
+                className={`w-1.5 h-1.5 rounded-full mr-1 ${getCrowdColor(poi.crowdLevel).replace('text-', 'bg-')}`}
+              />
               <Text className={`text-[10px] font-medium ${getCrowdColor(poi.crowdLevel)}`}>
                 {getCrowdLabel(poi.crowdLevel)}
               </Text>
@@ -77,14 +88,14 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
               </View>
             )}
           </View>
-          
+
           <Text className="text-white font-black text-lg mb-1">{poi.name}</Text>
           {poi.description ? (
             <Text className="text-muted text-xs leading-relaxed mb-2" numberOfLines={2}>
               {poi.description}
             </Text>
           ) : null}
-          
+
           {(poi.time || poi.distance) && (
             <View className="flex-row items-center">
               <MaterialCommunityIcons name="timer-outline" size={14} color={colors.muted} />
@@ -95,7 +106,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
           )}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={onClose}
           className="w-8 h-8 items-center justify-center rounded-full"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
@@ -108,7 +119,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
         <View className="mt-4">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
             {poi.images.map((img, index) => (
-              <Image 
+              <Image
                 key={index}
                 source={{ uri: img }}
                 className="w-28 h-20 rounded-xl mr-3 border border-white/5"
@@ -120,7 +131,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
       )}
 
       <View className="mt-4 flex-row gap-3">
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={onNavigate}
           className="flex-1 bg-primary h-12 flex-row items-center justify-center rounded-xl"
           style={{
@@ -134,8 +145,8 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
           <MaterialCommunityIcons name="navigation" size={18} color="white" />
           <Text className="text-white font-bold ml-2">Navigate Here</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           className="w-12 h-12 items-center justify-center border rounded-xl border-transparent"
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.05)',

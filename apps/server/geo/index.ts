@@ -24,16 +24,19 @@ app.get('/pois', async (req: Request, res: Response) => {
   try {
     const { category } = req.query;
 
-    let query = db.select({
-      id: pointsOfInterest.id,
-      name: pointsOfInterest.name,
-      type: pointsOfInterest.type,
-      description: pointsOfInterest.description,
-      crowdLevel: pointsOfInterest.crowdLevel,
-      isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
-      hasPriorityLane: pointsOfInterest.hasPriorityLane,
-      geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`
-    }).from(pointsOfInterest).$dynamic();
+    let query = db
+      .select({
+        id: pointsOfInterest.id,
+        name: pointsOfInterest.name,
+        type: pointsOfInterest.type,
+        description: pointsOfInterest.description,
+        crowdLevel: pointsOfInterest.crowdLevel,
+        isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
+        hasPriorityLane: pointsOfInterest.hasPriorityLane,
+        geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`,
+      })
+      .from(pointsOfInterest)
+      .$dynamic();
 
     if (category && typeof category === 'string') {
       query = query.where(sql`${pointsOfInterest.type}::text = ${category}`);
@@ -41,7 +44,7 @@ app.get('/pois', async (req: Request, res: Response) => {
 
     const results = await query;
 
-    const features = results.map(poi => ({
+    const features = results.map((poi) => ({
       type: 'Feature',
       geometry: JSON.parse(poi.geometry as string),
       properties: {
@@ -51,13 +54,13 @@ app.get('/pois', async (req: Request, res: Response) => {
         description: poi.description,
         crowdLevel: poi.crowdLevel,
         isWheelchairAccessible: poi.isWheelchairAccessible,
-        hasPriorityLane: poi.hasPriorityLane
-      }
+        hasPriorityLane: poi.hasPriorityLane,
+      },
     }));
 
     res.json({
       type: 'FeatureCollection',
-      features
+      features,
     });
   } catch (error) {
     console.error('Error fetching POIs:', error);

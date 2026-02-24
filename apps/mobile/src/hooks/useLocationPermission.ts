@@ -11,14 +11,14 @@ export const useLocationPermission = () => {
     setStatus('loading');
     try {
       const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
-      
+
       if (existingStatus === 'granted') {
         setStatus('granted');
         return true;
       }
 
       const { status: newStatus, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (newStatus === 'granted') {
         setStatus('granted');
         return true;
@@ -31,7 +31,7 @@ export const useLocationPermission = () => {
           'Has denegado los permisos de ubicación de forma permanente. Por favor, actívalos en los ajustes de la aplicación para poder orientarte en el circuito.',
           [
             { text: 'Cancelar', style: 'cancel' },
-            { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() }
+            { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() },
           ]
         );
         return false;

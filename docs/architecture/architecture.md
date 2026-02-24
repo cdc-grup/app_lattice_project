@@ -46,6 +46,7 @@
 ## Proves i Garantia de Qualitat
 
 L'estratègia de proves es divideix en dues branques per optimitzar el cicle de desenvolupament:
+
 - **Lògica i Utilitats:** Mitjançant **Vitest** per a una execució instantània en entorns virtuals.
 - **Interfície d'Usuari:** Mitjançant **Jest** i **React Native Testing Library** per validar components Expo.
 - Consulteu la [Guia de QA](../guides/qa-testing-guide.md) per a més detalls sobre proves de camp i simulacions.

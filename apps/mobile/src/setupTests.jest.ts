@@ -1,22 +1,41 @@
+import { jest } from '@jest/globals';
 import '@testing-library/jest-native/extend-expect';
+import { LocationCallback, LocationOptions } from 'expo-location';
 
 // General react-native mocks
 // Removed the problematic NativeAnimatedHelper mock since jest-expo handles most of this
 
 // Expo Location Mock
 jest.mock('expo-location', () => ({
-  requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
+  requestForegroundPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted', canAskAgain: true })
+  ),
   getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  getCurrentPositionAsync: jest.fn(() => Promise.resolve({
-    coords: { latitude: 41.3863, longitude: 2.1060 },
-  })),
-  watchPositionAsync: jest.fn((options, callback) => {
-    callback({ coords: { latitude: 41.3863, longitude: 2.1060 } });
+  getCurrentPositionAsync: jest.fn(() =>
+    Promise.resolve({
+      coords: { latitude: 41.3863, longitude: 2.106 },
+    })
+  ),
+  watchPositionAsync: jest.fn((options: LocationOptions, callback: LocationCallback) => {
+    callback({
+      coords: {
+        latitude: 41.3863,
+        longitude: 2.106,
+        altitude: null,
+        accuracy: null,
+        altitudeAccuracy: null,
+        heading: null,
+        speed: null,
+      },
+      timestamp: Date.now(),
+    });
     return Promise.resolve({ remove: jest.fn() });
   }),
-  getLastKnownPositionAsync: jest.fn(() => Promise.resolve({
-    coords: { latitude: 41.3863, longitude: 2.1060 },
-  })),
+  getLastKnownPositionAsync: jest.fn(() =>
+    Promise.resolve({
+      coords: { latitude: 41.3863, longitude: 2.106 },
+    })
+  ),
   Accuracy: { High: 4 },
 }));
 
@@ -45,4 +64,4 @@ jest.mock('@expo/vector-icons', () => ({
 }));
 
 // Global fetch mock
-global.fetch = jest.fn();
+global.fetch = jest.fn() as any;

@@ -10,24 +10,17 @@ interface FilterChipProps {
   onPress?: () => void;
 }
 
-export const FilterChip: React.FC<FilterChipProps> = ({ 
-  label, 
-  icon, 
-  active = false, 
-  onPress 
-}) => {
+export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = false, onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
       testID="filter-chip"
       className={`flex-row items-center px-4 h-9 rounded-full mr-3 border ${
-        active 
-          ? 'bg-primary border-primary' 
-          : 'border-transparent' // Using inline styles for colors with opacity to avoid NativeWind bug
+        active ? 'bg-primary border-primary' : 'border-transparent' // Using inline styles for colors with opacity to avoid NativeWind bug
       }`}
       style={
-        active 
+        active
           ? {
               shadowColor: colors.primary,
               shadowOffset: { width: 0, height: 4 },
@@ -41,15 +34,13 @@ export const FilterChip: React.FC<FilterChipProps> = ({
             }
       }
     >
-      <MaterialCommunityIcons 
-        name={icon as any} 
-        size={18} 
-        color="white" 
-        style={{ marginRight: 6 }} 
+      <MaterialCommunityIcons
+        name={icon as any}
+        size={18}
+        color="white"
+        style={{ marginRight: 6 }}
       />
-      <Text className="text-white font-medium text-sm">
-        {label}
-      </Text>
+      <Text className="text-white font-medium text-sm">{label}</Text>
     </TouchableOpacity>
   );
 };

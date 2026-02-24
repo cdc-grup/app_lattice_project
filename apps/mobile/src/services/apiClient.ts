@@ -9,12 +9,12 @@ export interface ApiError {
 
 async function handleResponse<T>(response: Response): Promise<T> {
   const data = await response.json();
-  
+
   if (!response.ok) {
     const errorData = data as ApiError;
     throw new Error(errorData.error?.user_friendly_message || 'Unexpected server error');
   }
-  
+
   return data as T;
 }
 
@@ -25,14 +25,14 @@ export const apiClient = {
       const searchParams = new URLSearchParams(params);
       urlString += `?${searchParams.toString()}`;
     }
-    
+
     const response = await fetch(urlString, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    
+
     return handleResponse<T>(response);
   },
 
@@ -44,7 +44,7 @@ export const apiClient = {
       },
       body: JSON.stringify(body),
     });
-    
+
     return handleResponse<T>(response);
   },
 };

@@ -32,7 +32,7 @@ export const useLocationService = (): LocationState => {
           const initial = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.High,
           }).catch(() => null);
-          
+
           if (initial) {
             setUserCoords([initial.coords.longitude, initial.coords.latitude]);
           }

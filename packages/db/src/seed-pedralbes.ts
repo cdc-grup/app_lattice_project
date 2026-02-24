@@ -33,25 +33,28 @@ async function seedPedralbes() {
     },
     {
       name: 'Secretaria / Recepció',
-      description: 'Punt d\'informació i tràmits.',
+      description: "Punt d'informació i tràmits.",
       type: 'meetup_point',
       location: sql`ST_GeomFromText('POINT(2.1062 41.3861)', 4326)`,
       isWheelchairAccessible: true,
       crowdLevel: 'moderate',
-    }
+    },
   ] as const;
 
   for (const poi of pedralbesPois) {
-    await db.insert(pointsOfInterest).values({
-      name: poi.name,
-      description: poi.description,
-      type: poi.type,
-      location: poi.location,
-      isWheelchairAccessible: poi.isWheelchairAccessible,
-      crowdLevel: poi.crowdLevel,
-    }).onConflictDoNothing();
+    await db
+      .insert(pointsOfInterest)
+      .values({
+        name: poi.name,
+        description: poi.description,
+        type: poi.type,
+        location: poi.location,
+        isWheelchairAccessible: poi.isWheelchairAccessible,
+        crowdLevel: poi.crowdLevel,
+      })
+      .onConflictDoNothing();
   }
-  
+
   console.log(`Seeded ${pedralbesPois.length} Pedralbes test POIs.`);
   await pool.end();
 }

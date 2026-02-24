@@ -10,7 +10,12 @@ jest.mock('@expo/vector-icons', () => ({
 describe('FilterChip', () => {
   it('renders correctly with label', () => {
     const { getByText } = render(
-      <FilterChip label="Restaurantes" icon="silverware-fork-knife" active={false} onPress={() => {}} />
+      <FilterChip
+        label="Restaurantes"
+        icon="silverware-fork-knife"
+        active={false}
+        onPress={() => {}}
+      />
     );
     expect(getByText('Restaurantes')).toBeTruthy();
   });
@@ -20,21 +25,16 @@ describe('FilterChip', () => {
     const { getByText } = render(
       <FilterChip label="Click Me" icon="help-circle" active={false} onPress={onPressMock} />
     );
-    
+
     fireEvent.press(getByText('Click Me'));
     expect(onPressMock).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly when active', () => {
     const { getByText } = render(
-      <FilterChip 
-        label="Active" 
-        icon="check"
-        active={true} 
-        onPress={() => {}} 
-      />
+      <FilterChip label="Active" icon="check" active={true} onPress={() => {}} />
     );
-    
+
     expect(getByText('Active')).toBeTruthy();
   });
 });

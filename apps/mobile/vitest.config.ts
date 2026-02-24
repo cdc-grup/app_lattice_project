@@ -9,7 +9,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
-    include: ['src/utils/__tests__/**/*.{test,spec}.{ts,tsx}', 'src/hooks/__tests__/**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'src/utils/__tests__/**/*.{test,spec}.{ts,tsx}',
+      'src/hooks/__tests__/**/*.{test,spec}.{ts,tsx}',
+    ],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
   },
 });

@@ -10,17 +10,18 @@ Aquest document descriu el procés de desplegament a producció tant de l'API co
 El backend s'ha de desplegar en un proveïdor que suporti **Contenidors Docker** i **Volums Persistents**.
 
 ### Requisits d'Infraestructura
+
 1. **Base de dades:** PostgreSQL 15+ amb l'extensió **PostGIS**.
 2. **SSL/TLS:** Obligatori per a HTTPS/WSS.
 3. **WebSockets:** El balancejador de càrrega ha de permetre connexions persistents.
 
 ### 🔑 Variables d'Entorn (Producció)
 
-| Variable | Descripció |
-| :--- | :--- |
-| `DATABASE_URL` | Cadena de connexió de producció. |
-| `JWT_SECRET` | Clau secreta per a l'autenticació. |
-| `NODE_ENV` | Ha de ser `production`. |
+| Variable       | Descripció                         |
+| :------------- | :--------------------------------- |
+| `DATABASE_URL` | Cadena de connexió de producció.   |
+| `JWT_SECRET`   | Clau secreta per a l'autenticació. |
+| `NODE_ENV`     | Ha de ser `production`.            |
 
 ## 📱 2. Desplegament de l'Aplicació Mòbil
 
@@ -30,6 +31,7 @@ Utilitzem **EAS (Expo Application Services)** per gestionar les construccions (b
 > Utilitza les actualitzacions **Over-the-Air (OTA)** per corregir errors menors sense haver de passar per la revisió de la Store.
 
 ### Perfils de Construcció (`eas.json`)
+
 Assegura't de tenir el perfil de producció configurat amb les URLs de l'API correctes:
 
 ```bash

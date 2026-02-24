@@ -39,6 +39,7 @@ _Abans de sortir de l'oficina, el codi ha de passar aquests filtres:_
 ### D. Resum de Comandes de Prova
 
 Des de l'arrel del projecte:
+
 - `npm run test -w mobile`: Executa totes les proves (Vitest + Jest).
 - `npm run test:logic -w mobile`: Només proves de lògica (més ràpides).
 - `npm run test:components -w mobile`: Només proves de components UI.
@@ -47,11 +48,11 @@ Des de l'arrel del projecte:
 
 _Abans d'anar al circuit, comprova això:_
 
-| Cas de Prova              | Acció                                                                    | Resultat Esperat                                                                                    |
-| ------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **Simulació GPX**         | Carrega un fitxer `.gpx` amb una volta completa al circuit a l'emulador. | El punt blau es mou suaument per la pista sense salts.                                              |
-| **Network Throttling**    | Posa el telèfon en mode "2G / Edge" (Ajustos de desenvolupador).         | El mapa base carrega (perquè està a la memòria cau offline) i la ruta es calcula en <3s.             |
-| **Soroll de Brúixola**    | Sacseja el telèfon violentament mentre utilitzes AR.                     | Les fletxes han d'intentar mantenir-se estables, no girar com boges.                                |
+| Cas de Prova           | Acció                                                                    | Resultat Esperat                                                                         |
+| ---------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Simulació GPX**      | Carrega un fitxer `.gpx` amb una volta completa al circuit a l'emulador. | El punt blau es mou suaument per la pista sense salts.                                   |
+| **Network Throttling** | Posa el telèfon en mode "2G / Edge" (Ajustos de desenvolupador).         | El mapa base carrega (perquè està a la memòria cau offline) i la ruta es calcula en <3s. |
+| **Soroll de Brúixola** | Sacseja el telèfon violentament mentre utilitzes AR.                     | Les fletxes han d'intentar mantenir-se estables, no girar com boges.                     |
 
 ## 3. Fase 2: Proves de Camp (In Situ)
 
@@ -97,14 +98,16 @@ Un tester ha de completar tot aquest recorregut sense tancar l'app:
 1. **Inici:** Pàrquing F.
 2. **Destí:** Seient a la Tribuna N.
 3. **Condicions:**
-  - 100% de brillantor de pantalla.
-  - Dades mòbils desactivades (Simulant col·lapse de xarxa).
-  - Bluetooth activat (Auriculars).
+
+- 100% de brillantor de pantalla.
+- Dades mòbils desactivades (Simulant col·lapse de xarxa).
+- Bluetooth activat (Auriculars).
 
 4. **Criteris d'Acceptació:**
-  - **Bateria:** No hauria de baixar més del 8% en aquest trajecte (~15 minuts).
-  - **Navegació:** No hauria de requerir reiniciar l'app.
-  - **Àudio:** Les instruccions de veu ("Gira a la dreta") han de ser audibles per sobre de la remor ambiental (simula soroll de motors o gent).
+
+- **Bateria:** No hauria de baixar més del 8% en aquest trajecte (~15 minuts).
+- **Navegació:** No hauria de requerir reiniciar l'app.
+- **Àudio:** Les instruccions de veu ("Gira a la dreta") han de ser audibles per sobre de la remor ambiental (simula soroll de motors o gent).
 
 ## 5. Report de l'Error (Format Estàndard)
 

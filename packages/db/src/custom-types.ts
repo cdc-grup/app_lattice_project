@@ -2,7 +2,7 @@ import { customType } from 'drizzle-orm/pg-core';
 
 /**
  * PostGIS Geometry Type for Drizzle ORM
- * 
+ *
  * Defines a GeoJSON Point (SRID 4326) for longitude/latitude coordinates.
  * This ensures compatibility with Mapbox and the API Contract.
  */

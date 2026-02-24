@@ -2,18 +2,24 @@ import { vi } from 'vitest';
 
 // Vitest mocks use vi instead of jest
 vi.mock('expo-location', () => ({
-  requestForegroundPermissionsAsync: vi.fn(() => Promise.resolve({ status: 'granted', canAskAgain: true })),
+  requestForegroundPermissionsAsync: vi.fn(() =>
+    Promise.resolve({ status: 'granted', canAskAgain: true })
+  ),
   getForegroundPermissionsAsync: vi.fn(() => Promise.resolve({ status: 'granted' })),
-  getCurrentPositionAsync: vi.fn(() => Promise.resolve({
-    coords: { latitude: 41.3863, longitude: 2.1060 },
-  })),
+  getCurrentPositionAsync: vi.fn(() =>
+    Promise.resolve({
+      coords: { latitude: 41.3863, longitude: 2.106 },
+    })
+  ),
   watchPositionAsync: vi.fn((options, callback) => {
-    callback({ coords: { latitude: 41.3863, longitude: 2.1060 } });
+    callback({ coords: { latitude: 41.3863, longitude: 2.106 } });
     return Promise.resolve({ remove: vi.fn() });
   }),
-  getLastKnownPositionAsync: vi.fn(() => Promise.resolve({
-    coords: { latitude: 41.3863, longitude: 2.1060 },
-  })),
+  getLastKnownPositionAsync: vi.fn(() =>
+    Promise.resolve({
+      coords: { latitude: 41.3863, longitude: 2.106 },
+    })
+  ),
   Accuracy: { High: 4 },
 }));
 

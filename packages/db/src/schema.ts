@@ -1,4 +1,15 @@
-import { pgTable, serial, text, varchar, boolean, timestamp, integer, pgEnum, doublePrecision, primaryKey } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  text,
+  varchar,
+  boolean,
+  timestamp,
+  integer,
+  pgEnum,
+  doublePrecision,
+  primaryKey,
+} from 'drizzle-orm/pg-core';
 import { geometry } from './custom-types';
 
 // ---------------------------------------------------------
@@ -24,12 +35,7 @@ export const poiTypeEnum = pgEnum('poi_type', [
   'meetup_point',
 ]);
 
-export const crowdLevelEnum = pgEnum('crowd_level', [
-  'low',
-  'moderate',
-  'high',
-  'blocked',
-]);
+export const crowdLevelEnum = pgEnum('crowd_level', ['low', 'moderate', 'high', 'blocked']);
 
 export const surfaceTypeEnum = pgEnum('surface_type', [
   'asphalt',
@@ -57,7 +63,9 @@ export const users = pgTable('users', {
 
 export const tickets = pgTable('tickets', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
+  userId: integer('user_id')
+    .references(() => users.id)
+    .notNull(),
   code: varchar('code').unique(),
   gate: varchar('gate'),
   zoneName: varchar('zone_name'),
@@ -98,15 +106,19 @@ export const groups = pgTable('groups', {
   createdAt: timestamp('created_at'),
 });
 
-export const groupMembers = pgTable('group_members', {
-  userId: integer('user_id').references(() => users.id),
-  groupId: integer('group_id').references(() => groups.id),
-  joinedAt: timestamp('joined_at'),
-  lastLocation: geometry('last_location'),
-  lastUpdated: timestamp('last_updated'),
-}, (t) => ({
-  pk: primaryKey({ columns: [t.userId, t.groupId] }),
-}));
+export const groupMembers = pgTable(
+  'group_members',
+  {
+    userId: integer('user_id').references(() => users.id),
+    groupId: integer('group_id').references(() => groups.id),
+    joinedAt: timestamp('joined_at'),
+    lastLocation: geometry('last_location'),
+    lastUpdated: timestamp('last_updated'),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.groupId] }),
+  })
+);
 
 export const savedLocations = pgTable('saved_locations', {
   id: serial('id').primaryKey(),

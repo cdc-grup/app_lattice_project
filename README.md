@@ -36,13 +36,13 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 You can manage the entire project directly from the root of the monorepo:
 
-| Command | Description |
-| :--- | :--- |
-| `npm run dev` | Starts development mode for API and Mobile. |
-| `npm run build` | Compiles all packages and applications. |
-| `npm run lint` | Runs the linter across the entire project. |
-| `npm run test` | Runs unit and integration tests. |
-| `npm run format` | Formats code across the entire project with Prettier. |
+| Command                  | Description                                                 |
+| :----------------------- | :---------------------------------------------------------- |
+| `npm run dev`            | Starts development mode for API and Mobile.                 |
+| `npm run build`          | Compiles all packages and applications.                     |
+| `npm run lint`           | Runs the linter across the entire project.                  |
+| `npm run test`           | Runs unit and integration tests.                            |
+| `npm run format`         | Formats code across the entire project with Prettier.       |
 | `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
 
 ## 🧪 Infraestructura de Proves
@@ -60,6 +60,7 @@ Més detalls al **[Protocol de QA](docs/guides/qa-testing-guide.md)**.
 ## 🏗️ Refactorització i Estat del Codi
 
 Recentment hem millorat la mantenibilitat de l'aplicació mòbil:
+
 - **Extracció de Lògica:** S'han desacoblat els controls del mapa i els serveis de localització de la vista principal (`MapScreen`) mitjançant hooks personalitzats (`useLocationService`, `useMapControls`).
 - **SSOT de Disseny:** S'està implementant un sistema de Single Source of Truth per a colors i tipografia segons la **[Guia de Disseny](docs/guides/design-system.md)**.
 

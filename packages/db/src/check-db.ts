@@ -5,7 +5,7 @@ async function check() {
   const client = await pool.connect();
   try {
     console.log('Checking database status...');
-    
+
     // Check tables
     const tables = await client.query(`
       SELECT table_name 
@@ -31,7 +31,6 @@ async function check() {
     // Check migrations table
     const migrations = await client.query('SELECT * FROM drizzle_migrations');
     console.log('Applied migrations:', migrations.rows);
-
   } catch (err) {
     console.error('Check failed:', err);
   } finally {
