@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator, Dimensions, Pressable, StyleSheet } from 'react-native';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
@@ -8,7 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, LinearTransition } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -20,27 +20,6 @@ export default function MapScreen() {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const context = useSharedValue({ x: 0, y: 0 });
-
-  const panGesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = { x: translateX.value, y: translateY.value };
-    })
-    .onUpdate((event) => {
-      translateX.value = event.translationX + context.value.x;
-      translateY.value = event.translationY + context.value.y;
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-    ],
-  }));
-
-  const handleRecenter = () => {
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-  };
 
   // --- DATA FETCHING ---
   const activeCategory = useMemo(() => {
@@ -69,13 +48,37 @@ export default function MapScreen() {
     };
   }, [selectedPoiId, poisData]);
 
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      context.value = { x: translateX.value, y: translateY.value };
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX + context.value.x;
+      translateY.value = event.translationY + context.value.y;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
+  }));
+
+  const handleRecenter = () => {
+    translateX.value = withSpring(0);
+    translateY.value = withSpring(0);
+  };
+
   return (
     <View className="flex-1 bg-black">
       {/* MAP LAYER (PANNABLE) */}
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[{ flex: 1, backgroundColor: '#121212' }, animatedStyle]}>
+          <Pressable 
+            style={StyleSheet.absoluteFill} 
+            onPress={() => setSelectedPoiId(null)} 
+          />
           
-          {/* User Location Marker (In the center of the coordinate system) */}
           <View 
             className="absolute top-1/2 left-1/2 -ml-3 -mt-3"
             style={{ transform: [{ translateX: 0 }, { translateY: 0 }] }}
@@ -86,14 +89,12 @@ export default function MapScreen() {
             </View>
           </View>
 
-          {/* Dynamic POI Markers from Backend */}
           {isLoading ? (
             <View className="absolute inset-0 items-center justify-center">
               <ActivityIndicator color={colors.primary} size="large" />
             </View>
           ) : (
             poisData?.features.map((feature, index) => {
-              // Simulated map placements - these move with the background
               const top = 35 + (index * 10) % 40;
               const left = index % 2 === 0 ? 30 + (index * 2) % 40 : 10 + (index * 5) % 80;
 
@@ -122,7 +123,7 @@ export default function MapScreen() {
       )}
 
       {/* UI LAYERS (STATIC) */}
-      <View className="absolute inset-x-0 inset-y-0 pointer-events-none" style={{ position: 'absolute' }}>
+      <View pointerEvents="box-none" className="absolute inset-x-0 inset-y-0">
         <View pointerEvents="auto">
           <SearchBar />
           
@@ -147,37 +148,44 @@ export default function MapScreen() {
 
         <View className="flex-1" />
 
-        {/* Floating Controls */}
-        <View pointerEvents="auto" className="absolute right-4 bottom-32 gap-3" style={{ zIndex: 10 }}>
-          <TouchableOpacity 
-            className="w-10 h-10 items-center justify-center rounded-full border border-transparent"
-            style={{
-              backgroundColor: 'rgba(24, 24, 27, 0.8)',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <MaterialCommunityIcons name="layers-outline" size={20} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={handleRecenter}
-            className="w-10 h-10 items-center justify-center rounded-full border border-transparent"
-            style={{
-              backgroundColor: 'rgba(24, 24, 27, 0.8)',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <MaterialCommunityIcons name="crosshairs-gps" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
+        {/* Dynamic Controls & Card Container */}
+        <Animated.View 
+          layout={LinearTransition.duration(200)}
+          pointerEvents="box-none" 
+          className="pb-4"
+        >
+          {/* Floating Controls */}
+          <View pointerEvents="auto" className="items-end px-4 mb-3 gap-3">
+            <TouchableOpacity 
+              className="w-10 h-10 items-center justify-center rounded-full border border-transparent"
+              style={{
+                backgroundColor: 'rgba(24, 24, 27, 0.8)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <MaterialCommunityIcons name="layers-outline" size={20} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={handleRecenter}
+              className="w-10 h-10 items-center justify-center rounded-full border border-transparent"
+              style={{
+                backgroundColor: 'rgba(24, 24, 27, 0.8)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <MaterialCommunityIcons name="crosshairs-gps" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
 
-        {/* Selected POI Card */}
-        <View pointerEvents="auto">
-          <POICard 
-            poi={selectedPoi}
-            onClose={() => setSelectedPoiId(null)}
-            onNavigate={() => {}}
-          />
-        </View>
+          {/* Selected POI Card */}
+          <View pointerEvents="auto">
+            <POICard 
+              poi={selectedPoi}
+              onClose={() => setSelectedPoiId(null)}
+              onNavigate={() => {}}
+            />
+          </View>
+        </Animated.View>
       </View>
     </View>
   );
