@@ -122,6 +122,13 @@ npm run seed # Pobla els POIs del Circuit (opcional)
 > [!NOTE]
 > L'script de `seed` s'encarrega d'inserir els Punts d'Interès (POIs) del Circuit de Barcelona-Catalunya per poder provar el mapa i l'API `geo` correctament.
 
+### Proves d'Autenticació QR 🎫
+Per provar l'escaneig d'entrades a l'aplicació mòbil en el teu entorn local, pots generar entrades de prova amb els seus respectius codis QR directament a la terminal:
+```bash
+npm run generate:qrs -w @app/db
+```
+Això inserirà 2 entrades de prova a la base de dades local i mostrarà els codis QR per pantalla perquè els puguis capturar ràpidament amb la càmera del mòbil per associar el compte.
+
 ## 🌐 Topologia de Xarxa (Amb Túnel)
 
 ```mermaid

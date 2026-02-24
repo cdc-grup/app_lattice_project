@@ -20,7 +20,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.post('/auth/register', async (req: Request, res: Response) => {
-  const { email, password, fullName } = req.body;
+  const { email, password, fullName, ticket_code } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -56,6 +56,12 @@ app.post('/auth/register', async (req: Request, res: Response) => {
       })
       .returning();
 
+    // Link ticket if provided
+    if (ticket_code) {
+      const dbTickets = require('@app/db').tickets;
+      await db.update(dbTickets).set({ userId: newUser[0].id }).where(eq(dbTickets.code, ticket_code));
+    }
+
     res.status(201).json({
       user: {
         id: newUser[0].id,
@@ -71,7 +77,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 });
 
 app.post('/auth/login', async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, ticket_code } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
@@ -98,6 +104,12 @@ app.post('/auth/login', async (req: Request, res: Response) => {
       });
     }
 
+    // Link ticket if provided
+    if (ticket_code) {
+      const dbTickets = require('@app/db').tickets;
+      await db.update(dbTickets).set({ userId: user.id }).where(eq(dbTickets.code, ticket_code));
+    }
+
     res.json({
       user: {
         id: user.id,
@@ -108,6 +120,93 @@ app.post('/auth/login', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Login Error:', error);
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
+  const { ticket_code } = req.body;
+  const authHeader = req.headers.authorization;
+
+  if (!ticket_code) {
+    return res.status(400).json({
+      error: {
+        code: "MISSING_QR",
+        message: "Ticket code is required",
+        user_friendly_message: "Falta el codi QR del ticket.",
+        status: 400
+      }
+    });
+  }
+
+  try {
+    const dbTickets = require('@app/db').tickets;
+    const { and, isNull } = require('drizzle-orm');
+
+    // Find the ticket
+    const ticketResult = await db.select().from(dbTickets).where(eq(dbTickets.code, ticket_code)).limit(1);
+    const ticket = ticketResult[0];
+
+    if (!ticket) {
+      return res.status(404).json({
+        error: {
+          code: "TICKET_NOT_FOUND",
+          message: "Ticket not found",
+          user_friendly_message: "Aquesta entrada no existeix.",
+          status: 404
+        }
+      });
+    }
+
+    if (ticket.userId) {
+      return res.status(400).json({
+        error: {
+          code: "TICKET_ALREADY_CLAIMED",
+          message: "Ticket is already claimed by another user",
+          user_friendly_message: "Aquesta entrada ja està associada a un usuari.",
+          status: 400
+        }
+      });
+    }
+
+    if (!ticket.isActive) {
+      return res.status(400).json({
+        error: {
+          code: "TICKET_INACTIVE",
+          message: "Ticket is inactive",
+          user_friendly_message: "Aquesta entrada no està activa.",
+          status: 400
+        }
+      });
+    }
+
+    // User is logged in? We mock the auth header for now.
+    // If authHeader is present, and starts with Bearer mock_jwt_token_for_
+    if (authHeader && authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+      const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+      const userId = parseInt(userIdStr, 10);
+
+      // Claim ticket
+      await db.update(dbTickets).set({ userId }).where(eq(dbTickets.code, ticket_code));
+
+      return res.json({
+        success: true,
+        message: "Ticket claimed successfully",
+        ticket_info: ticket
+      });
+    } else {
+      // User is not logged in / explicitly providing token
+      return res.status(400).json({
+        error: {
+          code: "REQUIRES_ACCOUNT",
+          message: "You must be logged in to claim this ticket",
+          user_friendly_message: "Si us plau, inicia sessió o registra't per associar l'entrada.",
+          status: 400
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Ticket Claim Error:', error);
     res.status(500).json({ error: String(error) });
   }
 });

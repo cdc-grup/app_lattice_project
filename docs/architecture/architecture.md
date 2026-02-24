@@ -14,6 +14,7 @@
   - _Motiu:_ Suport natiu per a objectes 3D geo-anclats (Location-based AR).
 - **Backend:** Node.js (Express).
 - **Base de dades:** PostgreSQL amb l'extensió **PostGIS** activada.
+  - _Notes d'Esquema:_ La taula `tickets` defineix el `userId` com a opcional. Això permet pre-carregar entrades vàlides al sistema i associar-les als usuaris posteriorment a l'escanejar el QR.
 - **Temps real:** Socket.io amb analitzador **MessagePack** (per a compressió binària).
 
 ## Conceptes Tècnics Detallats

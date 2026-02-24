@@ -22,6 +22,8 @@ export const useSyncTicket = () => {
 
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setTicket = useAuthStore((state) => state.setTicket);
+  const setPendingTicketCode = useAuthStore((state) => state.setPendingTicketCode);
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {
@@ -32,6 +34,10 @@ export const useLogin = () => {
     },
     onSuccess: (data) => {
       setAuth(data.token, data.user);
+      if (data.ticket_info) {
+        setTicket(data.ticket_info);
+      }
+      useAuthStore.getState().setPendingTicketCode(null);
     },
   });
 };
