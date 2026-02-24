@@ -1,5 +1,5 @@
 import { pgTable, serial, text, varchar, boolean, timestamp, integer, pgEnum, doublePrecision, primaryKey } from 'drizzle-orm/pg-core';
-import { geometry } from './custom-types.js';
+import { geometry } from './custom-types';
 
 // ---------------------------------------------------------
 // ENUMS

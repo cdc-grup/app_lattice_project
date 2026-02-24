@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import * as schema from './schema.js';
+import * as schema from './schema';
 
 // Explicit exports to avoid resolution issues
 export {
@@ -16,7 +16,7 @@ export {
   poiTypeEnum,
   crowdLevelEnum,
   surfaceTypeEnum
-} from './schema.js';
+} from './schema';
 export { sql, eq, and, desc, asc } from 'drizzle-orm';
 
 const isProduction = process.env.NODE_ENV === 'production';
