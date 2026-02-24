@@ -1,5 +1,5 @@
 import { pgTable, serial, text, varchar, boolean, timestamp, integer, pgEnum, doublePrecision, primaryKey } from 'drizzle-orm/pg-core';
-import { geometry } from './custom-types.js';
+import { geometry } from './custom-types';
 
 // ---------------------------------------------------------
 // ENUMS
@@ -57,7 +57,7 @@ export const users = pgTable('users', {
 
 export const tickets = pgTable('tickets', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
+  userId: integer('user_id').references(() => users.id),
   code: varchar('code').unique(),
   gate: varchar('gate'),
   zoneName: varchar('zone_name'),
@@ -70,7 +70,7 @@ export const tickets = pgTable('tickets', {
 
 export const pointsOfInterest = pgTable('points_of_interest', {
   id: serial('id').primaryKey(),
-  name: varchar('name').notNull(),
+  name: varchar('name').unique().notNull(),
   description: text('description'),
   type: poiTypeEnum('type').notNull(),
   location: geometry('location').notNull(),

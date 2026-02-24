@@ -2,6 +2,7 @@ import React, { ComponentProps } from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type IconProps = {
   color: string;
@@ -22,6 +23,8 @@ const TABS: TabConfig[] = [
 ];
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -30,8 +33,8 @@ export default function TabsLayout() {
           backgroundColor: colors.navbar,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 10,
+          height: 50 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 5,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,

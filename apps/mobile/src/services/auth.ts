@@ -31,13 +31,16 @@ export const useSyncTicket = () => {
 
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
+  const setTicket = useAuthStore((state) => state.setTicket);
+  const setPendingTicketCode = useAuthStore((state) => state.setPendingTicketCode);
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {
+      const pendingTicketCode = useAuthStore.getState().pendingTicketCode;
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, ticket_code: pendingTicketCode }),
       });
 
       if (!response.ok) {
@@ -47,8 +50,12 @@ export const useLogin = () => {
 
       return response.json();
     },
-    onSuccess: (data: { user: User; token: string }) => {
+    onSuccess: (data: { user: User; token: string; ticket_info?: Ticket }) => {
       setAuth(data.token, data.user);
+      if (data.ticket_info) {
+        setTicket(data.ticket_info);
+      }
+      useAuthStore.getState().setPendingTicketCode(null);
     },
   });
 };

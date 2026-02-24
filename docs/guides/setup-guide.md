@@ -97,8 +97,19 @@ Obre el navegador a: `http://localhost:3000/status` (Gateway). Si veus `"status"
 El sistema necessita una base de dades PostGIS. Pots aixecar-la i aplicar migracions amb:
 ```bash
 docker compose up db -d
-npm run migrate # Aplica els canvis a la base de dades
+npm run migrate # Aplica els canvis a l'esquema de la base de dades
+npm run seed -- --filter=@app/db # Pobla la base de dades amb dades inicials (POIs, etc.)
 ```
+
+> [!NOTE]
+> L'script de `seed` s'encarrega d'inserir els Punts d'Interès (POIs) del Circuit de Barcelona-Catalunya per poder provar el mapa i l'API `geo` correctament.
+
+### Proves d'Autenticació QR 🎫
+Per provar l'escaneig d'entrades a l'aplicació mòbil en el teu entorn local, pots generar entrades de prova amb els seus respectius codis QR directament a la terminal:
+```bash
+npm run generate:qrs -w @app/db
+```
+Això inserirà 2 entrades de prova a la base de dades local i mostrarà els codis QR per pantalla perquè els puguis capturar ràpidament amb la càmera del mòbil per associar el compte.
 
 ## 🌐 Topologia de Xarxa (Amb Túnel)
 ```mermaid

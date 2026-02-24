@@ -22,13 +22,23 @@ app.get('/health', (req: Request, res: Response) => {
 // --- ROUTES ---
 app.get('/pois', async (req: Request, res: Response) => {
   try {
-    const results = await db.select({
+    const { category } = req.query;
+
+    let query = db.select({
       id: pointsOfInterest.id,
       name: pointsOfInterest.name,
       type: pointsOfInterest.type,
       description: pointsOfInterest.description,
+      crowdLevel: pointsOfInterest.crowdLevel,
+      isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
       geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`
-    }).from(pointsOfInterest);
+    }).from(pointsOfInterest).$dynamic();
+
+    if (category && typeof category === 'string') {
+      query = query.where(sql`${pointsOfInterest.type}::text = ${category}`);
+    }
+
+    const results = await query;
 
     const features = results.map(poi => ({
       type: 'Feature',
@@ -37,7 +47,9 @@ app.get('/pois', async (req: Request, res: Response) => {
         id: poi.id,
         name: poi.name,
         category: poi.type,
-        description: poi.description
+        description: poi.description,
+        crowdLevel: poi.crowdLevel,
+        isWheelchairAccessible: poi.isWheelchairAccessible
       }
     }));
 

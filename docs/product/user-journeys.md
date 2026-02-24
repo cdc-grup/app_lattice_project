@@ -40,9 +40,11 @@
 
 ## Journey: Arribada al Seient (Tribuna / Pelouse)
 
-- **Context:** L'usuari acaba d'entrar i vol trobar el seu seient assignat.
-- **Acció:** L'usuari selecciona "La meva entrada" o escaneja el codi QR.
+- **Context:** L'usuari acaba d'entrar i vol trobar el seu seient assignat. També pot ser que no estigui registrat i només tingui el bitllet físic.
+- **Acció:** L'usuari selecciona "Scan" al menú o escaneja el codi QR de la seva entrada.
 - **Sistema:**
-  1. Identifica la zona, porta, fila i seient a partir de l'entrada.
-  2. Genera una ruta pas a pas des de la posició actual fins al lloc exacte.
-  3. Utilitza realitat augmentada (AR) per senyalitzar el camí i la ubicació precisa.
+  1. Identifica el codi QR (ex. `CIRCUIT-VIP-2026`).
+  2. Si l'usuari no té compte, l'aplicació guarda el codi i el redirigeix a la pantalla de registre. En finalitzar, s'associa i fa login automàticament.
+  3. Si l'usuari ja té sessió ("Ticket Wallet"), l'entrada s'afegeix directament al seu perfil (`/auth/ticket/claim`).
+  4. Genera una ruta pas a pas des de la posició actual fins al lloc exacte (tribuna, fila i seient).
+  5. Utilitza realitat augmentada (AR) per senyalitzar el camí i la ubicació precisa.

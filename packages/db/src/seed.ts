@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { db, pool } from './index.js';
-import { users, pointsOfInterest } from './schema.js';
+import { db, pool } from './index';
+import { users, pointsOfInterest } from './schema';
 import { sql } from 'drizzle-orm';
 
 async function seed() {
@@ -20,40 +20,71 @@ async function seed() {
     console.log('Test user already exists.');
   }
 
-  // 2. Seed some Points of Interest (POIs)
+  // 2. We skip clearing POIs to preserve any manual changes or telemetry data
+  // await db.delete(pointsOfInterest);
+  console.log('Synchronizing points of interest...');
+
+  // 3. Seed Points of Interest (POIs) - Professional Circuit Set
   const pois = [
     {
-      name: 'Main Entrance - Gate 1',
-      description: 'Primary entry point for the circuit.',
+      name: 'Main Entrance - Gate 3',
+      description: 'Main pedestrian access and ticket office.',
       type: 'gate',
-      location: sql`ST_GeomFromText('POINT(2.261 41.568)', 4326)`,
+      location: sql`ST_GeomFromText('POINT(2.2555 41.5725)', 4326)`,
       isWheelchairAccessible: true,
+      crowdLevel: 'moderate',
     },
     {
-      name: 'Grandstand G',
-      description: 'Best views of the main straight.',
+      name: 'Grandstand D (Principal)',
+      description: 'Excellent view of the first corner and pit exit.',
       type: 'grandstand',
-      location: sql`ST_GeomFromText('POINT(2.2645 41.5701)', 4326)`,
+      location: sql`ST_GeomFromText('POINT(2.2592 41.5695)', 4326)`,
       isWheelchairAccessible: true,
+      crowdLevel: 'high',
+    },
+    {
+      name: 'Paddock Club Grill',
+      description: 'Premium food court with gourmet options.',
+      type: 'restaurant',
+      location: sql`ST_GeomFromText('POINT(2.2615 41.5698)', 4326)`,
+      isWheelchairAccessible: true,
+      crowdLevel: 'low',
     },
     {
       name: 'Medical Center',
-      description: 'First aid and emergency services.',
+      description: 'Primary medical assistance and emergency services.',
       type: 'medical',
-      location: sql`ST_GeomFromText('POINT(2.262 41.569)', 4326)`,
+      location: sql`ST_GeomFromText('POINT(2.2635 41.5708)', 4326)`,
       isWheelchairAccessible: true,
+      crowdLevel: 'low',
     },
     {
-      name: 'Paddock Restaurant',
-      description: 'Full service dining near the pit lane.',
-      type: 'restaurant',
-      location: sql`ST_GeomFromText('POINT(2.268 41.572)', 4326)`,
+      name: 'Official Merch Store',
+      description: 'Get your official team gear and souvenirs.',
+      type: 'shop',
+      location: sql`ST_GeomFromText('POINT(2.2575 41.5715)', 4326)`,
       isWheelchairAccessible: true,
+      crowdLevel: 'moderate',
     },
+    {
+      name: 'Public Restrooms - Sector 1',
+      description: 'Clean facilities with accessible cabins.',
+      type: 'wc',
+      location: sql`ST_GeomFromText('POINT(2.2585 41.5685)', 4326)`,
+      isWheelchairAccessible: true,
+      crowdLevel: 'low',
+    }
   ] as const;
 
   for (const poi of pois) {
-    await db.insert(pointsOfInterest).values(poi).onConflictDoNothing();
+    await db.insert(pointsOfInterest).values({
+      name: poi.name,
+      description: poi.description,
+      type: poi.type,
+      location: poi.location,
+      isWheelchairAccessible: poi.isWheelchairAccessible,
+      crowdLevel: poi.crowdLevel,
+    }).onConflictDoNothing();
   }
   
   console.log(`Seeded ${pois.length} points of interest.`);
