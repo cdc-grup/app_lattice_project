@@ -57,7 +57,7 @@ export const users = pgTable('users', {
 
 export const tickets = pgTable('tickets', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
+  userId: integer('user_id').references(() => users.id),
   code: varchar('code').unique(),
   gate: varchar('gate'),
   zoneName: varchar('zone_name'),
