@@ -1,0 +1,1 @@
+ALTER TABLE "points_of_interest" ADD CONSTRAINT "points_of_interest_name_unique" UNIQUE("name");

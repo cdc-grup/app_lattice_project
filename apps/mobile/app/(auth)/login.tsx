@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
-
+import { colors } from '../../src/styles/colors';
 export default function LoginScreen() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const [authMode, setAuthMode] = React.useState<'ticket' | 'account'>('ticket');
+  const [isScanning, setIsScanning] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
     if (token) {
@@ -59,6 +63,99 @@ export default function LoginScreen() {
   };
 
   const isLoading = syncTicket.isPending || login.isPending;
+
+  const handleStartScan = async () => {
+    if (!permission) {
+      await requestPermission();
+    }
+    if (!permission?.granted) {
+      const result = await requestPermission();
+      if (!result.granted) {
+        Alert.alert('Permission needed', 'Camera permission is required to scan tickets.');
+        return;
+      }
+    }
+    setIsScanning(true);
+  };
+
+  const handleBarcodeScanned = ({ data }: { data: string }) => {
+    setIsScanning(false);
+    
+    if (data) {
+      setTicketId(data);
+      syncTicket.mutate(data, {
+        onSuccess: () => {
+          console.log('Syncing access for ticket block:', data);
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Sync Failed', error.message);
+        }
+      });
+    } else {
+      Alert.alert('Invalid QR', 'No valid code found.');
+    }
+  };
+
+  const handlePickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // In a real application, you'd use a native barcode scanning library to read the static image.
+      // Here, we simulate reading a ticket code 'CIRCUIT25' as a placeholder action.
+      setTicketId('CIRCUIT25');
+      syncTicket.mutate('CIRCUIT25', {
+        onSuccess: () => {
+          console.log('Syncing access for gallery ticket: CIRCUIT25');
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Sync Failed', error.message);
+        }
+      });
+    }
+  };
+
+  if (isScanning) {
+    return (
+      <View style={StyleSheet.absoluteFillObject} className="bg-black">
+        <CameraView
+          style={StyleSheet.absoluteFillObject}
+          facing="back"
+          onBarcodeScanned={handleBarcodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr"],
+          }}
+        />
+        <SafeAreaView className="flex-1 justify-between p-6">
+          <View className="flex-row justify-between items-center mt-4">
+            <TouchableOpacity 
+              onPress={() => setIsScanning(false)}
+              className="w-12 h-12 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
+            >
+              <MaterialCommunityIcons name="close" size={24} color="white" />
+            </TouchableOpacity>
+            <View className="bg-black/50 px-4 py-2 rounded-full backdrop-blur-md">
+              <Text className="text-white font-bold">Scan QR Ticket</Text>
+            </View>
+            <View className="w-12 h-12" />
+          </View>
+          
+          <View className="items-center mb-10">
+            <View className="w-64 h-64 border-2 border-primary rounded-3xl bg-transparent" />
+            <Text className="text-white text-center mt-6 bg-black/50 px-4 py-2 rounded-full">
+              Align QR code within the frame
+            </Text>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-background">
@@ -114,53 +211,49 @@ export default function LoginScreen() {
             </View>
 
             {/* Form Content */}
-            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 backdrop-blur-lg">
+            <View className={authMode === 'account' ? 'bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 backdrop-blur-lg' : 'mb-8'}>
               {authMode === 'ticket' ? (
-                <View>
-                  <View className="mb-6">
-                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
-                      Ticket ID
-                    </Text>
-                    <View className="flex-row items-center border-b border-slate-700 py-1">
-                      <TextInput 
-                        className="flex-1 text-white text-lg py-2"
-                        value={ticketId}
-                        onChangeText={setTicketId}
-                        autoCapitalize="characters"
-                        placeholder="EX: CIRCUIT25"
-                        placeholderTextColor="#4b5563"
-                        editable={!isLoading}
-                      />
-                      <TouchableOpacity className="p-1" disabled={isLoading}>
-                        <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FF3B30" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  
-                  <View className="flex-row items-start bg-primary/10 border border-primary/20 p-3 rounded-xl mb-8">
-                    <MaterialCommunityIcons name="information-outline" size={16} color="#FF3B30" className="mt-0.5 mr-2" />
-                    <Text className="text-tiny text-primary/80 flex-1 leading-relaxed">
-                      Use the 8-digit code found on your physical pass or email confirmation.
-                    </Text>
-                  </View>
-
+                <View className="items-center w-full">
+                  {/* Immersive Viewfinder Placeholder */}
                   <TouchableOpacity 
-                    onPress={handleSyncAccess}
+                    onPress={handleStartScan}
                     disabled={isLoading}
-                    className="bg-primary py-4 px-6 rounded-xl flex-row items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
+                    activeOpacity={0.8}
+                    className="w-full aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-[32px] items-center justify-center p-6 relative overflow-hidden"
                   >
+                    {/* Viewfinder Corners */}
+                    <View className="absolute top-5 left-5 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-2xl opacity-80" />
+                    <View className="absolute top-5 right-5 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-2xl opacity-80" />
+                    <View className="absolute bottom-5 left-5 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-2xl opacity-80" />
+                    <View className="absolute bottom-5 right-5 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-2xl opacity-80" />
+                    
+                    {/* Center Icon & Copy */}
                     {isLoading ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator size="large" color="#FF3B30" className="mb-6" />
                     ) : (
-                      <>
-                        <View className="mr-2">
-                           <MaterialCommunityIcons name="flash-outline" size={20} color="white" />
-                        </View>
-                        <Text className="text-white font-bold">
-                          SYNC ACCESS
-                        </Text>
-                      </>
+                      <MaterialCommunityIcons name="qrcode-scan" size={64} color="#FF3B30" className="mb-6" />
                     )}
+                    
+                    <Text className="text-white font-black text-2xl mb-2 text-center tracking-tight">
+                      Scan QR Code
+                    </Text>
+                    
+                    <Text className="text-muted text-center text-sm leading-relaxed px-2">
+                      Tap anywhere in the frame to scan your printed QR code or digital pass to sync instantly.
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Secondary CTA */}
+                  <TouchableOpacity 
+                    onPress={handlePickImage}
+                    disabled={isLoading}
+                    className="mt-6 flex-row items-center justify-center py-2 px-6"
+                    activeOpacity={0.6}
+                  >
+                    <MaterialCommunityIcons name="image-multiple-outline" size={18} color="#9ca3af" className="mr-2" />
+                    <Text className="text-muted font-medium text-base">
+                      Upload from Gallery
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
