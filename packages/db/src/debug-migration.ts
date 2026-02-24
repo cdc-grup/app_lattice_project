@@ -5,14 +5,14 @@ async function debug() {
   const client = await pool.connect();
   try {
     console.log('--- DB DEBUG START ---');
-    
+
     // 1. Check current state
     const colInfo = await client.query(`
       SELECT column_name, data_type, udt_name
       FROM information_schema.columns 
       WHERE table_name = 'users' AND column_name = 'mobility_mode'
     `);
-    
+
     if (colInfo.rows.length === 0) {
       console.log('Column mobility_mode does not exist in users table!');
     } else {
@@ -35,10 +35,9 @@ async function debug() {
       ALTER TABLE "users" ALTER COLUMN "mobility_mode" SET DATA TYPE "mobility_mode" USING "mobility_mode"::text::"mobility_mode";
       ALTER TABLE "users" ALTER COLUMN "mobility_mode" SET DEFAULT 'standard';
     `;
-    
+
     await client.query(migrationSQL);
     console.log('SUCCESS: Migration step applied manually.');
-
   } catch (err: any) {
     console.error('FAILED: Migration step failed.');
     console.error('Error Message:', err.message);

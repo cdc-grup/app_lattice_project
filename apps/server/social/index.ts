@@ -13,9 +13,9 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Adjust in production
-    methods: ["GET", "POST"]
-  }
+    origin: '*', // Adjust in production
+    methods: ['GET', 'POST'],
+  },
 });
 
 const PORT = process.env.PORT || 3003;
@@ -36,7 +36,7 @@ app.post('/groups', (req: Request, res: Response) => {
 // --- SOCKET.IO ---
 io.of('/live-track').on('connection', (socket) => {
   console.log(`[Social Service] Socket connected: ${socket.id}`);
-  
+
   socket.on('disconnect', () => {
     console.log(`[Social Service] Socket disconnected: ${socket.id}`);
   });

@@ -15,7 +15,7 @@ export {
   mobilityModeEnum,
   poiTypeEnum,
   crowdLevelEnum,
-  surfaceTypeEnum
+  surfaceTypeEnum,
 } from './schema';
 export { sql, eq, and, desc, asc } from 'drizzle-orm';
 
@@ -23,7 +23,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 /**
  * Professional Database Connection Pool Configuration
- * 
+ *
  * - max: Number of clients in the pool (Increased for high-density telemetry)
  * - idleTimeoutMillis: How long a client is allowed to remain idle before being closed
  * - connectionTimeoutMillis: How long to wait for a connection before timing out
@@ -31,7 +31,7 @@ const isProduction = process.env.NODE_ENV === 'production';
  */
 export const pool = new Pool(
   process.env.DATABASE_URL
-    ? { 
+    ? {
         connectionString: process.env.DATABASE_URL,
         ssl: isProduction ? { rejectUnauthorized: false } : false,
         max: 20,

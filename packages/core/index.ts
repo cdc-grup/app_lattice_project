@@ -14,7 +14,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   res.status(err.status || 500).json({
     error: {
       message: err.message || 'Internal Server Error',
-      code: err.code || 'INTERNAL_ERROR'
-    }
+      code: err.code || 'INTERNAL_ERROR',
+    },
   });
 };

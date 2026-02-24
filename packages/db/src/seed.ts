@@ -7,12 +7,16 @@ async function seed() {
   console.log('Seeding database...');
 
   // 1. Seed a test user
-  const [testUser] = await db.insert(users).values({
-    email: 'kore@example.com',
-    passwordHash: 'password123', // Updated for easier testing
-    fullName: 'Kore User',
-    mobilityMode: 'standard',
-  }).onConflictDoNothing().returning();
+  const [testUser] = await db
+    .insert(users)
+    .values({
+      email: 'kore@example.com',
+      passwordHash: 'password123', // Updated for easier testing
+      fullName: 'Kore User',
+      mobilityMode: 'standard',
+    })
+    .onConflictDoNothing()
+    .returning();
 
   if (testUser) {
     console.log('Created test user:', testUser.email);
@@ -73,20 +77,23 @@ async function seed() {
       location: sql`ST_GeomFromText('POINT(2.2585 41.5685)', 4326)`,
       isWheelchairAccessible: true,
       crowdLevel: 'low',
-    }
+    },
   ] as const;
 
   for (const poi of pois) {
-    await db.insert(pointsOfInterest).values({
-      name: poi.name,
-      description: poi.description,
-      type: poi.type,
-      location: poi.location,
-      isWheelchairAccessible: poi.isWheelchairAccessible,
-      crowdLevel: poi.crowdLevel,
-    }).onConflictDoNothing();
+    await db
+      .insert(pointsOfInterest)
+      .values({
+        name: poi.name,
+        description: poi.description,
+        type: poi.type,
+        location: poi.location,
+        isWheelchairAccessible: poi.isWheelchairAccessible,
+        crowdLevel: poi.crowdLevel,
+      })
+      .onConflictDoNothing();
   }
-  
+
   console.log(`Seeded ${pois.length} points of interest.`);
 
   console.log('Seeding completed successfully.');

@@ -1,4 +1,5 @@
 # Esquema de la Base de Dades: Circuit Copilot
+
 > **Projecte:** Accessibilitat + Temps Real
 > **Context:** Gestió de rutes, accessibilitat i grups per a esdeveniments en circuits.
 

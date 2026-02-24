@@ -12,6 +12,7 @@
     "generate": "turbo run generate --filter=!//",
     "migrate": "turbo run migrate --filter=!//",
     "seed": "turbo run seed --filter=!//",
+    "seed:pedralbes": "turbo run seed:pedralbes --filter=!//",
     "studio": "turbo run studio --filter=!//",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
@@ -36,7 +37,7 @@
     "turbo": "^2.4.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^3.0.5"
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "eslint-plugin-react-hooks": "^5.2.0"

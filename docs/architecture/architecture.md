@@ -6,7 +6,10 @@
   - **IMPORTANT:** Tots els paquets de dependències han de ser compatibles amb Expo. S'ha de prioritzar sempre l'ús de `npx expo install` en comptes de `npm install` per garantir la compatibilitat de versions.
   - **Development Builds:** A causa de l'ús de mòduls natius personalitzats (MMKV, Nitro, etc.), l'app s'ha d'executar mitjançant **Development Builds** (`npx expo run:android`), no amb l'app estàndard d'Expo Go.
 - **Motor de Mapes:** **MapLibre GL** (`@maplibre/maplibre-react-native`).
-  - _Motiu:_ Arquitectura Open Source, d'alt rendiment i sense dependència forçada de tokens de pagament per al desenvolupament base. Permet estils "Digital Non-Real" personalitzats.
+  - _Motiu:_ Arquitectura Open Source, d'alt rendiment i sense dependència forçada de tokens.
+  - _Optimització:_ Ús de **SurfaceView** en Android per eliminar el lag en la interacció.
+- **Geolocalització:** **Expo Location**.
+  - _Implementació:_ Hook personalitzat `useLocationPermission` per a la gestió de permisos i actualitzacions en temps real.
 - **Motor d'AR:** **ViroCommunity (ViroReact)**.
   - _Motiu:_ Suport natiu per a objectes 3D geo-anclats (Location-based AR).
 - **Backend:** Node.js (Express).
@@ -40,3 +43,11 @@
   - _PostgreSQL/PostGIS:_ Imatge oficial.
   - _API:_ Dockerfile multi-etapa (dev/prod).
 - **Frontend (Mòbil):** Execució nativa (fora de Docker) per optimitzar la connexió amb Metro Bundler i els dispositius físics.
+
+## Proves i Garantia de Qualitat
+
+L'estratègia de proves es divideix en dues branques per optimitzar el cicle de desenvolupament:
+
+- **Lògica i Utilitats:** Mitjançant **Vitest** per a una execució instantània en entorns virtuals.
+- **Interfície d'Usuari:** Mitjançant **Jest** i **React Native Testing Library** per validar components Expo.
+- Consulteu la [Guia de QA](../guides/qa-testing-guide.md) per a més detalls sobre proves de camp i simulacions.

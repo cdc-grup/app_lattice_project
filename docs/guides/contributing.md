@@ -8,6 +8,7 @@ Gràcies per ajudar-nos a millorar l'experiència al circuit! Segueix aquestes d
 ## 🌿 Estratègia de Branques
 
 Utilitzem branques de funcionalitat (feature branches):
+
 - `feat/nom-funcionalitat`: Noves funcionalitats.
 - `fix/nom-error`: Correcció d'errors.
 - `docs/descripcio`: Millores en la documentació.
@@ -15,6 +16,7 @@ Utilitzem branques de funcionalitat (feature branches):
 ## 📝 Convenció de Commits
 
 Seguim els **Conventional Commits**: `tipus(abast): descripció`
+
 - `feat(mobile): add user tracking`
 - `fix(api): fix PostGIS query`
 - `chore(root): update dependencies`
@@ -25,9 +27,11 @@ Seguim els **Conventional Commits**: `tipus(abast): descripció`
 > Abans de pujar codi, assegura't que el linter no dona errors.
 
 ### Lògica Compartida
+
 Si una funció o tipus s'utilitza en més d'un lloc, posa'l a `packages/shared`.
 
 ### Comandes Recomanades
+
 ```bash
 npm run dev     # Desenvolupament actiu
 npm run lint    # Verificació d'estil

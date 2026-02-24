@@ -42,9 +42,11 @@
         }
       ],
       [
-        "expo-camera",
+        "expo-location",
         {
-          "cameraPermission": "Allow Circuit Copilot to access your camera to scan ticket QR codes."
+          "locationAlwaysAndWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "locationWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "isAndroidBackgroundLocationEnabled": false
         }
       ],
       "@maplibre/maplibre-react-native"

@@ -58,7 +58,7 @@ Guarda la ubicació del cotxe per a la sortida.
 
 Obté els Punts d'Interès (POI) estàtics. Es poden emmagatzemar a la memòria cau del dispositiu (SQLite local).
 
-- **Paràmetres de consulta (Query Params):** `?category=toilet,food&changed_since=2023-10-01`
+- **Paràmetres de consulta (Query Params):** `?category=restaurant,wc,grandstand`
 - **Resposta (200 OK):**
 
 ```json
@@ -71,12 +71,26 @@ Obté els Punts d'Interès (POI) estàtics. Es poden emmagatzemar a la memòria 
       "properties": {
         "id": 101,
         "name": "Burger Truck #4",
-        "category": "food",
-        "wait_time_minutes": 15 // Calculat a partir de la densitat de la multitud
+        "category": "restaurant",
+        "description": "Premium food with short lines",
+        "crowdLevel": "low"
       }
     }
   ]
 }
+```
+
+#### `GET /pois/categories`
+
+Obté la llista de categories disponibles per als POIs (per als chips de filtres).
+
+- **Resposta (200 OK):**
+
+```json
+[
+  { "id": "1", "label": "Gates", "icon": "door-open", "category": "gate" },
+  { "id": "2", "label": "Food", "icon": "food", "category": "restaurant" }
+]
 ```
 
 ### Encaminament Intel·ligent (utilitza US4, US7)

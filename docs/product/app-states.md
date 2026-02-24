@@ -116,13 +116,16 @@ Aquest és un "Estat Superposat" (pot ocórrer en qualsevol moment).
 ## 4. Casos Extrems (Per programar)
 
 1. **"L'Usuari Fantasma":**
-  - _Situació:_ El GPS diu que l'usuari està a 500 km del circuit (error d'inici).
-  - _Acció:_ El diagrama d'estats ha d'evitar entrar a `Navigation_Active`. Mostra un modal: "Sembla que no ets al circuit".
+
+- _Situació:_ El GPS diu que l'usuari està a 500 km del circuit (error d'inici).
+- _Acció:_ El diagrama d'estats ha d'evitar entrar a `Navigation_Active`. Mostra un modal: "Sembla que no ets al circuit".
 
 2. **"El Bucle de Congestió":**
-  - _Situació:_ El servidor diu que la Ruta A està plena. L'app calcula la Ruta B. 10 segons després, la Ruta B també s'omple.
-  - _Acció:_ Definir un `debounce` a l'estat de `ReRouting`. No recalleu més d'una vegada per minut per evitar confondre l'usuari.
+
+- _Situació:_ El servidor diu que la Ruta A està plena. L'app calcula la Ruta B. 10 segons després, la Ruta B també s'omple.
+- _Acció:_ Definir un `debounce` a l'estat de `ReRouting`. No recalleu més d'una vegada per minut per evitar confondre l'usuari.
 
 3. **"Bateria Crítica":**
-  - _Situació:_ Bateria < 15%.
-  - _Acció:_ Forçar la transició de `Route_AR` a `Route_2D` i desactivar el sensor del giroscopi per estalviar energia.
+
+- _Situació:_ Bateria < 15%.
+- _Acció:_ Forçar la transició de `Route_AR` a `Route_2D` i desactivar el sensor del giroscopi per estalviar energia.

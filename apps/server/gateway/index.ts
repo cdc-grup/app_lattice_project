@@ -28,34 +28,49 @@ app.get('/status', (req: Request, res: Response) => {
 const API_PREFIX = '/api/v1';
 
 // Auth Service
-app.use(createProxyMiddleware({
-  pathFilter: [`${API_PREFIX}/auth`, `${API_PREFIX}/users`, '/auth', '/users'],
-  target: AUTH_SERVICE_URL,
-  changeOrigin: true,
-  pathRewrite: {
-    [`^${API_PREFIX}`]: '',
-  }
-}));
+app.use(
+  createProxyMiddleware({
+    pathFilter: [`${API_PREFIX}/auth`, `${API_PREFIX}/users`, '/auth', '/users'],
+    target: AUTH_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      [`^${API_PREFIX}`]: '',
+    },
+  })
+);
 
 // Geo Service
-app.use(createProxyMiddleware({
-  pathFilter: [`${API_PREFIX}/pois`, `${API_PREFIX}/locations`, `${API_PREFIX}/navigation`, `${API_PREFIX}/map`, '/pois', '/locations', '/navigation', '/map'],
-  target: GEO_SERVICE_URL,
-  changeOrigin: true,
-  pathRewrite: {
-    [`^${API_PREFIX}`]: '',
-  }
-}));
+app.use(
+  createProxyMiddleware({
+    pathFilter: [
+      `${API_PREFIX}/pois`,
+      `${API_PREFIX}/locations`,
+      `${API_PREFIX}/navigation`,
+      `${API_PREFIX}/map`,
+      '/pois',
+      '/locations',
+      '/navigation',
+      '/map',
+    ],
+    target: GEO_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      [`^${API_PREFIX}`]: '',
+    },
+  })
+);
 
 // Social Service
-app.use(createProxyMiddleware({
-  pathFilter: [`${API_PREFIX}/groups`, '/groups'],
-  target: SOCIAL_SERVICE_URL,
-  changeOrigin: true,
-  pathRewrite: {
-    [`^${API_PREFIX}`]: '',
-  }
-}));
+app.use(
+  createProxyMiddleware({
+    pathFilter: [`${API_PREFIX}/groups`, '/groups'],
+    target: SOCIAL_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      [`^${API_PREFIX}`]: '',
+    },
+  })
+);
 
 // Fallback for unhandled routes (404)
 app.use('*', (req, res) => {

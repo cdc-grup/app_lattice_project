@@ -1,11 +1,12 @@
 export const colors = {
-  primary: '#FF3B30', 
+  primary: '#FF3B30',
   background: '#170D0E',
   navbar: '#0F0F10',
   border: '#1A1A1B',
   surface: '#18181B',
   muted: '#9CA3AF',
   accent: '#FF3B30',
+  glass: 'rgba(255, 255, 255, 0.1)',
   white: '#FFFFFF',
   black: '#000000',
   red: {

@@ -9,14 +9,14 @@ interface SearchBarProps {
   onArPress?: () => void;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({ 
-  placeholder = "Find grandstands, food...", 
-  onSearch, 
-  onArPress 
+export const SearchBar: React.FC<SearchBarProps> = ({
+  placeholder = 'Find grandstands, food...',
+  onSearch,
+  onArPress,
 }) => {
   return (
     <View className="flex-row items-center gap-3 px-4 pt-12">
-      <View 
+      <View
         className="flex-1 flex-row items-center bg-surface/80 px-4 h-12 rounded-full border border-white/10"
         style={{ backdropFilter: 'blur(10px)' }} // NativeWind handles some blur, but let's stick to safe styles
       >
@@ -31,8 +31,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <MaterialCommunityIcons name="microphone" size={20} color={colors.muted} />
         </TouchableOpacity>
       </View>
-      
-      <TouchableOpacity 
+
+      <TouchableOpacity
         onPress={onArPress}
         className="w-12 h-12 items-center justify-center rounded-full border border-transparent"
         style={{

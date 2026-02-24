@@ -19,15 +19,8 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1771918306225,
-      "tag": "0002_last_caretaker",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1771926103565,
-      "tag": "0003_overjoyed_ulik",
+      "when": 1771922750874,
+      "tag": "0002_solid_grey_gargoyle",
       "breakpoints": true
     }
   ]

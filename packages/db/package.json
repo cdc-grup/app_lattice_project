@@ -10,7 +10,7 @@
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
     "seed": "tsx src/seed.ts",
-    "generate:qrs": "tsx src/generate-qrs.ts",
+    "seed:pedralbes": "tsx src/seed-pedralbes.ts",
     "studio": "drizzle-kit studio",
     "check": "tsx src/check-db.ts"
   },
