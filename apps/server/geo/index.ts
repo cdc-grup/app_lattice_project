@@ -31,6 +31,7 @@ app.get('/pois', async (req: Request, res: Response) => {
       description: pointsOfInterest.description,
       crowdLevel: pointsOfInterest.crowdLevel,
       isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
+      hasPriorityLane: pointsOfInterest.hasPriorityLane,
       geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`
     }).from(pointsOfInterest).$dynamic();
 
@@ -49,7 +50,8 @@ app.get('/pois', async (req: Request, res: Response) => {
         category: poi.type,
         description: poi.description,
         crowdLevel: poi.crowdLevel,
-        isWheelchairAccessible: poi.isWheelchairAccessible
+        isWheelchairAccessible: poi.isWheelchairAccessible,
+        hasPriorityLane: poi.hasPriorityLane
       }
     }));
 

@@ -14,6 +14,7 @@ export interface POIGeoJSON {
     description: string;
     crowdLevel: 'low' | 'moderate' | 'high' | 'blocked';
     isWheelchairAccessible: boolean;
+    hasPriorityLane: boolean;
     wait_time_minutes?: number;
   };
 }

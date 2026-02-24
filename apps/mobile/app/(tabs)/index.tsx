@@ -11,9 +11,19 @@ import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useLocationPermission } from '../../src/hooks/useLocationPermission';
+import * as Location from 'expo-location';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
+// Filter out noisy location errors common in emulators
+MapLibreGL.Logger.setLogCallback((log) => {
+  const msg = typeof log.message === 'string' ? log.message : '';
+  if (msg.includes('Failed to obtain last location update') || 
+      msg.includes('Last location unavailable')) {
+    return true;
+  }
+  return false;
+});
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -88,23 +98,100 @@ export default function MapScreen() {
     return {
       id: feature.properties.id.toString(),
       name: feature.properties.name,
-      description: feature.properties.description || '',
+      description: feature.properties.description,
       type: feature.properties.category,
-      status: 'open' as const,
+      crowdLevel: feature.properties.crowdLevel,
+      isWheelchairAccessible: feature.properties.isWheelchairAccessible,
+      hasPriorityLane: feature.properties.hasPriorityLane,
+      // For now, we don't have images/distance in DB yet
+      images: [],
       distance: '350m', 
       time: '5 min',
-      images: [
-        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&q=80'
-      ]
     };
   }, [selectedPoiId, poisData]);
 
+  const [userCoords, setUserCoords] = useState<number[] | null>(null);
+
+  // Independent location watcher to bypass MapLibre native location issues on emulators
+  React.useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null;
+
+    if (locationStatus === 'granted') {
+      (async () => {
+        try {
+          // 1. Try to get last known position first (fastest)
+          const lastKnown = await Location.getLastKnownPositionAsync();
+          if (lastKnown) {
+            setUserCoords([lastKnown.coords.longitude, lastKnown.coords.latitude]);
+          }
+
+          // 2. Try to get current position (forces a refresh)
+          const initial = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+          }).catch(() => null); // Ignore if fails, we have watcher
+          
+          if (initial) {
+            setUserCoords([initial.coords.longitude, initial.coords.latitude]);
+          }
+
+          // Then start watching
+          subscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.High,
+              timeInterval: 2000,
+              distanceInterval: 1,
+            },
+            (location) => {
+              setUserCoords([location.coords.longitude, location.coords.latitude]);
+            }
+          );
+        } catch (err) {
+          console.warn('Location tracking failed to start:', err);
+        }
+      })();
+    }
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [locationStatus]);
+
   const handleRecenter = useCallback(async () => {
-    const granted = await requestPermission();
-    if (granted) {
+    try {
+      const granted = await requestPermission();
+      if (!granted) return;
+
+      // Use our independently verified coords if available
+      if (userCoords && camera.current) {
+        camera.current.setCamera({
+          centerCoordinate: userCoords,
+          zoomLevel: 19,
+          animationDuration: 1000,
+        });
+        setFollowUser(true);
+        return;
+      }
+
+      // Fallback: manually get location if no coords yet
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      }).catch(() => null);
+
+      if (location && camera.current) {
+        camera.current.setCamera({
+          centerCoordinate: [location.coords.longitude, location.coords.latitude],
+          zoomLevel: 19,
+          animationDuration: 1000,
+        });
+        setFollowUser(true);
+      } else {
+        setFollowUser(true);
+      }
+    } catch (err) {
+      console.warn('Manual recenter failed:', err);
       setFollowUser(true);
     }
-  }, [requestPermission]);
+  }, [requestPermission, userCoords]);
 
   const handleFilterPress = useCallback((id: string) => {
     setActiveFilterId(prev => prev === id ? '' : id);
@@ -127,12 +214,13 @@ export default function MapScreen() {
         >
           <MapLibreGL.Camera
             ref={camera}
-            followUserLocation={followUser}
+            followUserLocation={followUser && locationStatus === 'granted'}
             followUserMode={MapLibreGL.UserTrackingMode.FollowWithHeading}
-            minZoomLevel={10}
+            centerCoordinate={!followUser && userCoords ? userCoords : undefined}
+            minZoomLevel={14.5}
             maxBounds={{
-              ne: [2.404, 41.611],
-              sw: [1.808, 41.161],
+              ne: [2.142, 41.413], // ~3km NE from center
+              sw: [2.070, 41.359], // ~3km SW from center
             }}
             defaultSettings={{
               centerCoordinate: [2.1060698, 41.3863034], // Institut Pedralbes (Testing)
@@ -140,30 +228,51 @@ export default function MapScreen() {
             }}
           />
 
-          {/* Floor Plan Overlay */}
-          <MapLibreGL.ImageSource
-            id="pedralbes-floorplan"
-            coordinates={[
-              [2.1052698, 41.3869034], // Top Left
-              [2.1068698, 41.3869034], // Top Right
-              [2.1068698, 41.3857034], // Bottom Right
-              [2.1052698, 41.3857034], // Bottom Left
-            ]}
-            url={require('../../assets/background_institutpedralbes.png')}
-          >
-            <MapLibreGL.RasterLayer
-              id="pedralbes-floorplan-layer"
-              style={{
-                rasterOpacity: 1, // Full opacity as requested (only lines)
-              }}
-            />
-          </MapLibreGL.ImageSource>
-
-          <MapLibreGL.UserLocation 
-            visible={true}
-            renderMode="native"
-            showsUserHeadingIndicator={true}
-          />
+          {locationStatus === 'granted' && (
+            <>
+              <MapLibreGL.UserLocation 
+                visible={true}
+                renderMode="normal"
+                showsUserHeadingIndicator={true}
+                onUpdate={(location) => {
+                  if (location.coords) {
+                    setUserCoords([location.coords.longitude, location.coords.latitude]);
+                  }
+                }}
+              />
+              {userCoords && (
+                <MapLibreGL.ShapeSource
+                  id="user-location-backup"
+                  shape={{
+                    type: 'Feature',
+                    geometry: {
+                      type: 'Point',
+                      coordinates: userCoords,
+                    },
+                    properties: {},
+                  }}
+                >
+                  <MapLibreGL.CircleLayer
+                    id="user-location-backup-outer"
+                    style={{
+                      circleRadius: 12,
+                      circleColor: colors.primary,
+                      circleOpacity: 0.4,
+                    }}
+                  />
+                  <MapLibreGL.CircleLayer
+                    id="user-location-backup-inner"
+                    style={{
+                      circleRadius: 7,
+                      circleColor: colors.primary,
+                      circleStrokeWidth: 2.5,
+                      circleStrokeColor: 'white',
+                    }}
+                  />
+                </MapLibreGL.ShapeSource>
+              )}
+            </>
+          )}
           
           {poisData?.features.map((feature: POIGeoJSON) => (
             <POIMarker 

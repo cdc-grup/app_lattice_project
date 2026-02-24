@@ -6,11 +6,14 @@ import { colors } from '../styles/colors';
 export interface POI {
   id: string;
   name: string;
+  description?: string;
   type: string;
-  status: 'open' | 'closed';
-  distance: string;
-  time: string;
-  images: string[];
+  crowdLevel: 'low' | 'moderate' | 'high' | 'blocked';
+  isWheelchairAccessible: boolean;
+  hasPriorityLane: boolean;
+  distance?: string;
+  time?: string;
+  images?: string[];
 }
 
 interface POICardProps {
@@ -19,34 +22,77 @@ interface POICardProps {
   onNavigate: () => void;
 }
 
+const getCrowdColor = (level: string) => {
+  switch (level) {
+    case 'low': return 'text-green-400';
+    case 'moderate': return 'text-yellow-400';
+    case 'high':
+    case 'blocked': return 'text-red-400';
+    default: return 'text-white';
+  }
+};
+
+const getCrowdLabel = (level: string) => {
+  switch (level) {
+    case 'low': return 'Low crowds';
+    case 'moderate': return 'Moderate crowds';
+    case 'high': return 'High crowds';
+    case 'blocked': return 'Access blocked';
+    default: return 'Crowd status unknown';
+  }
+};
+
 export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) => {
   if (!poi) return null;
+
+  const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.type.toLowerCase());
 
   return (
     <View className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl">
       <View className="flex-row justify-between items-start">
-        <View>
-          <View className="flex-row items-center gap-2 mb-1">
+        <View className="flex-1 mr-2">
+          <View className="flex-row flex-wrap items-center gap-2 mb-2">
             <View className="bg-primary/20 px-2 py-0.5 rounded">
               <Text className="text-primary text-[10px] font-black uppercase tracking-wider">
                 {poi.type}
               </Text>
             </View>
-            <View className="flex-row items-center">
-              <View className={`w-1.5 h-1.5 rounded-full mr-1 ${poi.status === 'open' ? 'bg-green-400' : 'bg-red-400'}`} />
-              <Text className="text-white text-[10px] font-medium">
-                {poi.status === 'open' ? 'Open Now' : 'Closed'}
+            
+            <View className="flex-row items-center border border-white/10 px-2 py-0.5 rounded bg-white/5">
+              <View className={`w-1.5 h-1.5 rounded-full mr-1 ${getCrowdColor(poi.crowdLevel).replace('text-', 'bg-')}`} />
+              <Text className={`text-[10px] font-medium ${getCrowdColor(poi.crowdLevel)}`}>
+                {getCrowdLabel(poi.crowdLevel)}
               </Text>
             </View>
+
+            {poi.isWheelchairAccessible && (
+              <View className="bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
+                <MaterialCommunityIcons name="wheelchair-accessibility" size={12} color="#60A5FA" />
+              </View>
+            )}
+
+            {poi.hasPriorityLane && (
+              <View className="bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                <MaterialCommunityIcons name="star" size={12} color="#FBBF24" />
+              </View>
+            )}
           </View>
           
-          <Text className="text-white font-black text-lg mb-0.5">{poi.name}</Text>
-          <View className="flex-row items-center">
-            <MaterialCommunityIcons name="timer-outline" size={14} color={colors.muted} />
-            <Text className="text-muted text-xs ml-1">
-              {poi.time} walk ({poi.distance})
+          <Text className="text-white font-black text-lg mb-1">{poi.name}</Text>
+          {poi.description ? (
+            <Text className="text-muted text-xs leading-relaxed mb-2" numberOfLines={2}>
+              {poi.description}
             </Text>
-          </View>
+          ) : null}
+          
+          {(poi.time || poi.distance) && (
+            <View className="flex-row items-center">
+              <MaterialCommunityIcons name="timer-outline" size={14} color={colors.muted} />
+              <Text className="text-muted text-xs ml-1">
+                {poi.time ? `${poi.time} walk` : ''} {poi.distance ? `(${poi.distance})` : ''}
+              </Text>
+            </View>
+          )}
         </View>
 
         <TouchableOpacity 
@@ -58,22 +104,20 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
         </TouchableOpacity>
       </View>
 
-      <View className="mt-4">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-          {poi.images.map((img, index) => (
-            <Image 
-              key={index}
-              source={{ uri: img }}
-              className="w-28 h-20 rounded-xl mr-3 border border-white/5"
-              resizeMode="cover"
-            />
-          ))}
-          {/* Mock "+4 more" item */}
-          <View className="w-20 h-20 bg-white/5 rounded-xl items-center justify-center">
-            <Text className="text-muted text-xs font-bold">+4 more</Text>
-          </View>
-        </ScrollView>
-      </View>
+      {showImages && poi.images && poi.images.length > 0 && (
+        <View className="mt-4">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+            {poi.images.map((img, index) => (
+              <Image 
+                key={index}
+                source={{ uri: img }}
+                className="w-28 h-20 rounded-xl mr-3 border border-white/5"
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <View className="mt-4 flex-row gap-3">
         <TouchableOpacity 
@@ -98,7 +142,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             borderColor: 'rgba(255, 255, 255, 0.1)',
           }}
         >
-          <MaterialCommunityIcons name="share-variant" size={20} color="white" />
+          <MaterialCommunityIcons name="bookmark-outline" size={20} color="white" />
         </TouchableOpacity>
       </View>
     </View>
