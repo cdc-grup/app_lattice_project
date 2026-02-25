@@ -1,7 +1,7 @@
 import { create, StateCreator } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMMKV } from 'react-native-mmkv';
-import { User, Ticket } from '../types';
+import { User, Ticket } from '../types/models/auth';
 import { authService } from '../services/authService';
 
 const storage = createMMKV();

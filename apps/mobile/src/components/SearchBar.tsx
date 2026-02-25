@@ -9,6 +9,8 @@ interface SearchBarProps {
   onArPress?: () => void;
 }
 
+import { theme } from '../styles/theme';
+
 export const SearchBar = React.memo(({
   placeholder = 'Find grandstands, food...',
   onSearch,
@@ -18,6 +20,10 @@ export const SearchBar = React.memo(({
     <View className="flex-row items-center gap-3 px-4 pt-12">
       <View
         className="flex-1 flex-row items-center bg-surface/80 px-4 h-12 rounded-full border border-white/10"
+        style={{ 
+          backgroundColor: theme.glass.dark, 
+          borderColor: theme.glass.medium 
+        }}
       >
         <Feather name="search" size={20} color={colors.muted} />
         <TextInput
@@ -35,8 +41,8 @@ export const SearchBar = React.memo(({
         onPress={onArPress}
         className="w-12 h-12 items-center justify-center rounded-full border border-transparent"
         style={{
-          backgroundColor: 'rgba(24, 24, 27, 0.8)', // surface/80
-          borderColor: 'rgba(255, 255, 255, 0.1)', // white/10
+          backgroundColor: theme.glass.dark,
+          borderColor: theme.glass.medium,
         }}
       >
         <Feather name="camera" size={22} color="white" />
@@ -44,3 +50,4 @@ export const SearchBar = React.memo(({
     </View>
   );
 });
+

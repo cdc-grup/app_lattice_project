@@ -4,44 +4,20 @@ import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 import { getCategoryMetadata } from '../utils/poiUtils';
-
-import { POIGeoJSON } from '../types';
+import { UIPOI } from '../types/models/poi';
+import { POIBadges } from './poi/POIBadges';
+import { POIActions } from './poi/POIActions';
 
 interface POICardProps {
-  poi: POIGeoJSON['properties'] | null;
+  poi: UIPOI | null;
   onClose: () => void;
   onNavigate: () => void;
   onSelect: (id: number, coords: number[]) => void;
 }
 
-const getCrowdColor = (level: string) => {
-  switch (level) {
-    case 'low':
-      return 'text-green-400';
-    case 'moderate':
-      return 'text-yellow-400';
-    case 'high':
-    case 'blocked':
-      return 'text-red-400';
-    default:
-      return 'text-white';
-  }
-};
+import { theme } from '../styles/theme';
 
-const getCrowdLabel = (level: string) => {
-  switch (level) {
-    case 'low':
-      return 'Low crowds';
-    case 'moderate':
-      return 'Moderate crowds';
-    case 'high':
-      return 'High crowds';
-    case 'blocked':
-      return 'Access blocked';
-    default:
-      return 'Crowd status unknown';
-  }
-};
+import { POIImageGallery } from './poi/POIImageGallery';
 
 export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICardProps) => {
   if (!poi) return null;
@@ -57,37 +33,13 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
     >
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
-          <View className="flex-row flex-wrap items-center gap-2 mb-2">
-            <View 
-              className="flex-row items-center px-2 py-0.5 rounded border border-white/10 bg-white/5"
-            >
-              <Feather name={metadata.icon as any} size={10} color={colors.muted} style={{ marginRight: 4 }} />
-              <Text className="text-[10px] font-black uppercase tracking-wider text-muted">
-                {poi.category}
-              </Text>
-            </View>
-
-            <View className="flex-row items-center border border-white/10 px-2 py-0.5 rounded bg-white/5">
-              <View
-                className={`w-1.5 h-1.5 rounded-full mr-1 ${getCrowdColor(poi.crowdLevel).replace('text-', 'bg-')}`}
-              />
-              <Text className={`text-[10px] font-medium ${getCrowdColor(poi.crowdLevel)}`}>
-                {getCrowdLabel(poi.crowdLevel)}
-              </Text>
-            </View>
-
-            {poi.isWheelchairAccessible && (
-              <View className="bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
-                <Feather name="user" size={12} color="#60A5FA" />
-              </View>
-            )}
-
-            {poi.hasPriorityLane && (
-              <View className="bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                <Feather name="star" size={12} color="#FBBF24" />
-              </View>
-            )}
-          </View>
+          <POIBadges 
+            category={poi.category}
+            crowdLevel={poi.crowdLevel}
+            isWheelchairAccessible={poi.isWheelchairAccessible}
+            hasPriorityLane={poi.hasPriorityLane}
+            icon={metadata.icon}
+          />
 
           <Text className="text-white font-black text-lg mb-1">{poi.name}</Text>
           {poi.description ? (
@@ -109,53 +61,18 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
         <TouchableOpacity
           onPress={onClose}
           className="w-8 h-8 items-center justify-center rounded-full"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+          style={{ backgroundColor: theme.glass.low }}
         >
           <Feather name="x" size={20} color={colors.muted} />
         </TouchableOpacity>
       </View>
 
-      {showImages && poi.images && poi.images.length > 0 && (
-        <View className="mt-4">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-            {poi.images.map((img, index) => (
-              <Image
-                key={index}
-                source={{ uri: img }}
-                className="w-28 h-20 rounded-xl mr-3 border border-white/5"
-                resizeMode="cover"
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      {showImages && poi.images && <POIImageGallery images={poi.images} />}
 
-      <View className="mt-4 flex-row gap-3">
-        <TouchableOpacity
-          onPress={onNavigate}
-          className="flex-1 bg-primary h-12 flex-row items-center justify-center rounded-xl"
-          style={{
-            shadowColor: colors.primary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 10,
-            elevation: 5,
-          }}
-        >
-          <Feather name="navigation" size={18} color="white" />
-          <Text className="text-white font-bold ml-2">Navigate Here</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="w-12 h-12 items-center justify-center border rounded-xl border-transparent"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <Feather name="bookmark" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
+      <POIActions onNavigate={onNavigate} />
     </TouchableOpacity>
   );
 });
+
+
+

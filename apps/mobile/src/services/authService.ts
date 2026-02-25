@@ -1,6 +1,6 @@
 import { apiClient } from './apiClient';
 import { API_ENDPOINTS } from '../constants/api';
-import { Ticket, User } from '../types';
+import { Ticket, User } from '../types/models/auth';
 
 export interface AuthResponse {
   token: string;

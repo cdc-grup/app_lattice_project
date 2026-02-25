@@ -4,23 +4,26 @@ export interface CategoryMetadata {
   label: string;
 }
 
+export const NEUTRAL_MARKER_COLOR = 'rgba(255, 255, 255, 0.15)'; // Neutral glass-like color
+export const NEUTRAL_MARKER_BORDER = 'rgba(255, 255, 255, 0.3)';
+
 const CATEGORY_MAP: Record<string, CategoryMetadata> = {
-  restaurant: { icon: 'coffee', color: '#10B981', label: 'Food & Drinks' },
-  food: { icon: 'coffee', color: '#10B981', label: 'Food & Drinks' },
-  parking: { icon: 'map-pin', color: '#6B7280', label: 'Parking Area' },
-  shop: { icon: 'shopping-bag', color: '#8B5CF6', label: 'Official Store' },
-  shopping: { icon: 'shopping-bag', color: '#8B5CF6', label: 'Official Store' },
-  wc: { icon: 'user', color: '#3B82F6', label: 'Restrooms' },
-  toilet: { icon: 'user', color: '#3B82F6', label: 'Restrooms' },
-  grandstand: { icon: 'map', color: '#EF4444', label: 'Grandstand' },
-  medical: { icon: 'plus-square', color: '#F87171', label: 'Medical Point' },
-  gate: { icon: 'log-in', color: '#F59E0B', label: 'Entrance Gate' },
-  meetup_point: { icon: 'users', color: '#EC4899', label: 'Meetup Point' },
+  restaurant: { icon: 'coffee', color: '#FF9500', label: 'Food & Drinks' }, // Apple Orange
+  food: { icon: 'coffee', color: '#FF9500', label: 'Food & Drinks' },
+  parking: { icon: 'map-pin', color: '#8E8E93', label: 'Parking Area' }, // Apple Gray
+  shop: { icon: 'shopping-bag', color: '#FF2D55', label: 'Official Store' }, // Apple Pink
+  shopping: { icon: 'shopping-bag', color: '#FF2D55', label: 'Official Store' },
+  wc: { icon: 'user', color: '#007AFF', label: 'Restrooms' }, // Apple Blue
+  toilet: { icon: 'user', color: '#007AFF', label: 'Restrooms' },
+  grandstand: { icon: 'map', color: '#FF3B30', label: 'Grandstand' }, // Apple Red
+  medical: { icon: 'plus-square', color: '#AF52DE', label: 'Medical Point' }, // Apple Purple
+  gate: { icon: 'log-in', color: '#5856D6', label: 'Entrance Gate' }, // Apple Indigo
+  meetup_point: { icon: 'users', color: '#5AC8FA', label: 'Meetup Point' }, // Apple Sky Blue
 };
 
 const DEFAULT_METADATA: CategoryMetadata = {
   icon: 'map-pin',
-  color: '#374151',
+  color: '#8E8E93',
   label: 'Point of Interest',
 };
 

@@ -12,6 +12,8 @@ interface FilterChipProps {
   onPress?: () => void;
 }
 
+import { theme } from '../styles/theme';
+
 export const FilterChip = React.memo(({ label, icon, active = false, onPress }: FilterChipProps) => {
 
   return (
@@ -32,11 +34,12 @@ export const FilterChip = React.memo(({ label, icon, active = false, onPress }: 
               elevation: 5,
             }
           : {
-              backgroundColor: 'rgba(24, 24, 27, 0.8)', // surface/80
-              borderColor: 'rgba(255, 255, 255, 0.1)', // white/10
+              backgroundColor: theme.glass.dark,
+              borderColor: theme.glass.medium,
             }
       }
     >
+
       <Feather
         name={mapIconName(icon) as any}
         size={18}
