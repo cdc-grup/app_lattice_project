@@ -9,17 +9,22 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+
 export default function LoginScreen() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
@@ -40,10 +45,6 @@ export default function LoginScreen() {
     }
   }, [token, router]);
 
-  if (!permission) {
-    return <View className="flex-1 bg-background" />;
-  }
-
   const handleSyncAccess = () => {
     if (authMode === 'ticket') {
       if (!ticketId) {
@@ -53,7 +54,6 @@ export default function LoginScreen() {
 
       syncTicket.mutate(ticketId, {
         onSuccess: () => {
-          console.log('Syncing access for ticket:', ticketId);
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
@@ -70,7 +70,6 @@ export default function LoginScreen() {
         { email, password },
         {
           onSuccess: () => {
-            console.log('Login successful for:', email);
             router.replace('/(tabs)');
           },
           onError: (error: any) => {
@@ -99,25 +98,20 @@ export default function LoginScreen() {
 
   const handleBarcodeScanned = ({ data }: { data: string }) => {
     setIsScanning(false);
-    
     if (data) {
       setTicketId(data);
       syncTicket.mutate(data, {
         onSuccess: () => {
-          console.log('Syncing access for ticket block:', data);
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
         }
       });
-    } else {
-      Alert.alert('Invalid QR', 'No valid code found.');
     }
   };
 
   const handlePickImage = async () => {
-    // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -125,12 +119,10 @@ export default function LoginScreen() {
     });
 
     if (!result.canceled) {
-      // In a real application, you'd use a native barcode scanning library to read the static image.
-      // Here, we simulate reading a ticket code 'CIRCUIT25' as a placeholder action.
-      setTicketId('CIRCUIT25');
-      syncTicket.mutate('CIRCUIT25', {
+      const mockCode = 'CIRCUIT25';
+      setTicketId(mockCode);
+      syncTicket.mutate(mockCode, {
         onSuccess: () => {
-          console.log('Syncing access for gallery ticket: CIRCUIT25');
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
@@ -147,26 +139,20 @@ export default function LoginScreen() {
           style={StyleSheet.absoluteFill}
           facing="back"
           onBarcodeScanned={handleBarcodeScanned}
-          barcodeScannerSettings={{
-            barcodeTypes: ["qr"],
-          }}
+          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
         />
         <SafeAreaView className="flex-1 justify-between p-6">
           <View className="flex-row justify-between items-center mt-4">
-            <TouchableOpacity 
-              onPress={() => router.back()} 
-              className="absolute top-4 left-0 z-10 w-10 h-10 items-center justify-center"
-            >
-              <Feather name="arrow-left" size={24} color="white" />
+            <TouchableOpacity onPress={() => setIsScanning(false)} className="bg-black/50 w-10 h-10 items-center justify-center rounded-full">
+              <Feather name="x" size={24} color="white" />
             </TouchableOpacity>
             <View className="bg-black/50 px-4 py-2 rounded-full">
               <Text className="text-white font-bold">Scan QR Ticket</Text>
             </View>
-            <View className="w-12 h-12" />
+            <View className="w-10" />
           </View>
-          
-          <View className="items-center mb-10">
-            <View className="w-64 h-64 border-2 border-primary rounded-3xl bg-transparent" />
+          <View className="items-center mb-20">
+            <View className="w-64 h-64 border-2 border-primary rounded-3xl" />
             <Text className="text-white text-center mt-6 bg-black/50 px-4 py-2 rounded-full">
               Align QR code within the frame
             </Text>
@@ -177,41 +163,45 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-[#0A0A0B]">
       <StatusBar style="light" />
+      
+      {/* Background Decor */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View className="absolute -top-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]" />
+        <View className="absolute bottom-40 -right-20 w-80 h-80 bg-red-900/10 rounded-full blur-[80px]" />
+      </View>
 
-      <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }}
-            showsVerticalScrollIndicator={false}
-          >
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
+            
             {/* Header */}
-            <View className="pt-20 pb-8 items-center">
-              <View className="w-16 h-16 mb-6 rounded-2xl bg-primary items-center justify-center shadow-lg shadow-primary/50">
-                <Feather name="truck" size={40} color="white" />
-              </View>
+            <View className="pt-16 pb-8 items-center">
+              <LinearGradient
+                colors={['#FF3B30', '#E03028']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="w-16 h-16 mb-6 rounded-2xl items-center justify-center shadow-lg shadow-primary/40"
+              >
+                <Feather name="shield" size={32} color="white" />
+              </LinearGradient>
               <Text className="text-h1 font-black text-white text-center mb-2">
                 Welcome to the Grid
               </Text>
-              <Text className="text-small text-muted text-center">
+              <Text className="text-small text-slate-400 text-center">
                 Sync your pass or login to access race data.
               </Text>
             </View>
 
             {/* Auth Mode Selector */}
-            <View className="bg-black/20 p-1 rounded-2xl mb-8 flex-row border border-white/10">
+            <View className="bg-white/5 p-1 rounded-2xl mb-8 flex-row border border-white/5">
               <TouchableOpacity
                 onPress={() => setAuthMode('ticket')}
                 disabled={isLoading}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'ticket' ? 'bg-primary' : ''}`}
               >
-                <Text
-                  className={`text-small font-medium ${authMode === 'ticket' ? 'text-white' : 'text-muted'}`}
-                >
+                <Text className={`text-small font-bold ${authMode === 'ticket' ? 'text-white' : 'text-slate-400'}`}>
                   Fast Ticket Sync
                 </Text>
               </TouchableOpacity>
@@ -220,25 +210,23 @@ export default function LoginScreen() {
                 disabled={isLoading}
                 className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'account' ? 'bg-primary' : ''}`}
               >
-                <Text
-                  className={`text-small font-medium ${authMode === 'account' ? 'text-white' : 'text-muted'}`}
-                >
+                <Text className={`text-small font-bold ${authMode === 'account' ? 'text-white' : 'text-slate-400'}`}>
                   Account Sync
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Form Content */}
-            <View className={authMode === 'account' ? 'bg-white/5 border border-white/10 p-6 rounded-3xl mb-8' : 'mb-8'}>
+            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-10 shadow-2xl">
               {authMode === 'ticket' ? (
                 <View>
-                  <View className="mb-6">
-                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
-                      Ticket ID
+                  <View className="relative mb-6">
+                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
+                      Enter Ticket ID
                     </Text>
-                    <View className="flex-row items-center border-b border-slate-700 py-1">
+                    <View className="flex-row items-center border-b border-slate-700 py-2">
                       <TextInput
-                        className="flex-1 text-white text-lg py-2"
+                        className="flex-1 text-white text-lg font-medium"
                         value={ticketId}
                         onChangeText={setTicketId}
                         autoCapitalize="characters"
@@ -246,78 +234,49 @@ export default function LoginScreen() {
                         placeholderTextColor="#4b5563"
                         editable={!isLoading}
                       />
-                      <TouchableOpacity className="p-1" disabled={isLoading} onPress={handleStartScan}>
-                        <Feather name="maximize" size={24} color="#FF3B30" />
+                      <TouchableOpacity onPress={handleStartScan} className="p-2">
+                        <MaterialCommunityIcons name="qrcode-scan" size={24} color={colors.primary} />
                       </TouchableOpacity>
                     </View>
                   </View>
 
-                  <View className="flex-row items-start bg-primary/10 border border-primary/20 p-3 rounded-xl mb-8">
-                    <Feather
-                      name="info"
-                      size={16}
-                      color="#FF3B30"
-                      className="mt-0.5 mr-2"
-                    />
-                    <Text className="text-tiny text-primary/80 flex-1 leading-relaxed">
+                  <View className="flex-row items-start bg-primary/10 border border-primary/20 p-4 rounded-xl mb-8">
+                    <Feather name="info" size={16} color={colors.primary} className="mt-0.5 mr-3" />
+                    <Text className="text-tiny text-primary/80 flex-1 leading-relaxed font-medium">
                       Use the 8-digit code found on your physical pass or email confirmation.
                     </Text>
                   </View>
 
                   <TouchableOpacity
-                    onPress={handleStartScan}
+                    onPress={handleSyncAccess}
                     disabled={isLoading}
                     activeOpacity={0.8}
-                    className="w-full aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-[32px] items-center justify-center p-6 relative overflow-hidden"
+                    className="w-full"
                   >
-                    {/* Viewfinder Corners */}
-                    <View className="absolute top-5 left-5 w-10 h-10 border-t-4 border-l-4 border-primary rounded-tl-2xl opacity-80" />
-                    <View className="absolute top-5 right-5 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-2xl opacity-80" />
-                    <View className="absolute bottom-5 left-5 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-2xl opacity-80" />
-                    <View className="absolute bottom-5 right-5 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-2xl opacity-80" />
-                    
-                    {/* Center Icon & Copy */}
-                    {isLoading ? (
-                      <ActivityIndicator size="large" color="#FF3B30" className="mb-6" />
-                    ) : (
-                      <>
-                        <View className="items-center mb-10">
-                          <Feather name="tag" size={64} color={colors.primary} className="mb-4" />
-                        </View>
-                        <Text className="text-white font-bold">SYNC ACCESS</Text>
-                      </>
-                    )}
-                    
-                    <Text className="text-white font-black text-2xl mb-2 text-center tracking-tight">
-                      Scan QR Code
-                    </Text>
-                    
-                    <Text className="text-muted text-center text-sm leading-relaxed px-2">
-                      Tap anywhere in the frame to scan your printed QR code or digital pass to sync instantly.
-                    </Text>
-                  </TouchableOpacity>
-
-                  {/* Secondary CTA */}
-                  <TouchableOpacity 
-                    onPress={handlePickImage}
-                    disabled={isLoading}
-                    className="mt-6 flex-row items-center justify-center py-2 px-6"
-                    activeOpacity={0.6}
-                  >
-                    <Feather name="image" size={20} color="#9ca3af" className="mr-2" />
-                    <Text className="text-muted font-medium text-base">
-                      Upload from Gallery
-                    </Text>
+                    <LinearGradient
+                      colors={['#FF3B30', '#E03028']}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      className="py-4 rounded-xl items-center justify-center flex-row shadow-lg shadow-primary/30"
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="white" />
+                      ) : (
+                        <>
+                          <Feather name="zap" size={18} color="white" className="mr-2" />
+                          <Text className="text-white font-black tracking-widest">SYNC ACCESS</Text>
+                        </>
+                      )}
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View>
                   <View className="mb-6">
-                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
+                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
                       Email Address
                     </Text>
                     <TextInput
-                      className="border-b border-slate-700 text-white text-lg py-3"
+                      className="border-b border-slate-700 text-white text-lg py-3 font-medium"
                       keyboardType="email-address"
                       autoCapitalize="none"
                       placeholder="user@example.com"
@@ -328,11 +287,11 @@ export default function LoginScreen() {
                     />
                   </View>
                   <View className="mb-8">
-                    <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
+                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
                       Password
                     </Text>
                     <TextInput
-                      className="border-b border-slate-700 text-white text-lg py-3"
+                      className="border-b border-slate-700 text-white text-lg py-3 font-medium"
                       secureTextEntry
                       placeholder="••••••••"
                       placeholderTextColor="#4b5563"
@@ -344,13 +303,19 @@ export default function LoginScreen() {
                   <TouchableOpacity
                     onPress={handleSyncAccess}
                     disabled={isLoading}
-                    className="bg-primary py-4 px-6 rounded-xl items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
+                    activeOpacity={0.8}
                   >
-                    {isLoading ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text className="text-white font-bold">LOGIN TO ACCOUNT</Text>
-                    )}
+                    <LinearGradient
+                      colors={['#FF3B30', '#E03028']}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                      className="py-4 rounded-xl items-center justify-center shadow-lg shadow-primary/30"
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="white" />
+                      ) : (
+                        <Text className="text-white font-black tracking-widest">LOGIN TO ACCOUNT</Text>
+                      )}
+                    </LinearGradient>
                   </TouchableOpacity>
                 </View>
               )}
@@ -358,14 +323,14 @@ export default function LoginScreen() {
 
             {/* Footer Actions */}
             <View className="items-center gap-y-6">
-              <TouchableOpacity className="flex-row items-center" disabled={isLoading}>
-                <Text className="text-small text-muted mr-1">Need help finding your ticket?</Text>
-                <Feather name="arrow-right" size={16} color="#FF3B30" />
+              <TouchableOpacity className="flex-row items-center py-2" disabled={isLoading}>
+                <Text className="text-small text-slate-400 mr-2">Need help finding your ticket?</Text>
+                <Feather name="arrow-right" size={16} color={colors.primary} />
               </TouchableOpacity>
 
-              <View className="flex-row items-center w-full py-4 mt-4">
+              <View className="flex-row items-center w-full my-2">
                 <View className="flex-1 h-[1px] bg-slate-800" />
-                <Text className="text-tiny mx-4 text-slate-500 uppercase tracking-widest">
+                <Text className="text-tiny mx-4 text-slate-500 font-bold uppercase tracking-widest">
                   Or continue with
                 </Text>
                 <View className="flex-1 h-[1px] bg-slate-800" />
@@ -373,20 +338,38 @@ export default function LoginScreen() {
 
               <View className="flex-row w-full gap-x-4">
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
+                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 py-3.5 rounded-xl active:bg-white/10"
                   disabled={isLoading}
                 >
-                  <Feather name="smartphone" size={20} color="white" className="mr-2" />
-                  <Text className="text-small font-medium text-white">Apple</Text>
+                  <MaterialCommunityIcons name="apple" size={20} color="white" className="mr-2" />
+                  <Text className="text-small font-bold text-white">Apple</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
+                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 py-3.5 rounded-xl active:bg-white/10"
                   disabled={isLoading}
                 >
-                  <Feather name="chrome" size={20} color="white" className="mr-2" />
-                  <Text className="text-small font-medium text-white">Google</Text>
+                  <MaterialCommunityIcons name="google" size={20} color="white" className="mr-2" />
+                  <Text className="text-small font-bold text-white">Google</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* AR Status */}
+              <View className="mt-4 flex-row items-center px-4 py-2 rounded-full bg-white/5 border border-white/5">
+                <Feather name="box" size={16} color={colors.primary} className="mr-2" />
+                <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  AR Experience Ready
+                </Text>
+              </View>
+              
+              <TouchableOpacity 
+                onPress={() => router.push('/(auth)/register')}
+                disabled={isLoading}
+                className="mt-4 pb-8"
+              >
+                <Text className="text-slate-400">
+                  Don't have an account? <Text className="text-primary font-bold">Register here</Text>
+                </Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

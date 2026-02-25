@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../hooks/useAuthStore';
 import { Ticket, User } from '../types';
 import { apiClient } from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 export const useSyncTicket = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -10,12 +11,12 @@ export const useSyncTicket = () => {
   return useMutation({
     mutationFn: async (ticketCode: string) => {
       return apiClient.post<{ user: User; token: string; ticket_info: Ticket }>(
-        '/auth/ticket-sync',
+        API_ENDPOINTS.AUTH.TICKET_SYNC,
         { qr_code_data: ticketCode, device_id: 'mobile-app' }
       );
     },
     onSuccess: (data) => {
-      setAuth(data.token, data.user);
+      setAuth(data.token, data.user, true); // Mark as guest/ticket session
       setTicket(data.ticket_info);
     },
   });
@@ -24,16 +25,21 @@ export const useSyncTicket = () => {
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const setTicket = useAuthStore((state) => state.setTicket);
+  const pendingTicketCode = useAuthStore((state) => state.pendingTicketCode);
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {
-      return apiClient.post<{ user: User; token: string; ticket_info?: Ticket }>('/auth/login', {
-        email,
-        password,
-      });
+      return apiClient.post<{ user: User; token: string; ticket_info?: Ticket }>(
+        API_ENDPOINTS.AUTH.LOGIN, 
+        {
+          email,
+          password,
+          ticket_code: pendingTicketCode || undefined,
+        }
+      );
     },
     onSuccess: (data) => {
-      setAuth(data.token, data.user);
+      setAuth(data.token, data.user, false);
       if (data.ticket_info) {
         setTicket(data.ticket_info);
       }
@@ -44,17 +50,26 @@ export const useLogin = () => {
 
 export const useRegister = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
+  const pendingTicketCode = useAuthStore((state) => state.pendingTicketCode);
 
   return useMutation({
     mutationFn: async ({ email, password, fullName }: any) => {
-      return apiClient.post<{ user: User; token: string }>('/auth/register', {
-        email,
-        password,
-        fullName,
-      });
+      return apiClient.post<{ user: User; token: string; ticket_info?: Ticket }>(
+        API_ENDPOINTS.AUTH.REGISTER, 
+        {
+          email,
+          password,
+          fullName,
+          ticket_code: pendingTicketCode || undefined,
+        }
+      );
     },
     onSuccess: (data) => {
-      setAuth(data.token, data.user);
+      setAuth(data.token, data.user, false);
+      if (data.ticket_info) {
+        useAuthStore.getState().setTicket(data.ticket_info);
+      }
+      useAuthStore.getState().setPendingTicketCode(null);
     },
   });
 };

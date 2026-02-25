@@ -12,7 +12,7 @@ interface FilterChipProps {
   onPress?: () => void;
 }
 
-export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = false, onPress }) => {
+export const FilterChip = React.memo(({ label, icon, active = false, onPress }: FilterChipProps) => {
 
   return (
     <TouchableOpacity
@@ -46,4 +46,4 @@ export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = fa
       <Text className="text-white font-medium text-sm">{label}</Text>
     </TouchableOpacity>
   );
-};
+});

@@ -9,11 +9,11 @@ interface SearchBarProps {
   onArPress?: () => void;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
+export const SearchBar = React.memo(({
   placeholder = 'Find grandstands, food...',
   onSearch,
   onArPress,
-}) => {
+}: SearchBarProps) => {
   return (
     <View className="flex-row items-center gap-3 px-4 pt-12">
       <View
@@ -43,4 +43,4 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </TouchableOpacity>
     </View>
   );
-};
+});

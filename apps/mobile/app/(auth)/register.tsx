@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRegister } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  
+  const { pendingTicketCode, token } = useAuthStore();
+  const register = useRegister();
 
-  // Get the pending ticket code from the store
-  const { pendingTicketCode, token, setAuth, setPendingTicketCode } = useAuthStore();
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (token) {
       router.replace('/(tabs)');
     }
@@ -29,89 +41,79 @@ export default function RegisterScreen() {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.31.4.242:3000';
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, fullName, ticket_code: pendingTicketCode }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error?.user_friendly_message || data?.error?.message || 'Error al registrar-se');
+    register.mutate({ email, password, fullName }, {
+      onSuccess: () => {
+        if (pendingTicketCode) {
+          Alert.alert(
+            "Registrat amb èxit", 
+            "El teu compte s'ha creat i l'entrada s'ha associat correctament.",
+            [{ text: "Continuar", onPress: () => router.replace('/(tabs)') }]
+          );
+        } else {
+          router.replace('/(tabs)');
+        }
+      },
+      onError: (error: any) => {
+        Alert.alert('Error de Registre', error.message);
       }
-
-      // Success
-      setAuth(data.token, data.user);
-      
-      // Clear pending
-      if (pendingTicketCode) {
-        setPendingTicketCode(null);
-        Alert.alert(
-          "Registrat amb èxit", 
-          "El teu compte s'ha creat i l'entrada s'ha associat correctament.",
-          [{ text: "Continuar", onPress: () => router.replace('/(tabs)') }]
-        );
-      } else {
-        router.replace('/(tabs)');
-      }
-
-    } catch (e: any) {
-      Alert.alert('Error de Registre', e.message);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
-  return (
-    <View className="flex-1 bg-background">
-      <StatusBar style="light" />
+  const isLoading = register.isPending;
 
-      <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right', 'top']}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          className="flex-1"
-        >
-          <ScrollView 
-            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, justifyContent: 'center' }}
-            showsVerticalScrollIndicator={false}
-          >
-            <TouchableOpacity onPress={() => router.back()} className="absolute top-4 left-0 z-10 w-10 h-10 items-center justify-center">
+  return (
+    <View className="flex-1 bg-[#0A0A0B]">
+      <StatusBar style="light" />
+      
+      {/* Background Decor */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View className="absolute -top-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]" />
+        <View className="absolute bottom-40 -right-20 w-80 h-80 bg-red-900/10 rounded-full blur-[80px]" />
+      </View>
+
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
+            
+            <TouchableOpacity onPress={() => router.back()} className="mt-4 w-10 h-10 items-center justify-center rounded-full bg-white/5 border border-white/10">
               <Feather name="arrow-left" size={24} color="white" />
             </TouchableOpacity>
 
             {/* Header */}
-            <View className="items-center mb-8 mt-12">
-              <Feather name="user-plus" size={48} color={colors.primary} className="mb-4" />
-              <Text className="text-h2 font-black text-white text-center mb-2">
-                Crea un compte
+            <View className="pt-8 pb-8 items-center">
+              <LinearGradient
+                colors={['#FF3B30', '#E03028']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="w-16 h-16 mb-6 rounded-2xl items-center justify-center shadow-lg shadow-primary/40"
+              >
+                <Feather name="user-plus" size={32} color="white" />
+              </LinearGradient>
+              <Text className="text-h1 font-black text-white text-center mb-2">
+                Join the Grid
               </Text>
               
               {pendingTicketCode ? (
                 <View className="bg-primary/20 px-4 py-2 rounded-xl border border-primary/30 mt-2 flex-row items-center">
                    <Feather name="tag" size={16} color={colors.primary} className="mr-2" />
-                   <Text className="text-white text-sm font-medium">Entrada Pendent d&apos;Associar</Text>
+                   <Text className="text-white text-sm font-bold">Ticket Pending Sync</Text>
                 </View>
               ) : (
-                <Text className="text-small text-muted text-center">
-                  Uneix-te per gaudir al màxim del Circuit.
+                <Text className="text-small text-slate-400 text-center px-4">
+                  Create an account to unlock full race experience and persistent data.
                 </Text>
               )}
             </View>
 
             {/* Form Content */}
-            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8">
+            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 shadow-2xl">
               
               <View className="mb-6">
-                <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
-                  Nom Complet
+                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  Full Name
                 </Text>
                 <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3"
+                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
                   autoCapitalize="words" 
                   placeholder="Joan Gausí"
                   placeholderTextColor="#4b5563"
@@ -122,11 +124,11 @@ export default function RegisterScreen() {
               </View>
 
               <View className="mb-6">
-                <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
-                  Correu Electrònic
+                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  Email Address
                 </Text>
                 <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3"
+                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
                   keyboardType="email-address" 
                   autoCapitalize="none" 
                   placeholder="usuari@exemple.com"
@@ -138,11 +140,11 @@ export default function RegisterScreen() {
               </View>
               
               <View className="mb-8">
-                <Text className="text-tiny font-medium text-primary mb-1 uppercase tracking-wider">
-                  Contrasenya
+                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  Password
                 </Text>
                 <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3"
+                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
                   secureTextEntry 
                   placeholder="••••••••"
                   placeholderTextColor="#4b5563"
@@ -151,28 +153,34 @@ export default function RegisterScreen() {
                   editable={!isLoading}
                 />
               </View>
-              
+
               <TouchableOpacity 
                 onPress={handleRegister}
                 disabled={isLoading}
-                className="bg-primary py-4 px-6 rounded-xl items-center justify-center shadow-lg shadow-primary/40 active:translate-y-px"
+                activeOpacity={0.8}
               >
-                {isLoading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-white font-bold">
-                    REGISTRAR-SE
-                  </Text>
-                )}
+                <LinearGradient
+                  colors={['#FF3B30', '#E03028']}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  className="py-4 rounded-xl items-center justify-center shadow-lg shadow-primary/30"
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-white font-black tracking-widest">CREATE ACCOUNT</Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity 
               onPress={() => router.push('/(auth)/login')}
               disabled={isLoading}
-              className="items-center py-4"
+              className="items-center pb-12"
             >
-              <Text className="text-muted">Ja tens un compte? <Text className="text-primary font-bold">Inicia Sessió</Text></Text>
+              <Text className="text-slate-400">
+                Already have an account? <Text className="text-primary font-bold">Log in</Text>
+              </Text>
             </TouchableOpacity>
 
           </ScrollView>

@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REGISTER: '/auth/register',
     TICKET_CLAIM: '/auth/ticket/claim',
+    TICKET_SYNC: '/auth/ticket-sync',
     ME: '/auth/me',
   },
   GEO: {

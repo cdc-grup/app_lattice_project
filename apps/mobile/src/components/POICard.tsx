@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
@@ -10,6 +11,7 @@ interface POICardProps {
   poi: POIGeoJSON['properties'] | null;
   onClose: () => void;
   onNavigate: () => void;
+  onSelect: (id: number, coords: number[]) => void;
 }
 
 const getCrowdColor = (level: string) => {
@@ -41,14 +43,18 @@ const getCrowdLabel = (level: string) => {
   }
 };
 
-export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) => {
+export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICardProps) => {
   if (!poi) return null;
 
   const metadata = getCategoryMetadata(poi.category);
   const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.category.toLowerCase());
 
   return (
-    <View className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl">
+    <TouchableOpacity
+      onPress={() => onSelect(poi.id, poi.geometry.coordinates)}
+      activeOpacity={0.9}
+      className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl"
+    >
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
           <View className="flex-row flex-wrap items-center gap-2 mb-2">
@@ -150,6 +156,6 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
           <Feather name="bookmark" size={20} color="white" />
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
-};
+});

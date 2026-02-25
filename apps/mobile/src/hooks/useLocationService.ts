@@ -43,7 +43,7 @@ export const useLocationService = (): LocationState => {
             {
               accuracy: Location.Accuracy.High,
               timeInterval: 2000,
-              distanceInterval: 1,
+              distanceInterval: 5,
             },
             (location) => {
               setUserCoords([location.coords.longitude, location.coords.latitude]);

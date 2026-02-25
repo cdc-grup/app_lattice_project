@@ -18,7 +18,8 @@ interface AuthState {
   activeTicket: Ticket | null;
   tickets: Ticket[]; // Wallet of all scanned tickets
   pendingTicketCode: string | null; // Stores scanned code if user needs to login/register
-  setAuth: (token: string, user: User) => void;
+  isGuest: boolean; // True if logged in via Ticket Sync only
+  setAuth: (token: string, user: User, isGuest?: boolean) => void;
   setTicket: (ticket: Ticket) => void;
   addTicketToWallet: (ticket: Ticket) => void;
   setPendingTicketCode: (code: string | null) => void;
@@ -32,7 +33,8 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   activeTicket: null,
   tickets: [],
   pendingTicketCode: null,
-  setAuth: (token, user) => set({ token, user }),
+  isGuest: false,
+  setAuth: (token, user, isGuest = false) => set({ token, user, isGuest }),
   setTicket: (ticket) => set((state) => ({ 
     activeTicket: ticket,
     tickets: state.tickets.some(t => t.code === ticket.code) 
@@ -60,7 +62,7 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
       return false;
     }
   },
-  logout: () => set({ token: null, user: null, activeTicket: null, tickets: [], pendingTicketCode: null }),
+  logout: () => set({ token: null, user: null, activeTicket: null, tickets: [], pendingTicketCode: null, isGuest: false }),
 });
 
 export const useAuthStore = create<AuthState>()(
