@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 export interface POI {
@@ -78,13 +78,13 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
 
             {poi.isWheelchairAccessible && (
               <View className="bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
-                <LucideIcons.Accessibility size={12} color="#60A5FA" strokeWidth={2.5} />
+                <Feather name="user" size={12} color="#60A5FA" />
               </View>
             )}
 
             {poi.hasPriorityLane && (
               <View className="bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                <LucideIcons.Star size={12} color="#FBBF24" fill="#FBBF24" />
+                <Feather name="star" size={12} color="#FBBF24" />
               </View>
             )}
           </View>
@@ -98,7 +98,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
 
           {(poi.time || poi.distance) && (
             <View className="flex-row items-center">
-              <LucideIcons.Clock size={14} color={colors.muted} strokeWidth={2} />
+              <Feather name="clock" size={14} color={colors.muted} />
               <Text className="text-muted text-xs ml-1">
                 {poi.time ? `${poi.time} walk` : ''} {poi.distance ? `(${poi.distance})` : ''}
               </Text>
@@ -111,7 +111,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
           className="w-8 h-8 items-center justify-center rounded-full"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
         >
-          <LucideIcons.X size={20} color={colors.muted} strokeWidth={2} />
+          <Feather name="x" size={20} color={colors.muted} />
         </TouchableOpacity>
       </View>
 
@@ -142,7 +142,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             elevation: 5,
           }}
         >
-          <LucideIcons.Navigation size={18} color="white" strokeWidth={2.5} />
+          <Feather name="navigation" size={18} color="white" />
           <Text className="text-white font-bold ml-2">Navigate Here</Text>
         </TouchableOpacity>
 
@@ -153,7 +153,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             borderColor: 'rgba(255, 255, 255, 0.1)',
           }}
         >
-          <LucideIcons.Bookmark size={20} color="white" strokeWidth={2} />
+          <Feather name="bookmark" size={20} color="white" />
         </TouchableOpacity>
       </View>
     </View>

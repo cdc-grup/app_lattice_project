@@ -1,19 +1,17 @@
-import { LucideIcon } from 'lucide-react-native';
-
 export const getCategoryIcon = (category?: string): string => {
   switch (category?.toLowerCase()) {
     case 'restaurant':
-      return 'Utensils';
+      return 'coffee';
     case 'parking':
-      return 'SquareP';
+      return 'map-pin';
     case 'shop':
-      return 'ShoppingBag';
+      return 'shopping-bag';
     case 'wc':
-      return 'Accessibility'; // Or 'User' - Lucide doesn't have a direct 'toilet' like MDI, 'Accessibility' or 'User' is common
+      return 'user';
     case 'grandstand':
-      return 'Stadium';
+      return 'map';
     default:
-      return 'MapPin';
+      return 'map-pin';
   }
 };
 

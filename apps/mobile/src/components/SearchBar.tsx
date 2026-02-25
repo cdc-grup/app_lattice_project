@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 interface SearchBarProps {
@@ -18,9 +18,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     <View className="flex-row items-center gap-3 px-4 pt-12">
       <View
         className="flex-1 flex-row items-center bg-surface/80 px-4 h-12 rounded-full border border-white/10"
-        style={{ backdropFilter: 'blur(10px)' }} // NativeWind handles some blur, but let's stick to safe styles
       >
-        <LucideIcons.Search size={20} color={colors.muted} strokeWidth={2} />
+        <Feather name="search" size={20} color={colors.muted} />
         <TextInput
           className="flex-1 ml-2 text-white font-medium text-sm pt-0 pb-0"
           placeholder={placeholder}
@@ -28,7 +27,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onChangeText={onSearch}
         />
         <TouchableOpacity>
-          <LucideIcons.Mic size={20} color={colors.muted} strokeWidth={2} />
+          <Feather name="mic" size={20} color={colors.muted} />
         </TouchableOpacity>
       </View>
 
@@ -40,7 +39,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           borderColor: 'rgba(255, 255, 255, 0.1)', // white/10
         }}
       >
-        <LucideIcons.Camera size={22} color="white" strokeWidth={2.5} />
+        <Feather name="camera" size={22} color="white" />
       </TouchableOpacity>
     </View>
   );

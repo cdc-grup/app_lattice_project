@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../src/hooks/useAuthStore';
 import { colors } from '../src/styles/colors';
 
@@ -23,7 +23,7 @@ export default function ScanScreen() {
     // Camera permissions are not granted yet
     return (
       <View className="flex-1 bg-black items-center justify-center p-6">
-        <LucideIcons.CameraOff size={64} color={colors.muted} strokeWidth={1.5} />
+        <Feather name="camera-off" size={64} color={colors.muted} />
         <Text className="text-white text-xl font-bold mt-4 text-center">Permís de Càmera Necessari</Text>
         <Text className="text-gray-400 text-center mt-2 mb-8">
           Necessitem accés a la càmera per poder escanejar el codi QR de la teva entrada.
@@ -107,7 +107,7 @@ export default function ScanScreen() {
             onPress={() => router.back()} 
             className="absolute top-12 left-6 w-10 h-10 rounded-full items-center justify-center bg-black/50"
           >
-            <LucideIcons.X size={24} color="white" strokeWidth={2} />
+            <Feather name="x" size={24} color="white" />
           </TouchableOpacity>
 
           {scanned && !isProcessing && (

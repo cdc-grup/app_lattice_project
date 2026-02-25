@@ -17,7 +17,7 @@ import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useMapControls } from '../../src/hooks/useMapControls';
 
 // Configure MapLibre
@@ -113,7 +113,6 @@ export default function MapScreen() {
           onRegionWillChange={() => {
             if (followUser) setFollowUser(false);
           }}
-          surfaceView={true}
         >
           <MapLibreGL.Camera
             ref={camera}
@@ -301,7 +300,7 @@ export default function MapScreen() {
                 borderColor: 'rgba(255, 255, 255, 0.1)',
               }}
             >
-              <LucideIcons.Layers size={20} color="white" strokeWidth={2} />
+              <Feather name="layers" size={20} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleRecenter}
@@ -311,7 +310,7 @@ export default function MapScreen() {
                 borderColor: 'rgba(255, 255, 255, 0.1)',
               }}
             >
-              <LucideIcons.Navigation size={20} color="white" strokeWidth={2} />
+              <Feather name="navigation" size={20} color="white" />
             </TouchableOpacity>
           </View>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text } from 'react-native';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
 interface FilterChipProps {
@@ -11,7 +11,20 @@ interface FilterChipProps {
 }
 
 export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = false, onPress }) => {
-  const IconComponent = (LucideIcons as any)[icon];
+  const getIconName = (name: string) => {
+    const map: Record<string, string> = {
+      'SlidersHorizontal': 'sliders',
+      'Search': 'search',
+      'X': 'x',
+      'Utensils': 'coffee',
+      'SquareP': 'map-pin',
+      'ShoppingBag': 'shopping-bag',
+      'Accessibility': 'user',
+      'Stadium': 'map',
+      'MapPin': 'map-pin'
+    };
+    return map[name] || name.toLowerCase();
+  };
 
   return (
     <TouchableOpacity
@@ -36,14 +49,12 @@ export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = fa
             }
       }
     >
-      {IconComponent && (
-        <IconComponent
-          size={18}
-          color="white"
-          style={{ marginRight: 6 }}
-          strokeWidth={active ? 2.5 : 2}
-        />
-      )}
+      <Feather
+        name={getIconName(icon) as any}
+        size={18}
+        color="white"
+        style={{ marginRight: 6 }}
+      />
       <Text className="text-white font-medium text-sm">{label}</Text>
     </TouchableOpacity>
   );

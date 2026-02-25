@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
         <View className="pt-12 pb-8 items-center">
           <View className="mb-4">
             <View className="w-24 h-24 rounded-full bg-primary/20 items-center justify-center border-2 border-primary">
-              <LucideIcons.User size={48} color={colors.primary} strokeWidth={1.5} />
+              <Feather name="user" size={48} color={colors.primary} />
             </View>
           </View>
           <Text className="text-white text-2xl font-black mb-1">
@@ -51,7 +51,7 @@ export default function ProfileScreen() {
 
         <View className="px-4 mb-8 mt-4">
           {/* List Section */}
-          <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-lg">
+          <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
             
             {/* Ticket Wallet Item */}
             <TouchableOpacity 
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <LucideIcons.Ticket size={20} color={colors.primary} strokeWidth={2} />
+                  <Feather name="tag" size={20} color={colors.primary} />
                 </View>
                 <View>
                   <Text className="text-white text-base font-medium">Ticket Wallet</Text>
@@ -76,7 +76,7 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </View>
-              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
+              <Feather name="chevron-right" size={24} color="#9ca3af" />
             </TouchableOpacity>
 
             {/* Scan Ticket Item */}
@@ -86,11 +86,11 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <LucideIcons.QrCode size={20} color={colors.primary} strokeWidth={2} />
+                  <Feather name="maximize" size={20} color={colors.primary} />
                 </View>
                 <Text className="text-white text-base font-medium">Scan Ticket</Text>
               </View>
-              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
+              <Feather name="chevron-right" size={24} color="#9ca3af" />
             </TouchableOpacity>
 
             <View className="px-5 py-3 bg-black/20">
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <LucideIcons.ChevronFirst size={20} color="white" strokeWidth={2} />
+                  <Feather name="chevron-left" size={20} color="white" />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Stairs</Text>
               </View>
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <LucideIcons.Users size={20} color="white" strokeWidth={2} />
+                  <Feather name="users" size={20} color="white" />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Crowds</Text>
               </View>
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <LucideIcons.TriangleAlert size={20} color="white" strokeWidth={2} />
+                  <Feather name="alert-triangle" size={20} color="white" />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Steep Slopes</Text>
               </View>
@@ -149,11 +149,11 @@ export default function ProfileScreen() {
             <TouchableOpacity className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <LucideIcons.Palette size={20} color="white" strokeWidth={2} />
+                  <Feather name="package" size={20} color="white" />
                 </View>
                 <Text className="text-white text-base font-medium">Theme</Text>
               </View>
-              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
+              <Feather name="chevron-right" size={24} color="#9ca3af" />
             </TouchableOpacity>
             
             <View className="px-5 py-3 bg-black/20">
@@ -167,11 +167,11 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-red-500/10 items-center justify-center mr-4">
-                  <LucideIcons.LogOut size={20} color={colors.red[500]} strokeWidth={2} />
+                  <Feather name="log-out" size={20} color={colors.red[500]} />
                 </View>
                 <Text className="text-red-500 text-base font-bold">Log out</Text>
               </View>
-              <LucideIcons.ChevronRight size={24} color={colors.red[500]} strokeWidth={2} />
+              <Feather name="chevron-right" size={24} color={colors.red[500]} />
             </TouchableOpacity>
           </View>
         </View>

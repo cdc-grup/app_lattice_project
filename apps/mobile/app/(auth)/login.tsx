@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
@@ -153,9 +153,9 @@ export default function LoginScreen() {
               onPress={() => router.back()} 
               className="absolute top-4 left-0 z-10 w-10 h-10 items-center justify-center"
             >
-              <LucideIcons.ArrowLeft size={24} color="white" strokeWidth={2} />
+              <Feather name="arrow-left" size={24} color="white" />
             </TouchableOpacity>
-            <View className="bg-black/50 px-4 py-2 rounded-full backdrop-blur-md">
+            <View className="bg-black/50 px-4 py-2 rounded-full">
               <Text className="text-white font-bold">Scan QR Ticket</Text>
             </View>
             <View className="w-12 h-12" />
@@ -189,7 +189,7 @@ export default function LoginScreen() {
             {/* Header */}
             <View className="pt-20 pb-8 items-center">
               <View className="w-16 h-16 mb-6 rounded-2xl bg-primary items-center justify-center shadow-lg shadow-primary/50">
-                <LucideIcons.Car size={40} color="white" />
+                <Feather name="truck" size={40} color="white" />
               </View>
               <Text className="text-h1 font-black text-white text-center mb-2">
                 Welcome to the Grid
@@ -226,7 +226,7 @@ export default function LoginScreen() {
             </View>
 
             {/* Form Content */}
-            <View className={authMode === 'account' ? 'bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 backdrop-blur-lg' : 'mb-8'}>
+            <View className={authMode === 'account' ? 'bg-white/5 border border-white/10 p-6 rounded-3xl mb-8' : 'mb-8'}>
               {authMode === 'ticket' ? (
                 <View>
                   <View className="mb-6">
@@ -244,13 +244,14 @@ export default function LoginScreen() {
                         editable={!isLoading}
                       />
                       <TouchableOpacity className="p-1" disabled={isLoading} onPress={handleStartScan}>
-                        <LucideIcons.QrCode size={24} color="#FF3B30" />
+                        <Feather name="maximize" size={24} color="#FF3B30" />
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   <View className="flex-row items-start bg-primary/10 border border-primary/20 p-3 rounded-xl mb-8">
-                    <LucideIcons.Info
+                    <Feather
+                      name="info"
                       size={16}
                       color="#FF3B30"
                       className="mt-0.5 mr-2"
@@ -278,7 +279,7 @@ export default function LoginScreen() {
                     ) : (
                       <>
                         <View className="items-center mb-10">
-                          <LucideIcons.Ticket size={64} color={colors.primary} strokeWidth={1.5} className="mb-4" />
+                          <Feather name="tag" size={64} color={colors.primary} className="mb-4" />
                         </View>
                         <Text className="text-white font-bold">SYNC ACCESS</Text>
                       </>
@@ -300,7 +301,7 @@ export default function LoginScreen() {
                     className="mt-6 flex-row items-center justify-center py-2 px-6"
                     activeOpacity={0.6}
                   >
-                    <LucideIcons.ImagePlus size={20} color="#9ca3af" className="mr-2" />
+                    <Feather name="image" size={20} color="#9ca3af" className="mr-2" />
                     <Text className="text-muted font-medium text-base">
                       Upload from Gallery
                     </Text>
@@ -356,7 +357,7 @@ export default function LoginScreen() {
             <View className="items-center gap-y-6">
               <TouchableOpacity className="flex-row items-center" disabled={isLoading}>
                 <Text className="text-small text-muted mr-1">Need help finding your ticket?</Text>
-                <LucideIcons.ArrowRight size={16} color="#FF3B30" />
+                <Feather name="arrow-right" size={16} color="#FF3B30" />
               </TouchableOpacity>
 
               <View className="flex-row items-center w-full py-4 mt-4">
@@ -372,14 +373,14 @@ export default function LoginScreen() {
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
                   disabled={isLoading}
                 >
-                  <LucideIcons.Apple size={20} color="white" className="mr-2" />
+                  <Feather name="smartphone" size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Apple</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
                   disabled={isLoading}
                 >
-                  <LucideIcons.Chrome size={20} color="white" className="mr-2" />
+                  <Feather name="chrome" size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Google</Text>
                 </TouchableOpacity>
               </View>

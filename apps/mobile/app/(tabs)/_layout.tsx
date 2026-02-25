@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import * as LucideIcons from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors } from '../../src/styles/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,10 +16,10 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { name: 'home', title: 'Home', icon: 'Home' },
-  { name: 'schedule', title: 'Schedule', icon: 'Calendar' },
-  { name: 'index', title: 'Map', icon: 'Map' },
-  { name: 'profile', title: 'Profile', icon: 'User' },
+  { name: 'home', title: 'Home', icon: 'home' },
+  { name: 'schedule', title: 'Schedule', icon: 'calendar' },
+  { name: 'index', title: 'Map', icon: 'map' },
+  { name: 'profile', title: 'Profile', icon: 'user' },
 ];
 
 export default function TabsLayout() {
@@ -44,21 +44,18 @@ export default function TabsLayout() {
         },
       }}
     >
-      {TABS.map((tab) => {
-        const IconComponent = (LucideIcons as any)[tab.icon];
-        return (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              title: tab.title,
-              tabBarIcon: ({ color, size }: IconProps) => (
-                IconComponent ? <IconComponent size={size} color={color} strokeWidth={2} /> : null
-              ),
-            }}
-          />
-        );
-      })}
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, size }: IconProps) => (
+              <Feather name={tab.icon as any} size={size} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
