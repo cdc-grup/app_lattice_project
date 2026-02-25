@@ -6,8 +6,17 @@ interface MapControlsState {
   camera: React.RefObject<MapLibreGL.CameraRef>;
   followUser: boolean;
   setFollowUser: (follow: boolean) => void;
-  handleRecenter: () => Promise<void>;
+  centerOnUser: () => Promise<void>;
+  centerOnPOI: (coordinates: number[]) => void;
 }
+
+// Animation constants for professional feel
+const ANIMATION_DURATIONS = {
+  POI: 600,
+  USER: 1000,
+};
+
+const DEFAULT_ZOOM = 19;
 
 /**
  * Hook to manage map camera controls and user tracking state.
@@ -19,7 +28,18 @@ export const useMapControls = (
   const camera = useRef<MapLibreGL.CameraRef>(null);
   const [followUser, setFollowUser] = useState(false);
 
-  const handleRecenter = useCallback(async () => {
+  const centerOnPOI = useCallback((coordinates: number[]) => {
+    if (camera.current) {
+      setFollowUser(false);
+      camera.current.setCamera({
+        centerCoordinate: coordinates,
+        zoomLevel: DEFAULT_ZOOM,
+        animationDuration: ANIMATION_DURATIONS.POI,
+      });
+    }
+  }, []);
+
+  const centerOnUser = useCallback(async () => {
     try {
       const granted = await requestPermission();
       if (!granted) return;
@@ -28,8 +48,8 @@ export const useMapControls = (
       if (userCoords && camera.current) {
         camera.current.setCamera({
           centerCoordinate: userCoords,
-          zoomLevel: 19,
-          animationDuration: 1000,
+          zoomLevel: DEFAULT_ZOOM,
+          animationDuration: ANIMATION_DURATIONS.USER,
         });
         setFollowUser(true);
         return;
@@ -43,8 +63,8 @@ export const useMapControls = (
       if (location && camera.current) {
         camera.current.setCamera({
           centerCoordinate: [location.coords.longitude, location.coords.latitude],
-          zoomLevel: 19,
-          animationDuration: 1000,
+          zoomLevel: DEFAULT_ZOOM,
+          animationDuration: ANIMATION_DURATIONS.USER,
         });
         setFollowUser(true);
       } else {
@@ -60,6 +80,7 @@ export const useMapControls = (
     camera: camera as React.RefObject<MapLibreGL.CameraRef>,
     followUser,
     setFollowUser,
-    handleRecenter,
+    centerOnUser,
+    centerOnPOI,
   };
 };

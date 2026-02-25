@@ -58,7 +58,7 @@ export default function MapScreen() {
 
   // Custom hooks for logic extraction
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
-  const { camera, followUser, setFollowUser, handleRecenter } = useMapControls(
+  const { camera, followUser, setFollowUser, centerOnUser, centerOnPOI } = useMapControls(
     userCoords,
     requestPermission
   );
@@ -74,25 +74,42 @@ export default function MapScreen() {
 
   const { data: poisData, isLoading, error } = usePOIs(activeCategory);
 
-  const selectedPoi = useMemo(() => {
+  // --- PERFORMANCE OPTIMIZED DATA ---
+  const poisGeoJSON = useMemo(() => poisData, [poisData]);
+
+  const userLocationGeoJSON = useMemo(() => {
+    if (!userCoords) return null;
+    return {
+      type: 'Feature' as const,
+      geometry: {
+        type: 'Point' as const,
+        coordinates: userCoords,
+      },
+      properties: {},
+    };
+  }, [userCoords]);
+
+  const selectedFeature = useMemo(() => {
     if (!selectedPoiId || !poisData) return null;
-    const feature = poisData.features.find((f: POIGeoJSON) => f.properties.id === selectedPoiId);
-    if (!feature) return null;
+    return poisData.features.find((f: POIGeoJSON) => f.properties.id === selectedPoiId);
+  }, [selectedPoiId, poisData]);
+
+  const selectedPoi = useMemo(() => {
+    if (!selectedFeature) return null;
 
     return {
-      id: feature.properties.id.toString(),
-      name: feature.properties.name,
-      description: feature.properties.description,
-      type: feature.properties.category,
-      crowdLevel: feature.properties.crowdLevel,
-      isWheelchairAccessible: feature.properties.isWheelchairAccessible,
-      hasPriorityLane: feature.properties.hasPriorityLane,
-      // For now, we don't have images/distance in DB yet
+      id: selectedFeature.properties.id.toString(),
+      name: selectedFeature.properties.name,
+      description: selectedFeature.properties.description,
+      type: selectedFeature.properties.category,
+      crowdLevel: selectedFeature.properties.crowdLevel,
+      isWheelchairAccessible: selectedFeature.properties.isWheelchairAccessible,
+      hasPriorityLane: selectedFeature.properties.hasPriorityLane,
       images: [],
       distance: '350m',
       time: '5 min',
     };
-  }, [selectedPoiId, poisData]);
+  }, [selectedFeature]);
 
   const handleFilterPress = useCallback((id: string) => {
     setActiveFilterId((prev) => (prev === id ? '' : id));
@@ -118,14 +135,13 @@ export default function MapScreen() {
             ref={camera}
             followUserLocation={followUser && locationStatus === 'granted'}
             followUserMode={MapLibreGL.UserTrackingMode.Follow}
-            centerCoordinate={!followUser && userCoords ? userCoords : undefined}
             minZoomLevel={14.5}
             maxBounds={{
-              ne: [2.142, 41.413], // ~3km NE from center
-              sw: [2.07, 41.359], // ~3km SW from center
+              ne: [2.142, 41.413],
+              sw: [2.07, 41.359],
             }}
             defaultSettings={{
-              centerCoordinate: [2.1060698, 41.3863034], // Institut Pedralbes (Testing)
+              centerCoordinate: [2.1060698, 41.3863034],
               zoomLevel: 19,
             }}
           />
@@ -137,17 +153,10 @@ export default function MapScreen() {
                 renderMode="normal"
                 showsUserHeadingIndicator={false}
               />
-              {userCoords && (
+              {userLocationGeoJSON && (
                 <MapLibreGL.ShapeSource
                   id="user-location-backup"
-                  shape={{
-                    type: 'Feature',
-                    geometry: {
-                      type: 'Point',
-                      coordinates: userCoords,
-                    },
-                    properties: {},
-                  }}
+                  shape={userLocationGeoJSON}
                 >
                   <MapLibreGL.CircleLayer
                     id="user-location-backup-outer"
@@ -171,67 +180,88 @@ export default function MapScreen() {
             </>
           )}
 
-          {/* DATA DRIVEN MARKERS WITH ICONS */}
-          {poisData?.features.map((feature: POIGeoJSON) => {
-            const { id, category, name } = feature.properties;
-            const isSelected = selectedPoiId === id;
-            const catColor = getCategoryColor(category);
-            const catIcon = getCategoryIcon(category);
-            
-            return (
-              <MapLibreGL.MarkerView
-                key={`poi-${id}`}
-                id={`marker-${id}`}
-                coordinate={feature.geometry.coordinates}
-              >
-                <TouchableOpacity 
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    setSelectedPoiId(id);
-                    camera.current?.setCamera({
-                      centerCoordinate: feature.geometry.coordinates,
-                      animationDuration: 500,
-                    });
+          {/* DATA DRIVEN MARKERS WITH PERFORMANCE GAINS */}
+          {poisGeoJSON && (
+            <MapLibreGL.ShapeSource
+              id="pois-source"
+              shape={poisGeoJSON}
+              onPress={(event) => {
+                const feature = event.features[0];
+                if (feature && feature.properties) {
+                  const id = feature.properties.id;
+                  setSelectedPoiId(id);
+                  if (feature.geometry.type === 'Point') {
+                    centerOnPOI(feature.geometry.coordinates);
+                  }
+                }
+              }}
+            >
+              {/* Unselected POIs - Background Circle */}
+              <MapLibreGL.CircleLayer
+                id="poi-circles"
+                filter={['!=', ['get', 'id'], selectedPoiId || -1]}
+                style={{
+                  circleRadius: 10,
+                  circleColor: colors.slate[700],
+                  circleStrokeWidth: 2,
+                  circleStrokeColor: 'white',
+                  circleOpacity: 0.8,
+                }}
+              />
+
+              {/* Unselected POIs - Labels */}
+              <MapLibreGL.SymbolLayer
+                id="poi-labels"
+                filter={['!=', ['get', 'id'], selectedPoiId || -1]}
+                style={{
+                  textField: ['get', 'name'],
+                  textSize: 10,
+                  textColor: 'white',
+                  textOffset: [0, 1.5],
+                  textAnchor: 'top',
+                  textHaloColor: 'rgba(0,0,0,0.8)',
+                  textHaloWidth: 1,
+                }}
+              />
+            </MapLibreGL.ShapeSource>
+          )}
+
+          {/* HIGH-DETAIL SELECTED MARKER */}
+          {selectedFeature && (
+            <MapLibreGL.MarkerView
+              key={`selected-poi-${selectedFeature.properties.id}`}
+              id={`selected-marker-${selectedFeature.properties.id}`}
+              coordinate={selectedFeature.geometry.coordinates}
+            >
+              <View className="items-center">
+                <View 
+                  style={{ 
+                    width: 36, 
+                    height: 36, 
+                    borderRadius: 18, 
+                    backgroundColor: colors.primary,
+                    borderWidth: 2,
+                    borderColor: 'white',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    elevation: 10,
                   }}
-                  className="items-center"
                 >
-                  {/* Marker Circle */}
-                  <View 
-                    style={{ 
-                      width: 32, 
-                      height: 32, 
-                      borderRadius: 16, 
-                      backgroundColor: isSelected ? colors.primary : catColor,
-                      borderWidth: 2,
-                      borderColor: 'white',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 3.84,
-                      elevation: 5,
-                    }}
-                  >
-                    <Feather name={catIcon as any} size={16} color="white" />
-                  </View>
-                  
-                  {/* Label */}
-                  <Text 
-                    className="text-white text-[10px] font-bold mt-1 text-center"
-                    style={{ 
-                      textShadowColor: 'rgba(0, 0, 0, 0.75)',
-                      textShadowOffset: { width: -1, height: 1 },
-                      textShadowRadius: 10
-                    }}
-                    numberOfLines={1}
-                  >
-                    {name}
-                  </Text>
-                </TouchableOpacity>
-              </MapLibreGL.MarkerView>
-            );
-          })}
+                  <Feather name={getCategoryIcon(selectedFeature.properties.category) as any} size={18} color="white" />
+                </View>
+                <Text 
+                  className="text-white text-[12px] font-bold mt-1 text-center"
+                  style={{ 
+                    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 4
+                  }}
+                >
+                  {selectedFeature.properties.name}
+                </Text>
+              </View>
+            </MapLibreGL.MarkerView>
+          )}
 
         </MapLibreGL.MapView>
 
@@ -274,9 +304,8 @@ export default function MapScreen() {
 
         <View className="flex-1" />
 
-        {/* Dynamic Controls & Card Container */}
+        {/* UI Controls Container */}
         <Animated.View
-          layout={LinearTransition.duration(200)}
           pointerEvents="box-none"
           className="pb-4"
         >
@@ -292,7 +321,7 @@ export default function MapScreen() {
               <Feather name="layers" size={20} color="white" />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleRecenter}
+              onPress={centerOnUser}
               className="w-10 h-10 items-center justify-center rounded-full border border-transparent"
               style={{
                 backgroundColor: 'rgba(24, 24, 27, 0.8)',

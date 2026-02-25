@@ -1,63 +1,50 @@
-# 🚀 Guia de Desplegament: Circuit Copilot
+# Deployment & CI/CD Guide
 
-Aquest document descriu el procés de desplegament a producció tant de l'API com de l'aplicació mòbil.
+This document outlines the production deployment process for the Circuit Copilot ecosystem.
 
-> [!IMPORTANT]
-> Abans de desplegar, assegura't que tots els tests passen executant `npm run test` a l'arrel.
+## 1. Backend API (Node.js + PostGIS)
 
-## ☁️ 1. Desplegament de l'API (Node.js + PostGIS)
+Our backend services are deployed as Docker containers.
 
-El backend s'ha de desplegar en un proveïdor que suporti **Contenidors Docker** i **Volums Persistents**.
+### Infrastructure Requirements
+- **Runtime:** Docker-compatible engine (AWS ECS, DigitalOcean App Platform, etc.).
+- **Database:** PostgreSQL 15+ with PostGIS enabled.
+- **Networking:** SSL/TLS is mandatory. Load balancers must support persistent WebSocket connections.
 
-### Requisits d'Infraestructura
+### Environment Variables (Production)
+| Variable | Description |
+| :--- | :--- |
+| `DATABASE_URL` | Production connection string |
+| `JWT_SECRET` | Secure key for authentication |
+| `NODE_ENV` | Must be set to `production` |
 
-1. **Base de dades:** PostgreSQL 15+ amb l'extensió **PostGIS**.
-2. **SSL/TLS:** Obligatori per a HTTPS/WSS.
-3. **WebSockets:** El balancejador de càrrega ha de permetre connexions persistents.
+## 2. Mobile Application (Expo EAS)
 
-### 🔑 Variables d'Entorn (Producció)
+We use **Expo Application Services (EAS)** for builds and distribution.
 
-| Variable       | Descripció                         |
-| :------------- | :--------------------------------- |
-| `DATABASE_URL` | Cadena de connexió de producció.   |
-| `JWT_SECRET`   | Clau secreta per a l'autenticació. |
-| `NODE_ENV`     | Ha de ser `production`.            |
-
-## 📱 2. Desplegament de l'Aplicació Mòbil
-
-Utilitzem **EAS (Expo Application Services)** per gestionar les construccions (builds).
-
-> [!TIP]
-> Utilitza les actualitzacions **Over-the-Air (OTA)** per corregir errors menors sense haver de passar per la revisió de la Store.
-
-### Perfils de Construcció (`eas.json`)
-
-Assegura't de tenir el perfil de producció configurat amb les URLs de l'API correctes:
+### Build Profiles (`eas.json`)
+- **`preview`:** For internal testing and stakeholders.
+- **`production`:** Final builds for App Store and Google Play.
 
 ```bash
-# Per a Android (.aab)
+# Example build command
 eas build --platform android --profile production
-
-# Per a iOS (.ipa)
-eas build --platform ios --profile production
 ```
 
-## 🧪 3. Verificació Post-Desplegament
+### Over-the-Air (OTA) Updates
+We use `expo-updates` to push critical bug fixes and UI adjustments instantly during event weekends without waiting for Store reviews.
 
-> [!CAUTION]
-> Revisa sempre els logs de l'API després d'un desplegament per assegurar-te que les migracions s'han aplicat correctament.
-
-1. **Health Check:** Verifica que `https://api.elvostredomini.com/health` respon correctament.
-2. **WebSocket Handshake:** Confirma que l'app es connecta correctament al socket de producció.
-3. **Mapbox:** Verifica que el token de producció està actiu i els mapes carreguen.
-
-## 🔄 Pipeline de CI/CD
+## 3. CI/CD Pipeline
 
 ```mermaid
 graph LR
-    A[Push a Main] --> B{Lint i Test}
-    B -- Passa --> C[Build Docker]
-    C --> D[Deploy API]
-    B -- Passa --> E[EAS Update]
-    E --> F[OTA Update]
+    A[Push to Main] --> B{Lint & Test}
+    B -- Pass --> C[Docker Image Build]
+    C --> D[Deploy to Registry]
+    B -- Pass --> E[EAS Update]
+    E --> F[OTA Distribution]
 ```
+
+---
+> [!CAUTION]
+> Always verify migration logs after a backend deployment to ensure spatial indices and PostGIS schemas are intact.
