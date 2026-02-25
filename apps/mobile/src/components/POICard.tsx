@@ -1,6 +1,5 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { colors } from '../styles/colors';
 
 export interface POI {
@@ -79,13 +78,13 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
 
             {poi.isWheelchairAccessible && (
               <View className="bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">
-                <MaterialCommunityIcons name="wheelchair-accessibility" size={12} color="#60A5FA" />
+                <LucideIcons.Accessibility size={12} color="#60A5FA" strokeWidth={2.5} />
               </View>
             )}
 
             {poi.hasPriorityLane && (
               <View className="bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                <MaterialCommunityIcons name="star" size={12} color="#FBBF24" />
+                <LucideIcons.Star size={12} color="#FBBF24" fill="#FBBF24" />
               </View>
             )}
           </View>
@@ -99,7 +98,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
 
           {(poi.time || poi.distance) && (
             <View className="flex-row items-center">
-              <MaterialCommunityIcons name="timer-outline" size={14} color={colors.muted} />
+              <LucideIcons.Clock size={14} color={colors.muted} strokeWidth={2} />
               <Text className="text-muted text-xs ml-1">
                 {poi.time ? `${poi.time} walk` : ''} {poi.distance ? `(${poi.distance})` : ''}
               </Text>
@@ -112,7 +111,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
           className="w-8 h-8 items-center justify-center rounded-full"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
         >
-          <MaterialCommunityIcons name="close" size={20} color={colors.muted} />
+          <LucideIcons.X size={20} color={colors.muted} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -143,7 +142,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             elevation: 5,
           }}
         >
-          <MaterialCommunityIcons name="navigation" size={18} color="white" />
+          <LucideIcons.Navigation size={18} color="white" strokeWidth={2.5} />
           <Text className="text-white font-bold ml-2">Navigate Here</Text>
         </TouchableOpacity>
 
@@ -154,7 +153,7 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             borderColor: 'rgba(255, 255, 255, 0.1)',
           }}
         >
-          <MaterialCommunityIcons name="bookmark-outline" size={20} color="white" />
+          <LucideIcons.Bookmark size={20} color="white" strokeWidth={2} />
         </TouchableOpacity>
       </View>
     </View>

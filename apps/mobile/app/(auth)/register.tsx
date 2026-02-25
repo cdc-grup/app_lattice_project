@@ -3,7 +3,7 @@ import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Tex
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 
@@ -82,19 +82,19 @@ export default function RegisterScreen() {
             showsVerticalScrollIndicator={false}
           >
             <TouchableOpacity onPress={() => router.back()} className="absolute top-4 left-0 z-10 w-10 h-10 items-center justify-center">
-              <MaterialCommunityIcons name="arrow-left" size={24} color="white" />
+              <LucideIcons.ArrowLeft size={24} color="white" strokeWidth={2} />
             </TouchableOpacity>
 
             {/* Header */}
             <View className="items-center mb-8 mt-12">
-              <MaterialCommunityIcons name="account-plus" size={48} color={colors.primary} className="mb-4" />
+              <LucideIcons.UserPlus size={48} color={colors.primary} strokeWidth={1.5} className="mb-4" />
               <Text className="text-h2 font-black text-white text-center mb-2">
                 Crea un compte
               </Text>
               
               {pendingTicketCode ? (
                 <View className="bg-primary/20 px-4 py-2 rounded-xl border border-primary/30 mt-2 flex-row items-center">
-                   <MaterialCommunityIcons name="ticket-confirmation" size={16} color={colors.primary} className="mr-2" />
+                   <LucideIcons.Ticket size={16} color={colors.primary} strokeWidth={2} className="mr-2" />
                    <Text className="text-white text-sm font-medium">Entrada Pendent d'Associar</Text>
                 </View>
               ) : (

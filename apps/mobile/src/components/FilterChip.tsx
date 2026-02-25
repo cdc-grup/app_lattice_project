@@ -1,16 +1,18 @@
-import React, { ComponentProps } from 'react';
+import React from 'react';
 import { TouchableOpacity, Text } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { colors } from '../styles/colors';
 
 interface FilterChipProps {
   label: string;
-  icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon: string;
   active?: boolean;
   onPress?: () => void;
 }
 
 export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = false, onPress }) => {
+  const IconComponent = (LucideIcons as any)[icon];
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -34,12 +36,14 @@ export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = fa
             }
       }
     >
-      <MaterialCommunityIcons
-        name={icon as any}
-        size={18}
-        color="white"
-        style={{ marginRight: 6 }}
-      />
+      {IconComponent && (
+        <IconComponent
+          size={18}
+          color="white"
+          style={{ marginRight: 6 }}
+          strokeWidth={active ? 2.5 : 2}
+        />
+      )}
       <Text className="text-white font-medium text-sm">{label}</Text>
     </TouchableOpacity>
   );

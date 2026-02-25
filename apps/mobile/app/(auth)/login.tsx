@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  ScrollView,
+  TextInput,
   TouchableOpacity,
+  Text,
+  Image,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  TextInput,
-  Text,
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
+  ScrollView,
+  StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
@@ -137,9 +138,9 @@ export default function LoginScreen() {
 
   if (isScanning) {
     return (
-      <View style={StyleSheet.absoluteFillObject} className="bg-black">
+      <View style={StyleSheet.absoluteFill} className="bg-black">
         <CameraView
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           facing="back"
           onBarcodeScanned={handleBarcodeScanned}
           barcodeScannerSettings={{
@@ -149,10 +150,10 @@ export default function LoginScreen() {
         <SafeAreaView className="flex-1 justify-between p-6">
           <View className="flex-row justify-between items-center mt-4">
             <TouchableOpacity 
-              onPress={() => setIsScanning(false)}
-              className="w-12 h-12 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
+              onPress={() => router.back()} 
+              className="absolute top-4 left-0 z-10 w-10 h-10 items-center justify-center"
             >
-              <MaterialCommunityIcons name="close" size={24} color="white" />
+              <LucideIcons.ArrowLeft size={24} color="white" strokeWidth={2} />
             </TouchableOpacity>
             <View className="bg-black/50 px-4 py-2 rounded-full backdrop-blur-md">
               <Text className="text-white font-bold">Scan QR Ticket</Text>
@@ -188,7 +189,7 @@ export default function LoginScreen() {
             {/* Header */}
             <View className="pt-20 pb-8 items-center">
               <View className="w-16 h-16 mb-6 rounded-2xl bg-primary items-center justify-center shadow-lg shadow-primary/50">
-                <MaterialCommunityIcons name="racing-helmet" size={40} color="white" />
+                <LucideIcons.Car size={40} color="white" />
               </View>
               <Text className="text-h1 font-black text-white text-center mb-2">
                 Welcome to the Grid
@@ -242,15 +243,14 @@ export default function LoginScreen() {
                         placeholderTextColor="#4b5563"
                         editable={!isLoading}
                       />
-                      <TouchableOpacity className="p-1" disabled={isLoading}>
-                        <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FF3B30" />
+                      <TouchableOpacity className="p-1" disabled={isLoading} onPress={handleStartScan}>
+                        <LucideIcons.QrCode size={24} color="#FF3B30" />
                       </TouchableOpacity>
                     </View>
                   </View>
 
                   <View className="flex-row items-start bg-primary/10 border border-primary/20 p-3 rounded-xl mb-8">
-                    <MaterialCommunityIcons
-                      name="information-outline"
+                    <LucideIcons.Info
                       size={16}
                       color="#FF3B30"
                       className="mt-0.5 mr-2"
@@ -261,7 +261,7 @@ export default function LoginScreen() {
                   </View>
 
                   <TouchableOpacity
-                    onPress={handleSyncAccess}
+                    onPress={handleStartScan}
                     disabled={isLoading}
                     activeOpacity={0.8}
                     className="w-full aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-[32px] items-center justify-center p-6 relative overflow-hidden"
@@ -277,8 +277,8 @@ export default function LoginScreen() {
                       <ActivityIndicator size="large" color="#FF3B30" className="mb-6" />
                     ) : (
                       <>
-                        <View className="mr-2">
-                          <MaterialCommunityIcons name="flash-outline" size={20} color="white" />
+                        <View className="items-center mb-10">
+                          <LucideIcons.Ticket size={64} color={colors.primary} strokeWidth={1.5} className="mb-4" />
                         </View>
                         <Text className="text-white font-bold">SYNC ACCESS</Text>
                       </>
@@ -300,7 +300,7 @@ export default function LoginScreen() {
                     className="mt-6 flex-row items-center justify-center py-2 px-6"
                     activeOpacity={0.6}
                   >
-                    <MaterialCommunityIcons name="image-multiple-outline" size={18} color="#9ca3af" className="mr-2" />
+                    <LucideIcons.ImagePlus size={20} color="#9ca3af" className="mr-2" />
                     <Text className="text-muted font-medium text-base">
                       Upload from Gallery
                     </Text>
@@ -356,7 +356,7 @@ export default function LoginScreen() {
             <View className="items-center gap-y-6">
               <TouchableOpacity className="flex-row items-center" disabled={isLoading}>
                 <Text className="text-small text-muted mr-1">Need help finding your ticket?</Text>
-                <MaterialCommunityIcons name="arrow-right" size={16} color="#FF3B30" />
+                <LucideIcons.ArrowRight size={16} color="#FF3B30" />
               </TouchableOpacity>
 
               <View className="flex-row items-center w-full py-4 mt-4">
@@ -372,14 +372,14 @@ export default function LoginScreen() {
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
                   disabled={isLoading}
                 >
-                  <MaterialCommunityIcons name="apple" size={20} color="white" className="mr-2" />
+                  <LucideIcons.Apple size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Apple</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/5 py-3 rounded-xl"
                   disabled={isLoading}
                 >
-                  <MaterialCommunityIcons name="google" size={20} color="white" className="mr-2" />
+                  <LucideIcons.Chrome size={20} color="white" className="mr-2" />
                   <Text className="text-small font-medium text-white">Google</Text>
                 </TouchableOpacity>
               </View>

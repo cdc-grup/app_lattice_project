@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
         <View className="pt-12 pb-8 items-center">
           <View className="mb-4">
             <View className="w-24 h-24 rounded-full bg-primary/20 items-center justify-center border-2 border-primary">
-              <MaterialCommunityIcons name="account" size={48} color={colors.primary} />
+              <LucideIcons.User size={48} color={colors.primary} strokeWidth={1.5} />
             </View>
           </View>
           <Text className="text-white text-2xl font-black mb-1">
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="ticket-confirmation" size={20} color={colors.primary} />
+                  <LucideIcons.Ticket size={20} color={colors.primary} strokeWidth={2} />
                 </View>
                 <View>
                   <Text className="text-white text-base font-medium">Ticket Wallet</Text>
@@ -76,7 +76,7 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#9ca3af" />
+              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
             </TouchableOpacity>
 
             {/* Scan Ticket Item */}
@@ -86,11 +86,11 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="qrcode-scan" size={20} color={colors.primary} />
+                  <LucideIcons.QrCode size={20} color={colors.primary} strokeWidth={2} />
                 </View>
                 <Text className="text-white text-base font-medium">Scan Ticket</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#9ca3af" />
+              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
             </TouchableOpacity>
 
             <View className="px-5 py-3 bg-black/20">
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="stairs" size={20} color="white" />
+                  <LucideIcons.ChevronFirst size={20} color="white" strokeWidth={2} />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Stairs</Text>
               </View>
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="account-group" size={20} color="white" />
+                  <LucideIcons.Users size={20} color="white" strokeWidth={2} />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Crowds</Text>
               </View>
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="slope-uphill" size={20} color="white" />
+                  <LucideIcons.TriangleAlert size={20} color="white" strokeWidth={2} />
                 </View>
                 <Text className="text-white text-base font-medium">Avoid Steep Slopes</Text>
               </View>
@@ -149,11 +149,11 @@ export default function ProfileScreen() {
             <TouchableOpacity className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="palette-outline" size={20} color="white" />
+                  <LucideIcons.Palette size={20} color="white" strokeWidth={2} />
                 </View>
                 <Text className="text-white text-base font-medium">Theme</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#9ca3af" />
+              <LucideIcons.ChevronRight size={24} color="#9ca3af" strokeWidth={2} />
             </TouchableOpacity>
             
             <View className="px-5 py-3 bg-black/20">
@@ -167,11 +167,11 @@ export default function ProfileScreen() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-red-500/10 items-center justify-center mr-4">
-                  <MaterialCommunityIcons name="logout" size={20} color={colors.red[500]} />
+                  <LucideIcons.LogOut size={20} color={colors.red[500]} strokeWidth={2} />
                 </View>
                 <Text className="text-red-500 text-base font-bold">Log out</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color={colors.red[500]} />
+              <LucideIcons.ChevronRight size={24} color={colors.red[500]} strokeWidth={2} />
             </TouchableOpacity>
           </View>
         </View>

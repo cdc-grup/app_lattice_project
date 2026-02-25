@@ -1,22 +1,19 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { ComponentProps } from 'react';
+import { LucideIcon } from 'lucide-react-native';
 
-type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
-
-export const getCategoryIcon = (category?: string): IconName => {
+export const getCategoryIcon = (category?: string): string => {
   switch (category?.toLowerCase()) {
     case 'restaurant':
-      return 'food';
+      return 'Utensils';
     case 'parking':
-      return 'parking';
+      return 'SquareP';
     case 'shop':
-      return 'shopping';
+      return 'ShoppingBag';
     case 'wc':
-      return 'toilet';
+      return 'Accessibility'; // Or 'User' - Lucide doesn't have a direct 'toilet' like MDI, 'Accessibility' or 'User' is common
     case 'grandstand':
-      return 'stadium-variant';
+      return 'Stadium';
     default:
-      return 'map-marker';
+      return 'MapPin';
   }
 };
 

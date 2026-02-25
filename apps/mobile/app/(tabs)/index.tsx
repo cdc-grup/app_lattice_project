@@ -12,12 +12,12 @@ import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
+import * as LucideIcons from 'lucide-react-native';
 import { useMapControls } from '../../src/hooks/useMapControls';
 
 // Configure MapLibre
@@ -33,35 +33,6 @@ MapLibreGL.Logger.setLogCallback((log) => {
   }
   return false;
 });
-
-// --- HELPER COMPONENTS ---
-
-interface POIMarkerProps {
-  feature: POIGeoJSON;
-  isSelected: boolean;
-  onPress: (id: number) => void;
-  getIcon: (category?: string) => any;
-}
-
-const POIMarker = React.memo(({ feature, isSelected, onPress, getIcon }: POIMarkerProps) => {
-  return (
-    <MapLibreGL.MarkerView coordinate={feature.geometry.coordinates}>
-      <TouchableOpacity
-        onPress={() => onPress(feature.properties.id)}
-        className={`items-center justify-center w-10 h-10 rounded-full border-2 border-white shadow-lg ${
-          isSelected ? 'bg-primary' : 'bg-slate-800'
-        }`}
-      >
-        <MaterialCommunityIcons
-          name={getIcon(feature.properties.category)}
-          size={22}
-          color="white"
-        />
-      </TouchableOpacity>
-    </MapLibreGL.MarkerView>
-  );
-});
-POIMarker.displayName = 'POIMarker';
 
 // --- STYLES ---
 
@@ -136,6 +107,8 @@ export default function MapScreen() {
           mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
           logoEnabled={false}
           attributionEnabled={false}
+          compassEnabled={false}
+          rotateEnabled={false}
           onPress={() => setSelectedPoiId(null)}
           onRegionWillChange={() => {
             if (followUser) setFollowUser(false);
@@ -145,7 +118,7 @@ export default function MapScreen() {
           <MapLibreGL.Camera
             ref={camera}
             followUserLocation={followUser && locationStatus === 'granted'}
-            followUserMode={MapLibreGL.UserTrackingMode.FollowWithHeading}
+            followUserMode={MapLibreGL.UserTrackingMode.Follow}
             centerCoordinate={!followUser && userCoords ? userCoords : undefined}
             minZoomLevel={14.5}
             maxBounds={{
@@ -163,7 +136,7 @@ export default function MapScreen() {
               <MapLibreGL.UserLocation
                 visible={true}
                 renderMode="normal"
-                showsUserHeadingIndicator={true}
+                showsUserHeadingIndicator={false}
               />
               {userCoords && (
                 <MapLibreGL.ShapeSource
@@ -199,15 +172,79 @@ export default function MapScreen() {
             </>
           )}
 
-          {poisData?.features.map((feature: POIGeoJSON) => (
-            <POIMarker
-              key={feature.properties.id}
-              feature={feature}
-              isSelected={selectedPoiId === feature.properties.id}
-              onPress={setSelectedPoiId}
-              getIcon={getCategoryIcon}
-            />
-          ))}
+          {poisData && (
+            <MapLibreGL.ShapeSource
+              id="pois-source"
+              shape={poisData}
+              onPress={(e) => {
+                const feature = e.features[0];
+                if (feature && feature.properties) {
+                  setSelectedPoiId(feature.properties.id);
+                }
+              }}
+            >
+              {/* Outer Glow / Ring for all markers */}
+              <MapLibreGL.CircleLayer
+                id="poi-outer-ring"
+                style={{
+                  circleRadius: 18,
+                  circleColor: 'white',
+                  circleOpacity: 0.1,
+                  circleStrokeWidth: 1,
+                  circleStrokeColor: 'rgba(255,255,255,0.2)',
+                }}
+              />
+
+              {/* Selection Highlight */}
+              <MapLibreGL.CircleLayer
+                id="poi-selection-highlight"
+                filter={['==', ['get', 'id'], selectedPoiId || -1]}
+                style={{
+                  circleRadius: 22,
+                  circleColor: colors.primary,
+                  circleOpacity: 0.3,
+                  circleBlur: 0.5,
+                }}
+              />
+
+              {/* Main Background Circle */}
+              <MapLibreGL.CircleLayer
+                id="poi-bg"
+                style={{
+                  circleRadius: 16,
+                  circleColor: [
+                    'case',
+                    ['==', ['get', 'id'], selectedPoiId || -1],
+                    colors.primary,
+                    '#1e293b', // slate-800
+                  ],
+                  circleStrokeWidth: 2,
+                  circleStrokeColor: 'white',
+                }}
+              />
+
+              {/* Symbol Layer for Labels or Icons (future-proof) */}
+              <MapLibreGL.SymbolLayer
+                id="poi-labels"
+                style={{
+                  textField: ['get', 'name'],
+                  textColor: 'white',
+                  textSize: 12,
+                  textOffset: [0, 2.5],
+                  textAnchor: 'top',
+                  textOpacity: [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    16,
+                    0,
+                    17,
+                    1,
+                  ],
+                }}
+              />
+            </MapLibreGL.ShapeSource>
+          )}
         </MapLibreGL.MapView>
 
         {isLoading && (
@@ -264,7 +301,7 @@ export default function MapScreen() {
                 borderColor: 'rgba(255, 255, 255, 0.1)',
               }}
             >
-              <MaterialCommunityIcons name="layers-outline" size={20} color="white" />
+              <LucideIcons.Layers size={20} color="white" strokeWidth={2} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleRecenter}
@@ -274,7 +311,7 @@ export default function MapScreen() {
                 borderColor: 'rgba(255, 255, 255, 0.1)',
               }}
             >
-              <MaterialCommunityIcons name="crosshairs-gps" size={20} color="white" />
+              <LucideIcons.Navigation size={20} color="white" strokeWidth={2} />
             </TouchableOpacity>
           </View>
 

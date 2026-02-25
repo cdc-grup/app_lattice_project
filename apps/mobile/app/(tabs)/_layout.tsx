@@ -1,6 +1,6 @@
-import React, { ComponentProps } from 'react';
+import React from 'react';
 import { Tabs } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { colors } from '../../src/styles/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,14 +12,14 @@ type IconProps = {
 interface TabConfig {
   name: string;
   title: string;
-  icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon: string;
 }
 
 const TABS: TabConfig[] = [
-  { name: 'home', title: 'Home', icon: 'home' },
-  { name: 'schedule', title: 'Schedule', icon: 'calendar-month' },
-  { name: 'index', title: 'Map', icon: 'map' },
-  { name: 'profile', title: 'Profile', icon: 'account' },
+  { name: 'home', title: 'Home', icon: 'Home' },
+  { name: 'schedule', title: 'Schedule', icon: 'Calendar' },
+  { name: 'index', title: 'Map', icon: 'Map' },
+  { name: 'profile', title: 'Profile', icon: 'User' },
 ];
 
 export default function TabsLayout() {
@@ -44,18 +44,21 @@ export default function TabsLayout() {
         },
       }}
     >
-      {TABS.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.title,
-            tabBarIcon: ({ color, size }: IconProps) => (
-              <MaterialCommunityIcons name={tab.icon as any} size={size} color={color} />
-            ),
-          }}
-        />
-      ))}
+      {TABS.map((tab) => {
+        const IconComponent = (LucideIcons as any)[tab.icon];
+        return (
+          <Tabs.Screen
+            key={tab.name}
+            name={tab.name}
+            options={{
+              title: tab.title,
+              tabBarIcon: ({ color, size }: IconProps) => (
+                IconComponent ? <IconComponent size={size} color={color} strokeWidth={2} /> : null
+              ),
+            }}
+          />
+        );
+      })}
     </Tabs>
   );
 }

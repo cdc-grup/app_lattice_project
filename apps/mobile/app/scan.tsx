@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Camera, CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as LucideIcons from 'lucide-react-native';
 import { useAuthStore } from '../src/hooks/useAuthStore';
 import { colors } from '../src/styles/colors';
 
@@ -23,7 +23,7 @@ export default function ScanScreen() {
     // Camera permissions are not granted yet
     return (
       <View className="flex-1 bg-black items-center justify-center p-6">
-        <MaterialCommunityIcons name="camera-off" size={64} color={colors.muted} />
+        <LucideIcons.CameraOff size={64} color={colors.muted} strokeWidth={1.5} />
         <Text className="text-white text-xl font-bold mt-4 text-center">Permís de Càmera Necessari</Text>
         <Text className="text-gray-400 text-center mt-2 mb-8">
           Necessitem accés a la càmera per poder escanejar el codi QR de la teva entrada.
@@ -102,6 +102,13 @@ export default function ScanScreen() {
           <Text className="text-white text-lg mt-8 font-medium text-center px-8">
             Col·loca el codi QR de la teva entrada dins del quadre.
           </Text>
+
+          <TouchableOpacity 
+            onPress={() => router.back()} 
+            className="absolute top-12 left-6 w-10 h-10 rounded-full items-center justify-center bg-black/50"
+          >
+            <LucideIcons.X size={24} color="white" strokeWidth={2} />
+          </TouchableOpacity>
 
           {scanned && !isProcessing && (
             <TouchableOpacity 
