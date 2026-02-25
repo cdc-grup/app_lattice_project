@@ -1,6 +1,8 @@
 import { create, StateCreator } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMMKV } from 'react-native-mmkv';
+import { User, Ticket } from '../types';
+import { authService } from '../services/authService';
 
 const storage = createMMKV();
 
@@ -9,19 +11,6 @@ const mmkvStorage = {
   getItem: (name: string) => storage.getString(name) ?? null,
   removeItem: (name: string) => storage.remove(name),
 };
-
-export interface User {
-  id: number;
-  email: string;
-  fullName: string;
-}
-
-export interface Ticket {
-  id: number;
-  code: string;
-  zoneName: string;
-  gate: string;
-}
 
 interface AuthState {
   token: string | null;
@@ -46,7 +35,6 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   setAuth: (token, user) => set({ token, user }),
   setTicket: (ticket) => set((state) => ({ 
     activeTicket: ticket,
-    // Automatically add to wallet if it's not already there
     tickets: state.tickets.some(t => t.code === ticket.code) 
       ? state.tickets 
       : [...state.tickets, ticket]
@@ -60,27 +48,10 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   claimTicket: async (ticketCode: string) => {
     const { token, setTicket, setPendingTicketCode } = get();
     try {
-      // Use EXPO_PUBLIC_API_URL or fallback wrapper. 
-      // Replace with your actual api client if you have one.
-      const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.31.4.242:3000';
-      const response = await fetch(`${API_URL}/auth/ticket/claim`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ ticket_code: ticketCode }),
-      });
-
-      if (!response.ok) {
-        return false;
-      }
-
-      const data = await response.json();
-      if (data.ticket_info) {
-        const t = { id: data.ticket_info.id, code: data.ticket_info.code, zoneName: data.ticket_info.zoneName, gate: data.ticket_info.gate };
-        setTicket(t);
-        setPendingTicketCode(null); // Clear upon successful claim
+      const ticket = await authService.claimTicket(ticketCode, token ?? undefined);
+      if (ticket) {
+        setTicket(ticket);
+        setPendingTicketCode(null);
         return true;
       }
       return false;

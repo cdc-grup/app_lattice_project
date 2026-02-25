@@ -1,28 +1,32 @@
-import React, { useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useRouter, useRootNavigationState } from 'expo-router';
 import { useAuthStore } from '../src/hooks/useAuthStore';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
+  const navigationState = useRootNavigationState();
   const token = useAuthStore((state) => state.token);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Small delay or ensuring mount to avoid navigation context issues
-    const timer = setTimeout(() => {
+    if (navigationState?.key) {
+      setIsReady(true);
+    }
+  }, [navigationState?.key]);
+
+  useEffect(() => {
+    if (isReady) {
       if (token) {
         router.replace('/(tabs)');
       } else {
         router.replace('/(auth)/login');
       }
-    }, 10);
-    return () => clearTimeout(timer);
-  }, [token, router]);
+    }
+  }, [isReady, token, router]);
 
   return (
-    <View
-      style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}
-    >
+    <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator color="#FF3B30" size="large" />
     </View>
   );

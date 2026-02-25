@@ -4,7 +4,6 @@ import {
   TextInput,
   TouchableOpacity,
   Text,
-  Image,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
@@ -13,7 +12,7 @@ import {
   StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -28,17 +27,22 @@ export default function LoginScreen() {
   const [isScanning, setIsScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
-  useEffect(() => {
-    if (token) {
-      router.replace('/(tabs)');
-    }
-  }, [token, router]);
   const [ticketId, setTicketId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const syncTicket = useSyncTicket();
   const login = useLogin();
+
+  useEffect(() => {
+    if (token) {
+      router.replace('/(tabs)');
+    }
+  }, [token, router]);
+
+  if (!permission) {
+    return <View className="flex-1 bg-background" />;
+  }
 
   const handleSyncAccess = () => {
     if (authMode === 'ticket') {
@@ -50,7 +54,7 @@ export default function LoginScreen() {
       syncTicket.mutate(ticketId, {
         onSuccess: () => {
           console.log('Syncing access for ticket:', ticketId);
-          router.replace('/');
+          router.replace('/(tabs)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -67,7 +71,7 @@ export default function LoginScreen() {
         {
           onSuccess: () => {
             console.log('Login successful for:', email);
-            router.replace('/');
+            router.replace('/(tabs)');
           },
           onError: (error: any) => {
             Alert.alert('Login Failed', error.message);
@@ -101,7 +105,7 @@ export default function LoginScreen() {
       syncTicket.mutate(data, {
         onSuccess: () => {
           console.log('Syncing access for ticket block:', data);
-          router.replace('/');
+          router.replace('/(tabs)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -127,7 +131,7 @@ export default function LoginScreen() {
       syncTicket.mutate('CIRCUIT25', {
         onSuccess: () => {
           console.log('Syncing access for gallery ticket: CIRCUIT25');
-          router.replace('/');
+          router.replace('/(tabs)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -175,7 +179,6 @@ export default function LoginScreen() {
   return (
     <View className="flex-1 bg-background">
       <StatusBar style="light" />
-      <Stack.Screen options={{ headerShown: false }} />
 
       <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right']}>
         <KeyboardAvoidingView

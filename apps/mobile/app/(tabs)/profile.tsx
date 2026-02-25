@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
@@ -7,14 +7,13 @@ import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
-  const { user, activeTicket, tickets, setTicket, addTicketToWallet, logout } = useAuthStore();
+  const { user, activeTicket, tickets, logout } = useAuthStore();
   const router = useRouter();
   
   // Local state for toggles
   const [avoidStairs, setAvoidStairs] = useState(false);
   const [avoidCrowds, setAvoidCrowds] = useState(false);
   const [avoidSlopes, setAvoidSlopes] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
 
   const handleLogout = () => {
     logout();

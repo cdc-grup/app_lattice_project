@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { Alert, Linking } from 'react-native';
+import { PermissionStatus } from '../types';
 
-export type PermissionStatus = 'idle' | 'loading' | 'granted' | 'denied' | 'blocked';
+export { PermissionStatus };
 
+export interface LocationPermissionState {
+  status: PermissionStatus;
+  requestPermission: () => Promise<boolean>;
+}
 export const useLocationPermission = () => {
   const [status, setStatus] = useState<PermissionStatus>('idle');
 

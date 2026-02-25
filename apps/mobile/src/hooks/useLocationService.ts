@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
-import { useLocationPermission, PermissionStatus } from './useLocationPermission';
+import { useLocationPermission } from './useLocationPermission';
+import { PermissionStatus } from '../types';
 
 export interface LocationState {
   coords: number[] | null;

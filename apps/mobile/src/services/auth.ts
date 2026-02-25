@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import { useAuthStore, Ticket, User } from '../hooks/useAuthStore';
+import { useAuthStore } from '../hooks/useAuthStore';
+import { Ticket, User } from '../types';
 import { apiClient } from './apiClient';
 
 export const useSyncTicket = () => {
@@ -23,7 +24,6 @@ export const useSyncTicket = () => {
 export const useLogin = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
   const setTicket = useAuthStore((state) => state.setTicket);
-  const setPendingTicketCode = useAuthStore((state) => state.setPendingTicketCode);
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {

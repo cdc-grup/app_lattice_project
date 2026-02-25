@@ -12,10 +12,11 @@ import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
-import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
+import { usePOIs } from '../../src/hooks/queries/usePOIs';
+import { POIGeoJSON } from '../../src/types';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import { getCategoryIcon, getCategoryColor } from '../../src/utils/poiUtils';
-import Animated, { LinearTransition } from 'react-native-reanimated';
+import { getCategoryIcon } from '../../src/utils/poiUtils';
+import Animated from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { Feather } from '@expo/vector-icons';
 import { useMapControls } from '../../src/hooks/useMapControls';
@@ -91,23 +92,25 @@ export default function MapScreen() {
 
   const selectedFeature = useMemo(() => {
     if (!selectedPoiId || !poisData) return null;
-    return poisData.features.find((f: POIGeoJSON) => f.properties.id === selectedPoiId);
+    const feature = poisData.features.find((f: any) => f.properties.id === selectedPoiId);
+    if (!feature) return null;
+    return feature.properties as POIGeoJSON['properties'];
   }, [selectedPoiId, poisData]);
 
   const selectedPoi = useMemo(() => {
     if (!selectedFeature) return null;
 
     return {
-      id: selectedFeature.properties.id.toString(),
-      name: selectedFeature.properties.name,
-      description: selectedFeature.properties.description,
-      type: selectedFeature.properties.category,
-      crowdLevel: selectedFeature.properties.crowdLevel,
-      isWheelchairAccessible: selectedFeature.properties.isWheelchairAccessible,
-      hasPriorityLane: selectedFeature.properties.hasPriorityLane,
-      images: [],
-      distance: '350m',
-      time: '5 min',
+      id: selectedFeature.id,
+      name: selectedFeature.name,
+      description: selectedFeature.description,
+      category: selectedFeature.category,
+      crowdLevel: selectedFeature.crowdLevel,
+      isWheelchairAccessible: selectedFeature.isWheelchairAccessible,
+      hasPriorityLane: selectedFeature.hasPriorityLane,
+      images: selectedFeature.images || [],
+      distance: selectedFeature.distance || '350m',
+      time: selectedFeature.time || '5 min',
     };
   }, [selectedFeature]);
 
@@ -226,12 +229,11 @@ export default function MapScreen() {
             </MapLibreGL.ShapeSource>
           )}
 
-          {/* HIGH-DETAIL SELECTED MARKER */}
           {selectedFeature && (
             <MapLibreGL.MarkerView
-              key={`selected-poi-${selectedFeature.properties.id}`}
-              id={`selected-marker-${selectedFeature.properties.id}`}
-              coordinate={selectedFeature.geometry.coordinates}
+              key={`selected-poi-${selectedFeature.id}`}
+              id={`selected-marker-${selectedFeature.id}`}
+              coordinate={poisData?.features.find((f: any) => f.properties.id === selectedFeature.id)?.geometry.coordinates || [0,0]}
             >
               <View className="items-center">
                 <View 
@@ -247,7 +249,7 @@ export default function MapScreen() {
                     elevation: 10,
                   }}
                 >
-                  <Feather name={getCategoryIcon(selectedFeature.properties.category) as any} size={18} color="white" />
+                  <Feather name={getCategoryIcon(selectedFeature.category) as any} size={18} color="white" />
                 </View>
                 <Text 
                   className="text-white text-[12px] font-bold mt-1 text-center"
@@ -257,7 +259,7 @@ export default function MapScreen() {
                     textShadowRadius: 4
                   }}
                 >
-                  {selectedFeature.properties.name}
+                  {selectedFeature.name}
                 </Text>
               </View>
             </MapLibreGL.MarkerView>

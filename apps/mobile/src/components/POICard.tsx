@@ -2,24 +2,12 @@ import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
-import { getCategoryIcon, getCategoryColor } from '../utils/poiUtils';
+import { getCategoryMetadata } from '../utils/poiUtils';
 
-export interface POI {
-  id: string;
-  name: string;
-  description?: string;
-  type: string;
-  status?: string;
-  crowdLevel: 'low' | 'moderate' | 'high' | 'blocked';
-  isWheelchairAccessible: boolean;
-  hasPriorityLane: boolean;
-  distance?: string;
-  time?: string;
-  images?: string[];
-}
+import { POIGeoJSON } from '../types';
 
 interface POICardProps {
-  poi: POI | null;
+  poi: POIGeoJSON['properties'] | null;
   onClose: () => void;
   onNavigate: () => void;
 }
@@ -56,9 +44,8 @@ const getCrowdLabel = (level: string) => {
 export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) => {
   if (!poi) return null;
 
-  const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.type.toLowerCase());
-  const categoryColor = getCategoryColor(poi.type);
-  const categoryIcon = getCategoryIcon(poi.type);
+  const metadata = getCategoryMetadata(poi.category);
+  const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.category.toLowerCase());
 
   return (
     <View className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl">
@@ -68,9 +55,9 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
             <View 
               className="flex-row items-center px-2 py-0.5 rounded border border-white/10 bg-white/5"
             >
-              <Feather name={categoryIcon as any} size={10} color={colors.muted} style={{ marginRight: 4 }} />
+              <Feather name={metadata.icon as any} size={10} color={colors.muted} style={{ marginRight: 4 }} />
               <Text className="text-[10px] font-black uppercase tracking-wider text-muted">
-                {poi.type}
+                {poi.category}
               </Text>
             </View>
 

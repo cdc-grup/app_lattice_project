@@ -3,6 +3,8 @@ import { TouchableOpacity, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
+import { mapIconName } from '../utils/poiUtils';
+
 interface FilterChipProps {
   label: string;
   icon: string;
@@ -11,28 +13,6 @@ interface FilterChipProps {
 }
 
 export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = false, onPress }) => {
-  const getIconName = (name: string) => {
-    const map: Record<string, string> = {
-      'SlidersHorizontal': 'sliders',
-      'Search': 'search',
-      'X': 'x',
-      'Utensils': 'coffee',
-      'SquareP': 'map-pin',
-      'ShoppingBag': 'shopping-bag',
-      'Accessibility': 'user',
-      'Stadium': 'map',
-      'MapPin': 'map-pin',
-      'door-open': 'log-in',
-      'stadium-variant': 'map',
-      'food': 'coffee',
-      'parking': 'map-pin',
-      'shopping': 'shopping-bag',
-      'toilet': 'user',
-      'medical-bag': 'plus-square',
-      'account-group': 'users'
-    };
-    return map[name] || name.toLowerCase();
-  };
 
   return (
     <TouchableOpacity
@@ -58,7 +38,7 @@ export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = fa
       }
     >
       <Feather
-        name={getIconName(icon) as any}
+        name={mapIconName(icon) as any}
         size={18}
         color="white"
         style={{ marginRight: 6 }}

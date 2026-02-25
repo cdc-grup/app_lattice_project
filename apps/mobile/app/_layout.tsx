@@ -20,10 +20,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)/login" options={{ animation: 'fade' }} />
-            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-          </Stack>
+          <Stack screenOptions={{ headerShown: false }} />
           <StatusBar style="light" />
         </QueryClientProvider>
       </SafeAreaProvider>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
@@ -15,13 +15,13 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get the pending ticket code from the store
-  const { pendingTicketCode, token, setAuth, setPendingTicketCode, claimTicket } = useAuthStore();
+  const { pendingTicketCode, token, setAuth, setPendingTicketCode } = useAuthStore();
 
   React.useEffect(() => {
     if (token) {
       router.replace('/(tabs)');
     }
-  }, [token]);
+  }, [token, router]);
 
   const handleRegister = async () => {
     if (!email || !password || !fullName) {
@@ -70,7 +70,6 @@ export default function RegisterScreen() {
   return (
     <View className="flex-1 bg-background">
       <StatusBar style="light" />
-      <Stack.Screen options={{ headerShown: false }} />
 
       <SafeAreaView className="flex-1" edges={['bottom', 'left', 'right', 'top']}>
         <KeyboardAvoidingView 
@@ -95,7 +94,7 @@ export default function RegisterScreen() {
               {pendingTicketCode ? (
                 <View className="bg-primary/20 px-4 py-2 rounded-xl border border-primary/30 mt-2 flex-row items-center">
                    <Feather name="tag" size={16} color={colors.primary} className="mr-2" />
-                   <Text className="text-white text-sm font-medium">Entrada Pendent d'Associar</Text>
+                   <Text className="text-white text-sm font-medium">Entrada Pendent d&apos;Associar</Text>
                 </View>
               ) : (
                 <Text className="text-small text-muted text-center">
