@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -9,9 +9,8 @@ import {
   Text,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, TextInput, Text, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -24,7 +23,7 @@ import { colors } from '../../src/styles/colors';
 export default function LoginScreen() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
-  const [authMode, setAuthMode] = React.useState<'ticket' | 'account'>('ticket');
+  const [authMode, setAuthMode] = useState<'ticket' | 'account'>('ticket');
   const [isScanning, setIsScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -33,9 +32,9 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     }
   }, [token, router]);
-  const [ticketId, setTicketId] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [ticketId, setTicketId] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const syncTicket = useSyncTicket();
   const login = useLogin();
@@ -50,7 +49,7 @@ export default function LoginScreen() {
       syncTicket.mutate(ticketId, {
         onSuccess: () => {
           console.log('Syncing access for ticket:', ticketId);
-          router.replace('/(tabs)');
+          router.replace('/');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -67,7 +66,7 @@ export default function LoginScreen() {
         {
           onSuccess: () => {
             console.log('Login successful for:', email);
-            router.replace('/(tabs)');
+            router.replace('/');
           },
           onError: (error: any) => {
             Alert.alert('Login Failed', error.message);
@@ -101,7 +100,7 @@ export default function LoginScreen() {
       syncTicket.mutate(data, {
         onSuccess: () => {
           console.log('Syncing access for ticket block:', data);
-          router.replace('/(tabs)');
+          router.replace('/');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -127,7 +126,7 @@ export default function LoginScreen() {
       syncTicket.mutate('CIRCUIT25', {
         onSuccess: () => {
           console.log('Syncing access for gallery ticket: CIRCUIT25');
-          router.replace('/(tabs)');
+          router.replace('/');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);

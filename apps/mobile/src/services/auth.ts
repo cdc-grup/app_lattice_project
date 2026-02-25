@@ -27,7 +27,7 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: async ({ email, password }: any) => {
-      return apiClient.post<{ user: User; token: string }>('/auth/login', {
+      return apiClient.post<{ user: User; token: string; ticket_info?: Ticket }>('/auth/login', {
         email,
         password,
       });

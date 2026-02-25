@@ -18,7 +18,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     logout();
-    router.replace('/(auth)/login');
+    router.replace('/login');
   };
 
   return (
@@ -60,7 +60,7 @@ export default function ProfileScreen() {
                   // In a real app, this would navigate to a dedicated wallet screen
                   Alert.alert('Wallet', `You have ${tickets.length} tickets. Active: ${activeTicket?.code}`);
                 } else {
-                  router.push('/scan');
+                  router.push('/scan' as any);
                 }
               }}
               className="flex-row justify-between items-center py-4 px-5 border-b border-white/5"
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
 
             {/* Scan Ticket Item */}
             <TouchableOpacity 
-              onPress={() => router.push('/scan')}
+              onPress={() => router.push('/scan' as any)}
               className="flex-row justify-between items-center py-4 px-5 border-b border-white/5"
             >
               <View className="flex-row items-center">

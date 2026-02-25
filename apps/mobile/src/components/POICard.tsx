@@ -8,6 +8,7 @@ export interface POI {
   name: string;
   description?: string;
   type: string;
+  status?: string;
   crowdLevel: 'low' | 'moderate' | 'high' | 'blocked';
   isWheelchairAccessible: boolean;
   hasPriorityLane: boolean;

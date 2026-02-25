@@ -9,6 +9,7 @@ async function generateTestTickets() {
 
   const testTickets = [
     {
+      userId: 1,
       code: 'CIRCUIT-VIP-2026',
       gate: 'Gate 1 (VIP)',
       zoneName: 'Paddock Club',
@@ -18,6 +19,7 @@ async function generateTestTickets() {
       createdAt: new Date(),
     },
     {
+      userId: 1,
       code: 'CIRCUIT-G-2026',
       gate: 'Gate 3',
       zoneName: 'Grandstand G',

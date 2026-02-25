@@ -6,6 +6,9 @@ export const MOCK_POIS: POI[] = [
     name: 'Paddock Club Grill',
     type: 'Food Court',
     status: 'open',
+    crowdLevel: 'moderate',
+    isWheelchairAccessible: true,
+    hasPriorityLane: true,
     distance: '350m',
     time: '5 min',
     images: [
@@ -18,6 +21,9 @@ export const MOCK_POIS: POI[] = [
     name: 'Main Grandstand',
     type: 'Grandstand',
     status: 'open',
+    crowdLevel: 'low',
+    isWheelchairAccessible: true,
+    hasPriorityLane: false,
     distance: '800m',
     time: '12 min',
     images: [
@@ -29,6 +35,9 @@ export const MOCK_POIS: POI[] = [
     name: 'Official Merch Store',
     type: 'Shopping',
     status: 'closed',
+    crowdLevel: 'high',
+    isWheelchairAccessible: true,
+    hasPriorityLane: false,
     distance: '200m',
     time: '3 min',
     images: [

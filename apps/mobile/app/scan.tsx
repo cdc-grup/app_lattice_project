@@ -70,7 +70,7 @@ export default function ScanScreen() {
         "Has d'iniciar sessió o registrar-te per guardar la teva entrada.",
         [
           { text: "Cancel·lar", onPress: () => { setScanned(false); setPendingTicketCode(null); }, style: 'cancel' },
-          { text: "Continuar", onPress: () => router.push('/(auth)/register') }
+          { text: "Continuar", onPress: () => router.push('/register' as any) }
         ]
       );
     }

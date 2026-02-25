@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { describe, it, expect, jest } from '@jest/globals';
 import { FilterChip } from '../FilterChip';
 
 // Mocking icons to avoid rendering issues in tests
