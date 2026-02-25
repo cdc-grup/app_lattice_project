@@ -41,8 +41,38 @@ const MapContent = React.memo(({
   poisGeoJSON 
 }: any) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
-  const { selectedPoiId, selectPoi, deselect } = useMapStore();
+  const { selectedPoiId, selectedCoords, recenterCount, selectPoi, deselect } = useMapStore();
   const isSelectingMarker = useRef(false);
+
+  // Handle camera animations when selection changes
+  useEffect(() => {
+    console.log('[MapContent] selectedCoords changed:', selectedCoords);
+    if (selectedCoords && camera.current) {
+      console.log('[MapContent] Animating to:', selectedCoords);
+      camera.current.setCamera({
+        centerCoordinate: selectedCoords,
+        zoomLevel: 17,
+        animationDuration: 1200,
+        animationMode: 'flyTo',
+      });
+    } else if (!camera.current) {
+      console.warn('[MapContent] Camera ref is NULL');
+    }
+  }, [selectedCoords]);
+
+  // Handle recenter trigger from store
+  useEffect(() => {
+    console.log('[MapContent] recenterCount changed:', recenterCount);
+    if (recenterCount > 0 && userCoords && camera.current) {
+      console.log('[MapContent] Recentering to:', userCoords);
+      camera.current.setCamera({
+        centerCoordinate: userCoords,
+        zoomLevel: 15,
+        animationDuration: 1000,
+        animationMode: 'flyTo',
+      });
+    }
+  }, [recenterCount, userCoords]);
 
   const onMapPress = useCallback(() => {
     if (isSelectingMarker.current) {
@@ -54,6 +84,7 @@ const MapContent = React.memo(({
 
   const onSourcePress = useCallback((event: any) => {
     const feature = event.features[0];
+    console.log('[MapContent] Source press:', feature?.properties?.name);
     if (feature?.properties && feature.geometry.type === 'Point') {
       isSelectingMarker.current = true;
       selectPoi(feature.properties.id, feature.geometry.coordinates);
@@ -71,14 +102,14 @@ const MapContent = React.memo(({
       zoomEnabled={true}
       pitchEnabled={true}
       onPress={onMapPress}
+      surfaceView={true}
     >
       <MapLibreGL.Camera
         ref={camera}
         minZoomLevel={12}
-        maxBounds={{ ne: [2.142, 41.413], sw: [2.07, 41.359] }}
         defaultSettings={{
           centerCoordinate: [2.1060698, 41.3863034],
-          zoomLevel: 19,
+          zoomLevel: 13,
         }}
       />
 
@@ -142,7 +173,7 @@ const SelectedMarker = React.memo(({ id, poisGeoJSON }: any) => {
 
 export default function MapScreen() {
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
-  const { selectedPoiId, deselect, selectPoi } = useMapStore();
+  const { selectedPoiId, deselect, triggerRecenter, selectPoi } = useMapStore();
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
@@ -166,8 +197,9 @@ export default function MapScreen() {
 
   const handleRecenter = useCallback(async () => {
     await requestPermission();
-    // Manual recenter logic removed as per "remove everything to do with camera"
-  }, [requestPermission]);
+    triggerRecenter();
+  }, [requestPermission, triggerRecenter]);
+
 
   return (
     <View className="flex-1 bg-black">
@@ -223,3 +255,4 @@ export default function MapScreen() {
     </View>
   );
 }
+
