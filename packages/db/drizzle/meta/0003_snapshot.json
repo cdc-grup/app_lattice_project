@@ -1,6 +1,6 @@
 {
-  "id": "fddec1c8-02b0-4cbe-b973-63b4cdd588d5",
-  "prevId": "7bde1321-dca0-4203-9a03-8da9578c0d4b",
+  "id": "1d76b5f1-b1ce-4bb5-9e15-c46476b0add0",
+  "prevId": "fddec1c8-02b0-4cbe-b973-63b4cdd588d5",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -398,7 +398,7 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "code": {
           "name": "code",

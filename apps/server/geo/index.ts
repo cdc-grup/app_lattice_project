@@ -70,14 +70,14 @@ app.get('/pois', async (req: Request, res: Response) => {
 
 app.get('/pois/categories', (req: Request, res: Response) => {
   const categories = [
-    { id: '1', label: 'Gates', icon: 'door-open', category: 'gate' },
-    { id: '2', label: 'Grandstands', icon: 'stadium-variant', category: 'grandstand' },
-    { id: '3', label: 'Food', icon: 'food', category: 'restaurant' },
-    { id: '4', label: 'Parking', icon: 'parking', category: 'parking' },
-    { id: '5', label: 'Shopping', icon: 'shopping', category: 'shop' },
-    { id: '6', label: 'Toilets', icon: 'toilet', category: 'wc' },
-    { id: '7', label: 'Medical', icon: 'medical-bag', category: 'medical' },
-    { id: '8', label: 'Meetups', icon: 'account-group', category: 'meetup_point' },
+    { id: '1', label: 'Gates', icon: 'log-in', category: 'gate' },
+    { id: '2', label: 'Grandstands', icon: 'map', category: 'grandstand' },
+    { id: '3', label: 'Food', icon: 'coffee', category: 'restaurant' },
+    { id: '4', label: 'Parking', icon: 'map-pin', category: 'parking' },
+    { id: '5', label: 'Shopping', icon: 'shopping-bag', category: 'shop' },
+    { id: '6', label: 'Toilets', icon: 'user', category: 'wc' },
+    { id: '7', label: 'Medical', icon: 'plus-square', category: 'medical' },
+    { id: '8', label: 'Meetups', icon: 'users', category: 'meetup_point' },
   ];
   res.json(categories);
 });

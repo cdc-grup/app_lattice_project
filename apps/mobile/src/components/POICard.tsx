@@ -2,6 +2,8 @@ import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
+import { getCategoryIcon, getCategoryColor } from '../utils/poiUtils';
+
 export interface POI {
   id: string;
   name: string;
@@ -55,14 +57,19 @@ export const POICard: React.FC<POICardProps> = ({ poi, onClose, onNavigate }) =>
   if (!poi) return null;
 
   const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.type.toLowerCase());
+  const categoryColor = getCategoryColor(poi.type);
+  const categoryIcon = getCategoryIcon(poi.type);
 
   return (
     <View className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl">
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
           <View className="flex-row flex-wrap items-center gap-2 mb-2">
-            <View className="bg-primary/20 px-2 py-0.5 rounded">
-              <Text className="text-primary text-[10px] font-black uppercase tracking-wider">
+            <View 
+              className="flex-row items-center px-2 py-0.5 rounded border border-white/10 bg-white/5"
+            >
+              <Feather name={categoryIcon as any} size={10} color={colors.muted} style={{ marginRight: 4 }} />
+              <Text className="text-[10px] font-black uppercase tracking-wider text-muted">
                 {poi.type}
               </Text>
             </View>

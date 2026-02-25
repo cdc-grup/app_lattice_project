@@ -21,7 +21,15 @@ export const FilterChip: React.FC<FilterChipProps> = ({ label, icon, active = fa
       'ShoppingBag': 'shopping-bag',
       'Accessibility': 'user',
       'Stadium': 'map',
-      'MapPin': 'map-pin'
+      'MapPin': 'map-pin',
+      'door-open': 'log-in',
+      'stadium-variant': 'map',
+      'food': 'coffee',
+      'parking': 'map-pin',
+      'shopping': 'shopping-bag',
+      'toilet': 'user',
+      'medical-bag': 'plus-square',
+      'account-group': 'users'
     };
     return map[name] || name.toLowerCase();
   };

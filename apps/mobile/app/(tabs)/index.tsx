@@ -14,7 +14,7 @@ import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs, POIGeoJSON } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import { getCategoryIcon } from '../../src/utils/poiUtils';
+import { getCategoryIcon, getCategoryColor } from '../../src/utils/poiUtils';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { Feather } from '@expo/vector-icons';
@@ -171,79 +171,68 @@ export default function MapScreen() {
             </>
           )}
 
-          {poisData && (
-            <MapLibreGL.ShapeSource
-              id="pois-source"
-              shape={poisData}
-              onPress={(e) => {
-                const feature = e.features[0];
-                if (feature && feature.properties) {
-                  setSelectedPoiId(feature.properties.id);
-                }
-              }}
-            >
-              {/* Outer Glow / Ring for all markers */}
-              <MapLibreGL.CircleLayer
-                id="poi-outer-ring"
-                style={{
-                  circleRadius: 18,
-                  circleColor: 'white',
-                  circleOpacity: 0.1,
-                  circleStrokeWidth: 1,
-                  circleStrokeColor: 'rgba(255,255,255,0.2)',
-                }}
-              />
+          {/* DATA DRIVEN MARKERS WITH ICONS */}
+          {poisData?.features.map((feature: POIGeoJSON) => {
+            const { id, category, name } = feature.properties;
+            const isSelected = selectedPoiId === id;
+            const catColor = getCategoryColor(category);
+            const catIcon = getCategoryIcon(category);
+            
+            return (
+              <MapLibreGL.MarkerView
+                key={`poi-${id}`}
+                id={`marker-${id}`}
+                coordinate={feature.geometry.coordinates}
+              >
+                <TouchableOpacity 
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setSelectedPoiId(id);
+                    camera.current?.setCamera({
+                      centerCoordinate: feature.geometry.coordinates,
+                      animationDuration: 500,
+                    });
+                  }}
+                  className="items-center"
+                >
+                  {/* Marker Circle */}
+                  <View 
+                    style={{ 
+                      width: 32, 
+                      height: 32, 
+                      borderRadius: 16, 
+                      backgroundColor: isSelected ? colors.primary : catColor,
+                      borderWidth: 2,
+                      borderColor: 'white',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 3.84,
+                      elevation: 5,
+                    }}
+                  >
+                    <Feather name={catIcon as any} size={16} color="white" />
+                  </View>
+                  
+                  {/* Label */}
+                  <Text 
+                    className="text-white text-[10px] font-bold mt-1 text-center"
+                    style={{ 
+                      textShadowColor: 'rgba(0, 0, 0, 0.75)',
+                      textShadowOffset: { width: -1, height: 1 },
+                      textShadowRadius: 10
+                    }}
+                    numberOfLines={1}
+                  >
+                    {name}
+                  </Text>
+                </TouchableOpacity>
+              </MapLibreGL.MarkerView>
+            );
+          })}
 
-              {/* Selection Highlight */}
-              <MapLibreGL.CircleLayer
-                id="poi-selection-highlight"
-                filter={['==', ['get', 'id'], selectedPoiId || -1]}
-                style={{
-                  circleRadius: 22,
-                  circleColor: colors.primary,
-                  circleOpacity: 0.3,
-                  circleBlur: 0.5,
-                }}
-              />
-
-              {/* Main Background Circle */}
-              <MapLibreGL.CircleLayer
-                id="poi-bg"
-                style={{
-                  circleRadius: 16,
-                  circleColor: [
-                    'case',
-                    ['==', ['get', 'id'], selectedPoiId || -1],
-                    colors.primary,
-                    '#1e293b', // slate-800
-                  ],
-                  circleStrokeWidth: 2,
-                  circleStrokeColor: 'white',
-                }}
-              />
-
-              {/* Symbol Layer for Labels or Icons (future-proof) */}
-              <MapLibreGL.SymbolLayer
-                id="poi-labels"
-                style={{
-                  textField: ['get', 'name'],
-                  textColor: 'white',
-                  textSize: 12,
-                  textOffset: [0, 2.5],
-                  textAnchor: 'top',
-                  textOpacity: [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    16,
-                    0,
-                    17,
-                    1,
-                  ],
-                }}
-              />
-            </MapLibreGL.ShapeSource>
-          )}
         </MapLibreGL.MapView>
 
         {isLoading && (
