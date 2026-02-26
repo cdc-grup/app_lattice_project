@@ -327,6 +327,19 @@ export default function LoginScreen() {
 
             {/* Footer Actions */}
             <View className="items-center gap-y-6">
+              
+              {authMode === 'account' && (
+                <TouchableOpacity 
+                  onPress={() => router.push('/(auth)/register')}
+                  disabled={isLoading}
+                  className="py-2"
+                >
+                  <Text className="text-slate-400">
+                    Don't have an account? <Text className="text-primary font-bold">Register here</Text>
+                  </Text>
+                </TouchableOpacity>
+              )}
+
               <TouchableOpacity className="flex-row items-center py-2" disabled={isLoading}>
                 <Text className="text-small text-slate-400 mr-2">Need help finding your ticket?</Text>
                 <Feather name="arrow-right" size={16} color={colors.primary} />
@@ -358,22 +371,12 @@ export default function LoginScreen() {
               </View>
 
               {/* AR Status */}
-              <View className="mt-4 flex-row items-center px-4 py-2 rounded-full bg-white/5 border border-white/5">
+              <View className="mt-4 flex-row items-center px-4 py-2 rounded-full bg-white/5 border border-white/5 mb-8">
                 <Feather name="box" size={16} color={colors.primary} className="mr-2" />
                 <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                   AR Experience Ready
                 </Text>
               </View>
-              
-              <TouchableOpacity 
-                onPress={() => router.push('/(auth)/register')}
-                disabled={isLoading}
-                className="mt-4 pb-8"
-              >
-                <Text className="text-slate-400">
-                  Don't have an account? <Text className="text-primary font-bold">Register here</Text>
-                </Text>
-              </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
