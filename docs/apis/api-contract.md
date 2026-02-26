@@ -1,8 +1,8 @@
-# Contracte de l'API v1.0 - Circuit Copilot API
+# Contracte de l'API v1.0 - Lattice API
 
 ## 1. Estàndards Generals
 
-- **Base URL:** `https://api.circuit-copilot.com/`
+- **Base URL:** `https://api.lattice.com/`
 - **Autenticació:** Bearer Token (JWT) a les capçaleres. `Authorization: Bearer <token>`
 - **Format de Dades:** JSON per a REST, MessagePack (binari) per a WebSockets (actualitzacions d'ubicació).
 - **Format Geogràfic:** Totes les coordenades han de seguir l'estàndard **GeoJSON**: `[longitud, latitud]`.

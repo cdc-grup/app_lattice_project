@@ -1,6 +1,6 @@
 # Developer Setup Guide
 
-Welcome to the Circuit Copilot development team. This guide will help you get your local environment running.
+Welcome to the Lattice development team. This guide will help you get your local environment running.
 
 ## Prerequisites
 

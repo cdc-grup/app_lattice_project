@@ -33,7 +33,7 @@ export const useLocationPermission = () => {
         setStatus('blocked');
         Alert.alert(
           'Permisos de ubicación',
-          'Has denegado los permisos de ubicación de forma permanente. Por favor, actívalos en los ajustes de la aplicación para poder orientarte en el circuito.',
+          'Has denegado los permisos de ubicación de forma permanente. Por favor, actívalos en los ajustes de la aplicación para poder orientarte en Lattice.',
           [
             { text: 'Cancelar', style: 'cancel' },
             { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() },

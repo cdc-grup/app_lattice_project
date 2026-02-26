@@ -119,7 +119,7 @@ export default function LoginScreen() {
     });
 
     if (!result.canceled) {
-      const mockCode = 'CIRCUIT25';
+      const mockCode = 'LATTICE25';
       setTicketId(mockCode);
       syncTicket.mutate(mockCode, {
         onSuccess: () => {
@@ -187,7 +187,7 @@ export default function LoginScreen() {
                 <Feather name="shield" size={32} color="white" />
               </LinearGradient>
               <Text className="text-h1 font-black text-white text-center mb-2">
-                Welcome to the Grid
+                Welcome to Lattice
               </Text>
               <Text className="text-small text-slate-400 text-center">
                 Sync your pass or login to access race data.
@@ -230,7 +230,7 @@ export default function LoginScreen() {
                         value={ticketId}
                         onChangeText={setTicketId}
                         autoCapitalize="characters"
-                        placeholder="EX: CIRCUIT25"
+                        placeholder="EX: LATTICE25"
                         placeholderTextColor="#4b5563"
                         editable={!isLoading}
                       />

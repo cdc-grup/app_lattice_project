@@ -1,6 +1,6 @@
 # Frontend Architecture: Mobile App
 
-The Circuit Copilot mobile application is built with Expo and React Native, focusing on high-performance map interactions and location-based AR.
+The Lattice mobile application is built with Expo and React Native, focusing on high-performance map interactions and location-based AR.
 
 ## Core Philosophical Pillars
 

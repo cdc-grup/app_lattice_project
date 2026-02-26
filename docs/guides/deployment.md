@@ -1,6 +1,6 @@
 # Deployment & CI/CD Guide
 
-This document outlines the production deployment process for the Circuit Copilot ecosystem.
+This document outlines the production deployment process for the Lattice ecosystem.
 
 ## 1. Backend API (Node.js + PostGIS)
 

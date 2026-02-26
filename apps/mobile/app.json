@@ -1,19 +1,19 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Lattice",
+    "slug": "lattice",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "lattice",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cdc.mobile"
+      "bundleIdentifier": "com.lattice.mobile"
     },
     "android": {
-      "package": "com.cdc.mobile",
+      "package": "com.lattice.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,8 +44,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
-          "locationWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Lattice to use your location to guide you through the circuit.",
+          "locationWhenInUsePermission": "Allow Lattice to use your location to guide you through the circuit.",
           "isAndroidBackgroundLocationEnabled": false
         }
       ],

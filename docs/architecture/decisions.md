@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR)
 
-This document tracks the major technical decisions and conventions established for the Circuit Copilot project.
+This document tracks the major technical decisions and conventions established for the Lattice project.
 
 ## 1. Directory Structure
 
