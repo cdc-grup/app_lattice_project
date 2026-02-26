@@ -1,50 +1,50 @@
-# User Journeys (Viatges de l'Usuari)
+# User Journeys
 
-## Journey: Sortida Eficient (Gestió de Trànsit)
+## Journey: Efficient Exit (Traffic Management)
 
-- **Context:** La cursa acaba de finalitzar. 100.000 persones estan marxant.
-- **Acció:** L'usuari obre l'app per trobar el seu cotxe (guardat a US34).
-- **Sistema:**
-  1. Comprova les coordenades de pàrquing guardades de l'usuari.
-  2. Consulta al servidor els "Nivells de Congestió de les Portes".
-  3. Dirigeix l'usuari a una porta de sortida secundària que triga 5 minuts més a peu però té 20 minuts menys de cua.
-  4. Utilitza fletxes d'AR per guiar-los a través de la multitud.
+- **Context:** The race has just finished. 100,000 people are leaving.
+- **Action:** The user opens the app to find their car (saved at US34).
+- **System:**
+  1. Checks the user's saved parking coordinates.
+  2. Queries the server for "Gate Congestion Levels".
+  3. Directs the user to a secondary exit gate that takes 5 more minutes on foot but has 20 minutes less of a queue.
+  4. Uses AR arrows to guide them through the crowd.
 
-## Journey: Retrobament de Grup
+## Journey: Group Reunion
 
-- **Context:** L'Usuari A està a la Tribuna G, l'Usuari B està a l'àrea de Food Trucks.
-- **Acció:** L'Usuari A prem "Troba el B".
-- **Sistema:**
-  1. El servidor envia l'última ubicació limitada de l'Usuari B (via Socket.io).
-  2. L'app dibuixa una línia dinàmica al mapa.
-  3. A mesura que s'apropen (<50m), l'App suggereix: "Canvia a AR per localitzar el teu amic en la multitud."
+- **Context:** User A is at Grandstand G, User B is at the Food Truck area.
+- **Action:** User A presses "Find B".
+- **System:**
+  1. The server sends User B's last throttled location (via Socket.io).
+  2. The app draws a dynamic line on the map.
+  3. As they get closer (<50m), the App suggests: "Switch to AR to locate your friend in the crowd."
 
-## Journey: Trobar Menjar i Beguda (Restaurants)
+## Journey: Finding Food & Drink (Restaurants)
 
-- **Context:** L'usuari vol menjar alguna cosa durant la cursa.
-- **Acció:** L'usuari cerca la categoria "Restaurants" a l'app.
-- **Sistema:**
-  1. Mostra les opcions de menjar disponibles a prop.
-  2. Indica el temps d'espera en cua en temps real.
-  3. Permet fer la comanda i el pagament des del mòbil per recollir.
-  4. Envia una notificació quan la comanda està llesta.
+- **Context:** The user wants to eat something during the race.
+- **Action:** The user searches for the "Restaurants" category in the app.
+- **System:**
+  1. Shows available food options nearby.
+  2. Indicates real-time queue waiting times.
+  3. Allows ordering and payment from the mobile for pickup.
+  4. Sends a notification when the order is ready.
 
-## Journey: Localització de Serveis (Lavabos)
+## Journey: Service Location (Restrooms)
 
-- **Context:** L'usuari necessita anar als lavabos.
-- **Acció:** L'usuari selecciona "Lavabos" al menú de serveis o al mapa.
-- **Sistema:**
-  1. Localitza la posició actual de l'usuari.
-  2. Mostra els lavabos més propers i el seu estat d'ocupació (lliure/ocupat/cues).
-  3. Guia l'usuari fins al lavabo triat amb fletxes al mapa.
+- **Context:** The user needs to go to the restrooms.
+- **Action:** The user selects "Restrooms" from the services menu or map.
+- **System:**
+  1. Locates the user's current position.
+  2. Shows the nearest restrooms and their occupancy status (free/busy/queues).
+  3. Guides the user to the chosen restroom with arrows on the map.
 
-## Journey: Arribada al Seient (Tribuna / Pelouse)
+## Journey: Arrival at Seat (Grandstand / Pelouse)
 
-- **Context:** L'usuari acaba d'entrar i vol trobar el seu seient assignat. També pot ser que no estigui registrat i només tingui el bitllet físic.
-- **Acció:** L'usuari selecciona "Scan" al menú o escaneja el codi QR de la seva entrada.
-- **Sistema:**
-  1. Identifica el codi QR (ex. `CIRCUIT-VIP-2026`).
-  2. Si l'usuari no té compte, l'aplicació guarda el codi i el redirigeix a la pantalla de registre. En finalitzar, s'associa i fa login automàticament.
-  3. Si l'usuari ja té sessió ("Ticket Wallet"), l'entrada s'afegeix directament al seu perfil (`/auth/ticket/claim`).
-  4. Genera una ruta pas a pas des de la posició actual fins al lloc exacte (tribuna, fila i seient).
-  5. Utilitza realitat augmentada (AR) per senyalitzar el camí i la ubicació precisa.
+- **Context:** The user has just entered and wants to find their assigned seat. They might not be registered and only have a physical ticket.
+- **Action:** The user selects "Scan" in the menu or scans the QR code of their ticket.
+- **System:**
+  1. Identifies the QR code (e.g., `CIRCUIT-VIP-2026`).
+  2. If the user doesn't have an account, the app saves the code and redirects to the registration screen. Upon completion, it associates and logs in automatically.
+  3. If the user already has a session ("Ticket Wallet"), the ticket is added directly to their profile (`/auth/ticket/claim`).
+  4. Generates a step-by-step route from the current position to the exact spot (grandstand, row, and seat).
+  5. Uses augmented reality (AR) to signal the path and precise location.

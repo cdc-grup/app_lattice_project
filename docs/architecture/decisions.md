@@ -34,5 +34,10 @@ Used for all client-side storage needs.
 Utilized over standard JSON for WebSockets.
 - **Reasoning:** Binary compression significantly reduces payload size, which is critical in low-bandwidth, high-density environments like a racing event.
 
+## 7. Caching Layer: Redis
+
+Implemented as a secondary storage layer alongside Drizzle/PostgreSQL.
+- **Reasoning:** Critical for handling high-frequency real-time telemetry (GPS) and reducing database load during event peaks. Redis's in-memory nature allows sub-millisecond responses impossible with traditional SQL during massive concurrency.
+
 ---
 > These decisions form the foundation of our scalability strategy.

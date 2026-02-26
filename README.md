@@ -12,15 +12,15 @@ To ensure a smooth development process and perfect integration with AI agents, w
 ### 🧠 Project Context (AI-Ready)
 
 - **[System Prompt](docs/product/system-prompt.md)**: Code style guidelines and agent behavior.
-- **[Architecture](docs/architecture/architecture.md)**: Technical structure and data flow details.
+- **[Architecture](docs/architecture/overview.md)**: Technical structure and data flow details.
 - **[User Journeys](docs/product/user-journeys.md)**: Business logic and main user flows.
 - **[Mobile Best Practices](docs/guides/mobile-best-practices.md)**: Expo guidelines and code style.
 
 ### 🛠️ Specifications and Guides
 
-- **[Setup Guide](docs/guides/setup-guide.md)**: How to set up the local environment with Docker.
+- **[Setup Guide](docs/guides/setup.md)**: How to set up the local environment with Docker.
 - **[Deployment Guide](docs/guides/deployment.md)**: How to take the application to production.
-- **[Contributor Guide](docs/guides/contributing.md)**: Rules for branches, commits, and Pull Requests.
+- **[Contributor Guide](docs/guides/standards.md)**: Rules for branches, commits, and Pull Requests.
 
 ## ⚡ Quick Start
 
@@ -45,24 +45,24 @@ You can manage the entire project directly from the root of the monorepo:
 | `npm run format`         | Formats code across the entire project with Prettier.       |
 | `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
 
-## 🧪 Infraestructura de Proves
+## 🧪 Testing Infrastructure
 
-Hem implementat una arquitectura de proves dual professional a `apps/mobile`:
+We have implemented a professional dual testing architecture in `apps/mobile`:
 
-- **Logic Engine (Vitest):** Per a proves ràpides de lògica, utilitats i hooks.
-  - Comanda: `npm run test:logic -w mobile`
-- **UI Engine (Jest + RTL):** Per a validació de components i interfície d'usuari Expo.
-  - Comanda: `npm run test:components -w mobile`
+- **Logic Engine (Vitest):** For fast testing of logic, utilities, and hooks.
+  - Command: `npm run test:logic -w mobile`
+- **UI Engine (Jest + RTL):** For Expo UI and component validation.
+  - Command: `npm run test:components -w mobile`
 - **Full Suite:** `npm run test -w mobile`
 
-Més detalls al **[Protocol de QA](docs/guides/qa-testing-guide.md)**.
+More details in the **[Testing Guide](docs/guides/testing.md)**.
 
-## 🏗️ Refactorització i Estat del Codi
+## 🏗️ Refactoring and Code Status
 
-Recentment hem millorat la mantenibilitat de l'aplicació mòbil:
+We have recently improved the maintainability of the mobile application:
 
-- **Extracció de Lògica:** S'han desacoblat els controls del mapa i els serveis de localització de la vista principal (`MapScreen`) mitjançant hooks personalitzats (`useLocationService`, `useMapControls`).
-- **SSOT de Disseny:** S'està implementant un sistema de Single Source of Truth per a colors i tipografia segons la **[Guia de Disseny](docs/guides/design-system.md)**.
+- **Logic Extraction:** Map controls and location services have been decoupled from the main view (`MapScreen`) using custom hooks (`useLocationService`, `useMapControls`).
+- **Design SSOT:** A Single Source of Truth system for colors and typography is being implemented according to the **[Design System](docs/guides/design-system.md)**.
 
 ### 🗄️ Database Management
 

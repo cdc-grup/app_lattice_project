@@ -40,10 +40,20 @@ Manages real-time interactions.
 
 The entire backend environment is orchestrated via **Docker Compose**.
 
-### Persistent Storage
-- **Main DB:** PostgreSQL 15 + PostGIS for spatial queries.
-- **Redis (Recommended):** Currently identified as a priority for caching high-frequency telemetry.
+### Caching & Persistence Strategy
 
+We implement a **Dual-Storage** pattern to balance speed and reliability:
+
+1.  **Drizzle ORM + PostgreSQL:**
+    *   **Role:** Source of Truth.
+    *   **Data:** Users, Tickets, POI master data, and historical logs.
+    *   **Usage:** Used for all operations requiring persistence and complex relational queries.
+2.  **Redis (ioRedis):**
+    *   **Role:** Speed Layer & Message Broker.
+    *   **Data:** Real-time telemetry (GPS), active session metadata, and high-frequency cache.
+    *   **Usage:** Services query Redis first for ephemeral data. Periodic "background syncs" may persist critical data from Redis to PostgreSQL using Drizzle.
+
+---
 ### Deployment Environment
 - **Containerization:** Multi-stage Docker builds for all custom services.
 - **Networking:** Internal bridge network for inter-service communication; external traffic limited to the Gateway.
