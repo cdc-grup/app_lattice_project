@@ -340,11 +340,6 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity className="flex-row items-center py-2" disabled={isLoading}>
-                <Text className="text-small text-slate-400 mr-2">Need help finding your ticket?</Text>
-                <Feather name="arrow-right" size={16} color={colors.primary} />
-              </TouchableOpacity>
-
               <View className="flex-row items-center w-full my-2">
                 <View className="flex-1 h-[1px] bg-slate-800" />
                 <Text className="text-tiny mx-4 text-slate-500 font-bold uppercase tracking-widest">
