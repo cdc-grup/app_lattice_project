@@ -35,7 +35,41 @@ app.post('/auth/register', async (req: Request, res: Response) => {
   try {
     // Check if user exists
     const existingResult = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    if (existingResult.length > 0) {
+    const existingUser = existingResult[0];
+
+    if (existingUser) {
+      // If the user was auto-created via Fast Ticket Sync, they will have 'auto_generated_pass'
+      if (existingUser.passwordHash === 'auto_generated_pass') {
+        const updatedUser = await db
+          .update(users)
+          .set({
+             passwordHash: password, // In a real app, use bcrypt here
+             fullName: fullName || existingUser.fullName,
+             // Keep their existing ticket status, or set true if they are linking a new one now
+             hasTicket: ticket_code ? true : existingUser.hasTicket
+          })
+          .where(eq(users.id, existingUser.id))
+          .returning();
+          
+        const user = updatedUser[0];
+
+        if (ticket_code) {
+          const dbTickets = require('@app/db').tickets;
+          await db.update(dbTickets).set({ userId: user.id }).where(eq(dbTickets.code, ticket_code));
+        }
+
+        return res.status(200).json({
+          user: {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            hasTicket: user.hasTicket,
+          },
+          token: `mock_jwt_token_for_${user.id}`,
+        });
+      }
+
+      // Standard user already exists error
       return res.status(400).json({
         error: {
           code: 'USER_EXISTS',
