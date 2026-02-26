@@ -52,7 +52,10 @@ export default function LoginScreen() {
         return;
       }
 
-      syncTicket.mutate(ticketId, {
+      // Automatically format it as JSON with a mock email for manual ID entry testing
+      const payload = JSON.stringify({ code: ticketId, email: `local_${ticketId.toLowerCase()}@example.com` });
+
+      syncTicket.mutate(payload, {
         onSuccess: () => {
           router.replace('/(tabs)');
         },
@@ -99,7 +102,7 @@ export default function LoginScreen() {
   const handleBarcodeScanned = ({ data }: { data: string }) => {
     setIsScanning(false);
     if (data) {
-      setTicketId(data);
+      setTicketId(data); // Display whatever string we scanned for visual feedback
       syncTicket.mutate(data, {
         onSuccess: () => {
           router.replace('/(tabs)');
@@ -119,9 +122,10 @@ export default function LoginScreen() {
     });
 
     if (!result.canceled) {
-      const mockCode = 'CIRCUIT25';
-      setTicketId(mockCode);
-      syncTicket.mutate(mockCode, {
+      // Mock QR data
+      const mockPayload = JSON.stringify({ code: 'CIRCUIT25', email: 'test_auto_create@example.com' });
+      setTicketId('CIRCUIT25 (Mock)');
+      syncTicket.mutate(mockPayload, {
         onSuccess: () => {
           router.replace('/(tabs)');
         },

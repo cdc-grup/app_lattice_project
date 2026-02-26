@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "has_ticket" boolean DEFAULT false;
