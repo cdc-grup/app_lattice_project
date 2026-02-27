@@ -40,13 +40,16 @@ Given the typical network saturation at circuits, the app is designed to be func
 
 ## App States & Transitions
 
-The transition between 2D (Map) and AR is driven by **Device Sensors** (Tilt-to-AR logic):
+The transition between 2D (Map) and AR is driven by **Device Sensors** (Tilt-to-AR logic) and **Orientation**:
 
-| Pitch Angle | State | UI Behavior |
-| :--- | :--- | :--- |
-| **< 30°** | 2D Map | Full MapLibre view. Low sensor polling. |
-| **30° - 75°** | Transition | Interpolated blur. Start Camera & AR engine. |
-| **> 75°** | AR Live | Overlay ViroARScene on top of Camera. |
+| Orientation | Pitch Angle | State | UI Behavior |
+| :--- | :--- | :--- | :--- |
+| **Portrait** | Any | 2D Map | Full MapLibre view. |
+| **Landscape** | **< 30°** | 2D Map | Full MapLibre view. Low sensor polling. |
+| **Landscape** | **30° - 75°** | Transition | Interpolated blur. Start Camera & AR engine. |
+| **Landscape** | **> 75°** | AR Live | Overlay ViroARScene on top of Camera. |
+
+**Important:** AR is restricted to **Landscape (Horizontal)** mode to ensure better field of view and stability.
 
 **Automatic Overrides:**
 - AR is disabled if `battery < 15%`.

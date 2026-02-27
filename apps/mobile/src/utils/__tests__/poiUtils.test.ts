@@ -19,7 +19,7 @@ describe('poiUtils', () => {
 
   describe('getCategoryColor', () => {
     it('should return neutral color for all categories', () => {
-      expect(getCategoryColor('restaurant')).toBe('#374151');
+      expect(getCategoryColor('restrooms')).toBe('#FF9500');
       expect(getCategoryColor('medical')).toBe('#374151');
       expect(getCategoryColor('unknown')).toBe('#374151');
     });

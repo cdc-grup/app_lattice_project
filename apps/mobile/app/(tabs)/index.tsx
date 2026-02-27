@@ -45,7 +45,7 @@ function MapIndex() {
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
-  const { pitch, arState } = useCameraTilt();
+  const { pitch, arState, isLandscape } = useCameraTilt();
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -109,7 +109,9 @@ function MapIndex() {
         <View className="absolute top-14 right-4 items-end">
           <View style={{ backgroundColor: 'rgba(24, 24, 27, 0.8)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }} className="px-3 py-1 rounded-full flex-row items-center gap-2">
             <View className={`w-2 h-2 rounded-full ${arState === 'AR' ? 'bg-green-500' : arState === 'TRANSITION' ? 'bg-yellow-500' : 'bg-zinc-500'}`} />
-            <Text className="text-white text-xs font-medium">Pitch: {Math.round(pitch)}° ({arState})</Text>
+            <Text className="text-white text-xs font-medium">
+              Pitch: {Math.round(pitch)}° | {isLandscape ? 'Landscape' : 'Portrait'} ({arState})
+            </Text>
           </View>
         </View>
 

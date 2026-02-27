@@ -18,6 +18,7 @@ export const useCameraTilt = (options: UseCameraTiltOptions = {}) => {
   } = options;
 
   const [pitch, setPitch] = useState(0);
+  const [isLandscape, setIsLandscape] = useState(false);
   const [arState, setArState] = useState<ARState>('2D');
 
   useEffect(() => {
@@ -35,13 +36,21 @@ export const useCameraTilt = (options: UseCameraTiltOptions = {}) => {
         // We normalize so that 0 is flat and 90 is vertical.
         let pitchDegrees = (data.rotation.beta * 180) / Math.PI;
         
-        // Adjust for Android/iOS differences if necessary
-        // Typically, beta is 0 when flat and increases as top is tilted up.
+        // Gamma corresponds to orientation/roll on some sensors
+        // We can also detect orientation via sensors or just use pitch thresholds
+        // But the most reliable for "horizontal" (landscape) is checking if beta is used in a landscape context
         setPitch(pitchDegrees);
 
-        if (pitchDegrees > highThreshold) {
+        // Simple orientation detection: if gamma (roll) is > 45 or < -45, it's likely landscape
+        // Alternatively, we use pitch (beta) for tilt. 
+        // For AR to trigger "horizontal", we want both tilt and landscape.
+        const rollDegrees = (data.rotation.gamma * 180) / Math.PI;
+        const landscape = Math.abs(rollDegrees) > 45;
+        setIsLandscape(landscape);
+
+        if (landscape && pitchDegrees > highThreshold) {
           setArState('AR');
-        } else if (pitchDegrees < lowThreshold) {
+        } else if (!landscape || pitchDegrees < lowThreshold) {
           setArState('2D');
         } else {
           setArState('TRANSITION');
@@ -56,5 +65,5 @@ export const useCameraTilt = (options: UseCameraTiltOptions = {}) => {
     };
   }, [updateInterval, lowThreshold, highThreshold]);
 
-  return { pitch, arState };
+  return { pitch, arState, isLandscape };
 };
