@@ -2,12 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Canvas } from '@react-three/fiber/native';
-import Animated, { 
-  useAnimatedStyle, 
-  withTiming, 
-  useSharedValue,
-  runOnJS
-} from 'react-native-reanimated';
 import { MainARScene } from './MainARScene';
 import { CameraPermissionView } from '../ui/CameraPermissionView';
 
@@ -18,27 +12,19 @@ interface AROverlayProps {
 export const AROverlay: React.FC<AROverlayProps> = ({ isVisible }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
-  const opacity = useSharedValue(0);
+  const [mountScene, setMountScene] = useState(false);
 
   useEffect(() => {
-    if (isVisible) {
-      setShouldRender(true);
-      opacity.value = withTiming(1, { duration: 500 });
-    } else {
-      opacity.value = withTiming(0, { duration: 500 }, (finished) => {
-        if (finished) {
-          runOnJS(setShouldRender)(false);
-        }
-      });
+    if (isVisible && isCameraReady) {
+      // Small delay before mounting the 3D scene once camera is ready
+      const timer = setTimeout(() => setMountScene(true), 300);
+      return () => clearTimeout(timer);
+    } else if (!isVisible) {
+      setMountScene(false);
     }
-  }, [isVisible, opacity]);
+  }, [isVisible, isCameraReady]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  if (!shouldRender && !isVisible) return null;
+  if (!isVisible) return null;
 
   if (!permission) {
     return <View style={styles.permissionContainer} />;
@@ -53,13 +39,13 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible }) => {
   }
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, animatedStyle]}>
+    <View style={StyleSheet.absoluteFill}>
       <CameraView 
         style={styles.camera} 
         facing="back" 
         onCameraReady={() => setIsCameraReady(true)}
       />
-      {isCameraReady && (
+      {/* {mountScene && (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
           <Canvas>
             <ambientLight intensity={Math.PI / 2} />
@@ -68,8 +54,8 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible }) => {
             <MainARScene />
           </Canvas>
         </View>
-      )}
-    </Animated.View>
+      )} */}
+    </View>
   );
 };
 
