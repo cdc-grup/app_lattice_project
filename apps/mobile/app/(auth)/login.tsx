@@ -10,7 +10,8 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Dimensions
+  Dimensions,
+  Pressable
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -18,10 +19,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { useSyncTicket, useLogin } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +38,7 @@ export default function LoginScreen() {
   const [ticketId, setTicketId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const syncTicket = useSyncTicket();
   const login = useLogin();
@@ -46,6 +50,7 @@ export default function LoginScreen() {
   }, [token, router]);
 
   const handleSyncAccess = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (authMode === 'ticket') {
       if (!ticketId) {
         Alert.alert('Error', 'Please enter a ticket ID');
@@ -57,9 +62,11 @@ export default function LoginScreen() {
 
       syncTicket.mutate(payload, {
         onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           Alert.alert('Sync Failed', error.message);
         },
       });
@@ -73,9 +80,11 @@ export default function LoginScreen() {
         { email, password },
         {
           onSuccess: () => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             router.replace('/(tabs)');
           },
           onError: (error: any) => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             Alert.alert('Login Failed', error.message);
           },
         }
@@ -86,6 +95,7 @@ export default function LoginScreen() {
   const isLoading = syncTicket.isPending || login.isPending;
 
   const handleStartScan = async () => {
+    Haptics.selectionAsync();
     if (!permission) {
       await requestPermission();
     }
@@ -101,6 +111,7 @@ export default function LoginScreen() {
 
   const handleBarcodeScanned = ({ data }: { data: string }) => {
     setIsScanning(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (data) {
       setTicketId(data); // Display whatever string we scanned for visual feedback
       syncTicket.mutate(data, {
@@ -147,18 +158,23 @@ export default function LoginScreen() {
         />
         <SafeAreaView className="flex-1 justify-between p-6">
           <View className="flex-row justify-between items-center mt-4">
-            <TouchableOpacity onPress={() => setIsScanning(false)} className="bg-black/50 w-10 h-10 items-center justify-center rounded-full">
+            <TouchableOpacity 
+              onPress={() => setIsScanning(false)} 
+              className="bg-black/60 w-12 h-12 items-center justify-center rounded-full border border-white/10"
+            >
               <Feather name="x" size={24} color="white" />
             </TouchableOpacity>
-            <View className="bg-black/50 px-4 py-2 rounded-full">
-              <Text className="text-white font-bold">Scan QR Ticket</Text>
+            <View className="bg-black/60 px-5 py-2.5 rounded-full border border-white/10">
+              <Text className="text-white font-semibold">Scan Ticket QR</Text>
             </View>
-            <View className="w-10" />
+            <View className="w-12" />
           </View>
-          <View className="items-center mb-20">
-            <View className="w-64 h-64 border-2 border-primary rounded-3xl" />
-            <Text className="text-white text-center mt-6 bg-black/50 px-4 py-2 rounded-full">
-              Align QR code within the frame
+          <View className="items-center mb-24">
+            <View className="w-64 h-64 border-2 border-primary/50 rounded-[40px] items-center justify-center">
+               <View className="w-48 h-48 border border-white/20 rounded-3xl border-dashed" />
+            </View>
+            <Text className="text-white/80 text-center mt-8 bg-black/60 px-6 py-3 rounded-full overflow-hidden border border-white/5">
+              Center the QR code in the frame
             </Text>
           </View>
         </SafeAreaView>
@@ -167,163 +183,125 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-[#0A0A0B]">
+    <View className="flex-1 bg-[#050505]">
       <StatusBar style="light" />
       
-      {/* Background Decor */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <View className="absolute -top-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]" />
-        <View className="absolute bottom-40 -right-20 w-80 h-80 bg-red-900/10 rounded-full blur-[80px]" />
-      </View>
-
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
-            
-            {/* Header */}
-            <View className="pt-16 pb-8 items-center">
-              <LinearGradient
-                colors={['#FF3B30', '#E03028']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="w-16 h-16 mb-6 rounded-2xl items-center justify-center shadow-lg shadow-primary/40"
-              >
-                <Feather name="shield" size={32} color="white" />
-              </LinearGradient>
-              <Text className="text-h1 font-black text-white text-center mb-2">
-                Welcome to the Grid
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28 }} 
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header section with refined Apple aesthetic */}
+            <Animated.View 
+              entering={FadeInDown.duration(800).delay(200)}
+              className="pt-12 pb-10 items-center"
+            >
+              <View className="w-20 h-20 mb-8 rounded-[22px] bg-white items-center justify-center shadow-2xl">
+                <MaterialCommunityIcons name="speedometer" size={44} color="#000" />
+              </View>
+              <Text className="text-4xl font-bold text-white tracking-tight mb-3">
+                Grid Access
               </Text>
-              <Text className="text-small text-slate-400 text-center">
-                Sync your pass or login to access race data.
+              <Text className="text-base text-white/50 text-center font-medium px-4">
+                Connect your race pass or sign in to your pilot profile.
               </Text>
-            </View>
+            </Animated.View>
 
-            {/* Auth Mode Selector */}
-            <View className="bg-white/5 p-1 rounded-2xl mb-8 flex-row border border-white/5">
-              <TouchableOpacity
-                onPress={() => setAuthMode('ticket')}
-                disabled={isLoading}
-                className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'ticket' ? 'bg-primary' : ''}`}
+            {/* Premium Segmented Control */}
+            <Animated.View 
+              entering={FadeInDown.duration(800).delay(400)}
+              className="bg-white/5 p-1.5 rounded-2xl mb-10 flex-row border border-white/10 overflow-hidden"
+            >
+              <Pressable
+                onPress={() => toggleAuthMode('ticket')}
+                className={`flex-1 py-3 px-4 rounded-xl items-center transition-all ${authMode === 'ticket' ? 'bg-white shadow-sm' : ''}`}
               >
-                <Text className={`text-small font-bold ${authMode === 'ticket' ? 'text-white' : 'text-slate-400'}`}>
-                  Fast Ticket Sync
+                <Text className={`text-sm font-semibold ${authMode === 'ticket' ? 'text-black' : 'text-white/40'}`}>
+                  Ticket Sync
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setAuthMode('account')}
-                disabled={isLoading}
-                className={`flex-1 py-3 px-4 rounded-xl items-center ${authMode === 'account' ? 'bg-primary' : ''}`}
+              </Pressable>
+              <Pressable
+                onPress={() => toggleAuthMode('account')}
+                className={`flex-1 py-3 px-4 rounded-xl items-center transition-all ${authMode === 'account' ? 'bg-white shadow-sm' : ''}`}
               >
-                <Text className={`text-small font-bold ${authMode === 'account' ? 'text-white' : 'text-slate-400'}`}>
-                  Account Sync
+                <Text className={`text-sm font-semibold ${authMode === 'account' ? 'text-black' : 'text-white/40'}`}>
+                  Account
                 </Text>
-              </TouchableOpacity>
-            </View>
+              </Pressable>
+            </Animated.View>
 
-            {/* Form Content */}
-            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-10 shadow-2xl">
+            {/* Form Container */}
+            <Animated.View 
+              layout={Layout.springify()}
+              entering={FadeIn.duration(600)}
+              className="mb-8"
+            >
               {authMode === 'ticket' ? (
-                <View>
-                  <View className="relative mb-6">
-                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                      Enter Ticket ID
-                    </Text>
-                    <View className="flex-row items-center border-b border-slate-700 py-2">
+                <View key="ticket-form">
+                  <View className="bg-white/5 border border-white/10 rounded-2xl mb-6 overflow-hidden">
+                    <View className="flex-row items-center px-4 py-3.5">
+                      <Feather name="tag" size={20} color={colors.primary} />
                       <TextInput
-                        className="flex-1 text-white text-lg font-medium"
+                        className="flex-1 text-white text-lg font-medium ml-3"
                         value={ticketId}
                         onChangeText={setTicketId}
                         autoCapitalize="characters"
-                        placeholder="EX: CIRCUIT25"
-                        placeholderTextColor="#4b5563"
+                        placeholder="Ticket ID (e.g. CIRCUIT25)"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
                         editable={!isLoading}
                       />
-                      <TouchableOpacity onPress={handleStartScan} className="p-2">
-                        <MaterialCommunityIcons name="qrcode-scan" size={24} color={colors.primary} />
+                      <TouchableOpacity 
+                        onPress={handleStartScan}
+                        activeOpacity={0.7}
+                        className="bg-white/10 p-2.5 rounded-xl ml-2"
+                      >
+                        <MaterialCommunityIcons name="plus-box" size={22} color="white" />
                       </TouchableOpacity>
                     </View>
                   </View>
 
-                  <View className="flex-row items-start bg-primary/10 border border-primary/20 p-4 rounded-xl mb-8">
-                    <Feather name="info" size={16} color={colors.primary} className="mt-0.5 mr-3" />
-                    <Text className="text-tiny text-primary/80 flex-1 leading-relaxed font-medium">
-                      Use the 8-digit code found on your physical pass or email confirmation.
+                  <View className="flex-row items-center px-2 mb-8">
+                    <Feather name="help-circle" size={14} color="rgba(255,255,255,0.3)" />
+                    <Text className="text-xs text-white/30 ml-2 font-medium">
+                      Found on your physical badge or email receipt.
                     </Text>
                   </View>
-
-                  <TouchableOpacity
-                    onPress={handleSyncAccess}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                    className="w-full"
-                  >
-                    <LinearGradient
-                      colors={['#FF3B30', '#E03028']}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                      className="py-4 rounded-xl items-center justify-center flex-row shadow-lg shadow-primary/30"
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <>
-                          <Feather name="zap" size={18} color="white" className="mr-2" />
-                          <Text className="text-white font-black tracking-widest">SYNC ACCESS</Text>
-                        </>
-                      )}
-                    </LinearGradient>
-                  </TouchableOpacity>
                 </View>
               ) : (
-                <View>
-                  <View className="mb-6">
-                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                      Email Address
-                    </Text>
-                    <TextInput
-                      className="border-b border-slate-700 text-white text-lg py-3 font-medium"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      placeholder="user@example.com"
-                      placeholderTextColor="#4b5563"
-                      value={email}
-                      onChangeText={setEmail}
-                      editable={!isLoading}
-                    />
+                <View key="account-form">
+                  <View className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-6">
+                    <View className="flex-row items-center px-4 py-3.5 border-b border-white/5">
+                      <Feather name="mail" size={18} color="rgba(255,255,255,0.4)" />
+                      <TextInput
+                        className="flex-1 text-white text-lg font-medium ml-3"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholder="Email address"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        value={email}
+                        onChangeText={setEmail}
+                        editable={!isLoading}
+                      />
+                    </View>
+                    <View className="flex-row items-center px-4 py-3.5">
+                      <Feather name="lock" size={18} color="rgba(255,255,255,0.4)" />
+                      <TextInput
+                        className="flex-1 text-white text-lg font-medium ml-3"
+                        secureTextEntry={!showPassword}
+                        placeholder="Password"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        value={password}
+                        onChangeText={setPassword}
+                        editable={!isLoading}
+                      />
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                        <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View className="mb-8">
-                    <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                      Password
-                    </Text>
-                    <TextInput
-                      className="border-b border-slate-700 text-white text-lg py-3 font-medium"
-                      secureTextEntry
-                      placeholder="••••••••"
-                      placeholderTextColor="#4b5563"
-                      value={password}
-                      onChangeText={setPassword}
-                      editable={!isLoading}
-                    />
-                  </View>
-                  <TouchableOpacity
-                    onPress={handleSyncAccess}
-                    disabled={isLoading}
-                    activeOpacity={0.8}
-                  >
-                    <LinearGradient
-                      colors={['#FF3B30', '#E03028']}
-                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                      className="py-4 rounded-xl items-center justify-center shadow-lg shadow-primary/30"
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <Text className="text-white font-black tracking-widest">LOGIN TO ACCOUNT</Text>
-                      )}
-                    </LinearGradient>
-                  </TouchableOpacity>
                 </View>
               )}
-            </View>
 
             {/* Footer Actions */}
             <View className="items-center gap-y-6">
@@ -340,28 +318,34 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               )}
 
-              <View className="flex-row items-center w-full my-2">
-                <View className="flex-1 h-[1px] bg-slate-800" />
-                <Text className="text-tiny mx-4 text-slate-500 font-bold uppercase tracking-widest">
-                  Or continue with
+            {/* Secondary Actions */}
+            <Animated.View 
+              entering={FadeInDown.duration(800).delay(600)}
+              className="items-center"
+            >
+              <View className="flex-row items-center w-full my-8">
+                <View className="flex-1 h-[0.5px] bg-white/10" />
+                <Text className="mx-4 text-xs font-bold text-white/20 uppercase tracking-widest">
+                  Secure Access
                 </Text>
-                <View className="flex-1 h-[1px] bg-slate-800" />
+                <View className="flex-1 h-[0.5px] bg-white/10" />
               </View>
 
-              <View className="flex-row w-full gap-x-4">
+              {/* Native Auth Options */}
+              <View className="flex-row w-full gap-x-4 mb-10">
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 py-3.5 rounded-xl active:bg-white/10"
-                  disabled={isLoading}
+                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 h-14 rounded-2xl active:bg-white/10"
+                  onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 >
-                  <MaterialCommunityIcons name="apple" size={20} color="white" className="mr-2" />
-                  <Text className="text-small font-bold text-white">Apple</Text>
+                  <MaterialCommunityIcons name="apple" size={22} color="white" />
+                  <Text className="text-sm font-semibold text-white ml-2">Apple</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 py-3.5 rounded-xl active:bg-white/10"
-                  disabled={isLoading}
+                  className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 h-14 rounded-2xl active:bg-white/10"
+                  onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 >
-                  <MaterialCommunityIcons name="google" size={20} color="white" className="mr-2" />
-                  <Text className="text-small font-bold text-white">Google</Text>
+                  <MaterialCommunityIcons name="google" size={20} color="white" />
+                  <Text className="text-sm font-semibold text-white ml-2">Google</Text>
                 </TouchableOpacity>
               </View>
 

@@ -34,5 +34,15 @@ Used for all client-side storage needs.
 Utilized over standard JSON for WebSockets.
 - **Reasoning:** Binary compression significantly reduces payload size, which is critical in low-bandwidth, high-density environments like a racing event.
 
+## 7. Caching Layer: Redis
+
+Implemented as a secondary storage layer alongside Drizzle/PostgreSQL.
+- **Reasoning:** Critical for handling high-frequency real-time telemetry (GPS) and reducing database load during event peaks. Redis's in-memory nature allows sub-millisecond responses impossible with traditional SQL during massive concurrency.
+
+## 8. Augmented Reality Engine: ReactVision (ViroReact)
+
+Chosen for location-based AR over `expo-three` or custom WebGL implementations.
+- **Reasoning:** Highest level of abstraction for ARKit/ARCore, native Expo Plugin support, and built-in handling of 3D scene graphs and coordinate systems. It allows focusing on business logic (GPS-to-AR conversion) rather than low-level rendering.
+
 ---
 > These decisions form the foundation of our scalability strategy.

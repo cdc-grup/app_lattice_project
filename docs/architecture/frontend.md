@@ -33,35 +33,24 @@ Given the typical network saturation at circuits, the app is designed to be func
 
 ## Augmented Reality (AR)
 
-- **Engine:** ViroReact.
-- **Logic:** Location-based AR using device compass and GPS. 
-- **Transition:** Handled by pitch detection (Tilt-to-AR) or manual toggle.
+- **Engine:** ReactVision (ViroReact).
+- **Implementation Strategy:** 
+    - **World Tracking:** Using GPS and Compass (Native) to align the AR coordinate system with the real world.
+    - **Asset Rendering:** Custom 3D components for POI markers and SVG-based paths projected into 3D space.
 
 ## App States & Transitions
 
-We use a high-level state machine to manage the application lifecycle:
+The transition between 2D (Map) and AR is driven by **Device Sensors** (Tilt-to-AR logic):
 
-```mermaid
-stateDiagram-v2
-    [*] --> Splash: Launch
-    Splash --> AuthCheck: Token Validation
+| Pitch Angle | State | UI Behavior |
+| :--- | :--- | :--- |
+| **< 30°** | 2D Map | Full MapLibre view. Low sensor polling. |
+| **30° - 60°** | Transition | Interpolated blur. Start Camera & AR engine. |
+| **> 60°** | AR Live | Overlay ViroARScene on top of Camera. |
 
-    state AuthCheck {
-        [*] --> Validating
-        Validating --> Onboarding: No Token / No Ticket
-        Validating --> PreRaceMode: Ticket Valid & Date < Event
-        Validating --> LiveMode: Ticket Valid & Date = Event
-    }
-
-    Onboarding --> PreRaceMode: Synchronized
-    LiveMode --> PostRaceMode: Event Finished
-```
-
-### AR/2D Transition Logic
-The transition between 2D and AR is primarily driven by device pitch:
-- **Pitch > 60°** (Vertical): Activate AR.
-- **Pitch < 30°** (Horizontal): Revert to 2D Map.
-- **Automatic Override:** AR is disabled if `battery < 15%` or if severe magnetic interference is detected.
+**Automatic Overrides:**
+- AR is disabled if `battery < 15%`.
+- Reverts to 2D if the device temperature exceeds safety thresholds due to high GPU usage.
 
 ---
 > For setup instructions, see the [**Developer Setup Guide**](../guides/setup.md).
