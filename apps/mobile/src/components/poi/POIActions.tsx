@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
 import { theme } from '../../styles/theme';
@@ -11,9 +11,9 @@ interface POIActionsProps {
 
 export const POIActions = ({ onNavigate, onBookmark }: POIActionsProps) => (
   <View className="mt-4 flex-row gap-3">
-    <TouchableOpacity
+    <Pressable
       onPress={onNavigate}
-      className="flex-1 bg-primary h-12 flex-row items-center justify-center rounded-xl"
+      className="flex-1 bg-primary h-12 flex-row items-center justify-center rounded-xl active:opacity-90"
       style={{
         shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 4 },
@@ -24,18 +24,18 @@ export const POIActions = ({ onNavigate, onBookmark }: POIActionsProps) => (
     >
       <Feather name="navigation" size={18} color="white" />
       <Text className="text-white font-bold ml-2">Navigate Here</Text>
-    </TouchableOpacity>
+    </Pressable>
 
-    <TouchableOpacity
+    <Pressable
       onPress={onBookmark}
-      className="w-12 h-12 items-center justify-center border rounded-xl border-transparent"
+      className="w-12 h-12 items-center justify-center border rounded-xl border-transparent active:opacity-70"
       style={{
         backgroundColor: theme.glass.low,
         borderColor: theme.glass.medium,
       }}
     >
       <Feather name="bookmark" size={20} color="white" />
-    </TouchableOpacity>
+    </Pressable>
   </View>
 );
 

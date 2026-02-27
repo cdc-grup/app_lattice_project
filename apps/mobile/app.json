@@ -62,8 +62,7 @@
           "isAndroidBackgroundLocationEnabled": false
         }
       ],
-      "@maplibre/maplibre-react-native",
-      "@reactvision/react-viro"
+      "@maplibre/maplibre-react-native"
     ],
     "experiments": {
       "typedRoutes": true,

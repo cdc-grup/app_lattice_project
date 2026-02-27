@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 
@@ -32,22 +32,21 @@ export const SearchBar = React.memo(({
           placeholderTextColor={colors.muted}
           onChangeText={onSearch}
         />
-        <TouchableOpacity>
+        <Pressable className="active:opacity-70">
           <Feather name="mic" size={20} color={colors.muted} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
-      <TouchableOpacity
+      <Pressable
         onPress={onArPress}
-        className="w-12 h-12 items-center justify-center rounded-full border border-transparent"
+        className="w-12 h-12 items-center justify-center rounded-full border border-transparent active:opacity-70"
         style={{
           backgroundColor: theme.glass.dark,
           borderColor: theme.glass.medium,
         }}
       >
         <Feather name="camera" size={22} color="white" />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 });
-

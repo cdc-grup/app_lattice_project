@@ -1,31 +1,39 @@
-import React from 'react';
-import { ViroARScene, ViroText, ViroTrackingStateConstants } from '@reactvision/react-viro';
+import React, { useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber/native';
+import { Text, Float } from '@react-three/drei/native';
+import * as THREE from 'three';
 
 export const MainARScene = () => {
-  const [text, setText] = React.useState('Initializing AR...');
+  const meshRef = useRef<THREE.Mesh>(null!);
+  const [hovered, setHover] = useState(false);
 
-  function onInitialized(state: any, reason: any) {
-    if (state === ViroTrackingStateConstants.TRACKING_NORMAL) {
-      setText('Circuit Copilot AR Active');
-    } else if (state === ViroTrackingStateConstants.TRACKING_UNAVAILABLE) {
-      setText('AR Tracking Unavailable');
-    }
-  }
+  useFrame((state, delta) => {
+    meshRef.current.rotation.y += delta;
+  });
 
   return (
-    <ViroARScene onTrackingUpdated={onInitialized}>
-      <ViroText
-        text={text}
-        scale={[0.5, 0.5, 0.5]}
-        position={[0, 0, -1]}
-        style={{
-          fontFamily: 'Arial',
-          fontSize: 30,
-          color: '#ffffff',
-          textAlignVertical: 'center',
-          textAlign: 'center',
-        }}
-      />
-    </ViroARScene>
+    <>
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+        <mesh
+          ref={meshRef}
+          position={[0, 0, -5]}
+          onPointerOver={() => setHover(true)}
+          onPointerOut={() => setHover(false)}
+        >
+          <octahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={hovered ? '#4ade80' : '#3b82f6'} wireframe />
+        </mesh>
+      </Float>
+
+      <Text
+        position={[0, -2, -5]}
+        fontSize={0.5}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Circuit Copilot AR
+      </Text>
+    </>
   );
 };

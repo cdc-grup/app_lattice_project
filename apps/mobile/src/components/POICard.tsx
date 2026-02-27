@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
-
 import { getCategoryMetadata } from '../utils/poiUtils';
 import { UIPOI } from '../types/models/poi';
 import { POIBadges } from './poi/POIBadges';
 import { POIActions } from './poi/POIActions';
+import { theme } from '../styles/theme';
+import { POIImageGallery } from './poi/POIImageGallery';
 
 interface POICardProps {
   poi: UIPOI | null;
@@ -15,10 +16,6 @@ interface POICardProps {
   onSelect: (id: number, coords: number[]) => void;
 }
 
-import { theme } from '../styles/theme';
-
-import { POIImageGallery } from './poi/POIImageGallery';
-
 export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICardProps) => {
   if (!poi) return null;
 
@@ -26,10 +23,9 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
   const showImages = ['grandstand', 'restaurant', 'shop'].includes(poi.category.toLowerCase());
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onSelect(poi.id, poi.geometry.coordinates)}
-      activeOpacity={0.9}
-      className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl"
+      className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl active:opacity-90"
     >
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
@@ -58,21 +54,18 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
           )}
         </View>
 
-        <TouchableOpacity
+        <Pressable
           onPress={onClose}
-          className="w-8 h-8 items-center justify-center rounded-full"
+          className="w-8 h-8 items-center justify-center rounded-full active:opacity-70"
           style={{ backgroundColor: theme.glass.low }}
         >
           <Feather name="x" size={20} color={colors.muted} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {showImages && poi.images && <POIImageGallery images={poi.images} />}
 
       <POIActions onNavigate={onNavigate} />
-    </TouchableOpacity>
+    </Pressable>
   );
 });
-
-
-

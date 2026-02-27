@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, ScrollView, Image } from 'react-native';
+import { View, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 
 interface POIImageGalleryProps {
   images: string[];
@@ -16,7 +17,8 @@ export const POIImageGallery = ({ images }: POIImageGalleryProps) => {
             key={index}
             source={{ uri: img }}
             className="w-28 h-20 rounded-xl mr-3 border border-white/5"
-            resizeMode="cover"
+            contentFit="cover"
+            transition={300}
           />
         ))}
       </ScrollView>

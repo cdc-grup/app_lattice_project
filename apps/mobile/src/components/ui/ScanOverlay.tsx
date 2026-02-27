@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { colors } from '../../styles/colors';
@@ -30,20 +30,20 @@ export const ScanOverlay = ({ isProcessing, scanned, onReset }: ScanOverlayProps
         Col·loca el codi QR de la teva entrada dins del quadre.
       </Text>
 
-      <TouchableOpacity 
+      <Pressable 
         onPress={() => router.back()} 
-        className="absolute top-12 left-6 w-10 h-10 rounded-full items-center justify-center bg-black/50"
+        className="absolute top-12 left-6 w-10 h-10 rounded-full items-center justify-center bg-black/50 active:opacity-70"
       >
         <Feather name="x" size={24} color="white" />
-      </TouchableOpacity>
+      </Pressable>
 
       {scanned && !isProcessing && (
-        <TouchableOpacity 
-          className="mt-8 bg-surface px-6 py-3 rounded-full border border-border"
+        <Pressable 
+          className="mt-8 bg-surface px-6 py-3 rounded-full border border-border active:opacity-90"
           onPress={onReset}
         >
           <Text className="text-white font-medium">Tornar a escanejar</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );

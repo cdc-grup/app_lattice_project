@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
@@ -40,12 +40,11 @@ export default function ProfileScreen() {
             {user ? `@${user.fullName.replace(/\s+/g, '').toLowerCase()}` : 'Not logged in'}
           </Text>
           
-          <TouchableOpacity 
-            className="mt-6 bg-primary py-3 px-8 rounded-full"
-            activeOpacity={0.8}
+          <Pressable 
+            className="mt-6 bg-primary py-3 px-8 rounded-full active:opacity-90"
           >
             <Text className="text-white font-bold text-base">Edit Profile</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <View className="px-4 mb-8 mt-4">
@@ -53,7 +52,7 @@ export default function ProfileScreen() {
           <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
             
             {/* Ticket Wallet Item */}
-            <TouchableOpacity 
+            <Pressable 
               onPress={() => {
                 if (tickets && tickets.length > 0) {
                   // In a real app, this would navigate to a dedicated wallet screen
@@ -62,7 +61,7 @@ export default function ProfileScreen() {
                   router.push('/scan' as any);
                 }
               }}
-              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5"
+              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5"
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
@@ -76,12 +75,12 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </TouchableOpacity>
+            </Pressable>
 
             {/* Scan Ticket Item */}
-            <TouchableOpacity 
+            <Pressable 
               onPress={() => router.push('/scan' as any)}
-              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5"
+              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5"
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
@@ -90,7 +89,7 @@ export default function ProfileScreen() {
                 <Text className="text-white text-base font-medium">Scan Ticket</Text>
               </View>
               <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </TouchableOpacity>
+            </Pressable>
 
             <View className="px-5 py-3 bg-black/20">
               <Text className="text-muted text-xs font-bold uppercase tracking-wider">Routing Preferences</Text>
@@ -145,7 +144,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Theme Link */}
-            <TouchableOpacity className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
+            <Pressable className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5">
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
                   <Feather name="package" size={20} color="white" />
@@ -153,16 +152,16 @@ export default function ProfileScreen() {
                 <Text className="text-white text-base font-medium">Theme</Text>
               </View>
               <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </TouchableOpacity>
+            </Pressable>
             
             <View className="px-5 py-3 bg-black/20">
               <Text className="text-muted text-xs font-bold uppercase tracking-wider">Account</Text>
             </View>
 
             {/* Logout Item */}
-            <TouchableOpacity 
+            <Pressable 
               onPress={handleLogout}
-              className="flex-row justify-between items-center py-4 px-5"
+              className="flex-row justify-between items-center py-4 px-5 active:bg-white/5"
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-red-500/10 items-center justify-center mr-4">
@@ -171,7 +170,7 @@ export default function ProfileScreen() {
                 <Text className="text-red-500 text-base font-bold">Log out</Text>
               </View>
               <Feather name="chevron-right" size={24} color={colors.red[500]} />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

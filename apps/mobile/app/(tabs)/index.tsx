@@ -1,9 +1,8 @@
-import '../../src/utils/viro-shim';
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Text,
   ActivityIndicator,
   StyleSheet,
@@ -47,16 +46,6 @@ function MapIndex() {
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   const { pitch, arState } = useCameraTilt();
-  const [cameraPermission, setCameraPermission] = React.useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (arState === 'AR' && cameraPermission === null) {
-      (async () => {
-        const { status } = await Camera.requestCameraPermissionsAsync();
-        setCameraPermission(status === 'granted');
-      })();
-    }
-  }, [arState, cameraPermission]);
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -90,7 +79,7 @@ function MapIndex() {
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
         />
-        <AROverlay isVisible={arState === 'AR' && cameraPermission === true} />
+        <AROverlay isVisible={arState === 'AR'} />
         {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />
@@ -128,13 +117,13 @@ function MapIndex() {
 
         <Animated.View pointerEvents="box-none" className="pb-4">
           <View pointerEvents="auto" className="items-end px-4 mb-3 gap-3">
-            <TouchableOpacity 
+            <Pressable 
               onPress={handleRecenter}
-              className="w-10 h-10 items-center justify-center rounded-full" 
+              className="w-10 h-10 items-center justify-center rounded-full active:opacity-70" 
               style={{ backgroundColor: 'rgba(24, 24, 27, 0.8)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }}
             >
               <Feather name="navigation" size={20} color="white" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <View pointerEvents="auto">

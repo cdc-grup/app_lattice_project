@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
@@ -106,7 +106,7 @@ const PoiMarker = React.memo(({ feature, isSelected, onPress }: any) => {
   if (isSelected) {
     return (
       <MapLibreGL.MarkerView coordinate={feature.geometry.coordinates} anchor={{ x: 0.5, y: 1 }}>
-        <TouchableOpacity onPress={onPress} activeOpacity={1} style={{ alignItems: 'center' }}>
+        <Pressable onPress={onPress} className="items-center active:opacity-90">
           {/* Classic Pin Body */}
           <View 
             style={{ 
@@ -145,29 +145,19 @@ const PoiMarker = React.memo(({ feature, isSelected, onPress }: any) => {
               zIndex: 1,
             }} 
           />
-        </TouchableOpacity>
+        </Pressable>
       </MapLibreGL.MarkerView>
     );
   }
 
   return (
     <MapLibreGL.MarkerView coordinate={feature.geometry.coordinates}>
-      <TouchableOpacity 
+      <Pressable 
         onPress={onPress}
-        style={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-          width: 30, 
-          height: 30, 
-          borderRadius: 15, 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          borderWidth: 1,
-          borderColor: 'rgba(255, 255, 255, 0.2)',
-        }}
+        className="bg-white/10 w-[30px] h-[30px] rounded-full items-center justify-center border border-white/20 active:opacity-70"
       >
         <Feather name={metadata.icon as any} size={16} color="rgba(255, 255, 255, 0.8)" />
-      </TouchableOpacity>
+      </Pressable>
     </MapLibreGL.MarkerView>
   );
 });
-

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   TextInput,
-  TouchableOpacity,
   Text,
   ActivityIndicator,
   Alert,
@@ -82,15 +81,15 @@ export default function RegisterScreen() {
               entering={FadeIn.duration(400)}
               className="mt-6 -ml-2"
             >
-              <TouchableOpacity 
+              <Pressable 
                 onPress={() => {
                   Haptics.selectionAsync();
                   router.back();
                 }} 
-                className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10"
+                className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
               >
                 <Feather name="chevron-left" size={28} color="white" />
-              </TouchableOpacity>
+              </Pressable>
             </Animated.View>
 
             {/* Header section matching login */}
@@ -165,26 +164,23 @@ export default function RegisterScreen() {
                     onChangeText={setPassword}
                     editable={!isLoading}
                   />
-                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Pressable onPress={() => setShowPassword(!showPassword)} className="active:opacity-70">
                     <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               </View>
 
-              <TouchableOpacity 
+              <Pressable 
                 onPress={handleRegister}
                 disabled={isLoading}
-                activeOpacity={0.8}
-                className="w-full"
+                className={`w-full bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl active:opacity-90 ${isLoading ? 'opacity-50' : ''}`}
               >
-                <View className="bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl">
-                  {isLoading ? (
-                    <ActivityIndicator color="black" />
-                  ) : (
-                    <Text className="text-black text-base font-bold">Launch Account</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
+                {isLoading ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <Text className="text-black text-base font-bold">Launch Account</Text>
+                )}
+              </Pressable>
             </Animated.View>
 
             <Animated.View 
@@ -196,6 +192,7 @@ export default function RegisterScreen() {
                   Haptics.selectionAsync();
                   router.push('/(auth)/login');
                 }}
+                className="active:opacity-70"
               >
                 <Text className="text-white/40 text-sm font-medium">
                   Already a member? <Text className="text-primary font-bold">Log in here</Text>

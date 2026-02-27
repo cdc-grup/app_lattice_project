@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   TextInput,
-  TouchableOpacity,
   Text,
   ActivityIndicator,
   Alert,
@@ -138,12 +137,12 @@ export default function LoginScreen() {
         />
         <SafeAreaView className="flex-1 justify-between p-6">
           <View className="flex-row justify-between items-center mt-4">
-            <TouchableOpacity 
+            <Pressable 
               onPress={() => setIsScanning(false)} 
-              className="bg-black/60 w-12 h-12 items-center justify-center rounded-full border border-white/10"
+              className="bg-black/60 w-12 h-12 items-center justify-center rounded-full border border-white/10 active:opacity-70"
             >
               <Feather name="x" size={24} color="white" />
-            </TouchableOpacity>
+            </Pressable>
             <View className="bg-black/60 px-5 py-2.5 rounded-full border border-white/10">
               <Text className="text-white font-semibold">Scan Ticket QR</Text>
             </View>
@@ -231,13 +230,12 @@ export default function LoginScreen() {
                         placeholderTextColor="rgba(255,255,255,0.2)"
                         editable={!isLoading}
                       />
-                      <TouchableOpacity 
+                      <Pressable 
                         onPress={handleStartScan}
-                        activeOpacity={0.7}
-                        className="bg-white/10 p-2.5 rounded-xl ml-2"
+                        className="bg-white/10 p-2.5 rounded-xl ml-2 active:opacity-70"
                       >
                         <MaterialCommunityIcons name="plus-box" size={22} color="white" />
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   </View>
 
@@ -275,31 +273,28 @@ export default function LoginScreen() {
                         onChangeText={setPassword}
                         editable={!isLoading}
                       />
-                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                      <Pressable onPress={() => setShowPassword(!showPassword)} className="active:opacity-70">
                         <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   </View>
                 </View>
               )}
 
               {/* Action Button */}
-              <TouchableOpacity
+              <Pressable
                 onPress={handleSyncAccess}
                 disabled={isLoading}
-                activeOpacity={0.8}
-                className="w-full"
+                className={`w-full bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl active:opacity-90 ${isLoading ? 'opacity-50' : ''}`}
               >
-                <View className="bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl">
-                  {isLoading ? (
-                    <ActivityIndicator color="black" />
-                  ) : (
-                    <Text className="text-black text-base font-bold">
-                      {authMode === 'ticket' ? 'Sync Race Pass' : 'Sign In'}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
+                {isLoading ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <Text className="text-black text-base font-bold">
+                    {authMode === 'ticket' ? 'Sync Race Pass' : 'Sign In'}
+                  </Text>
+                )}
+              </Pressable>
             </Animated.View>
 
             {/* Secondary Actions */}
@@ -309,7 +304,7 @@ export default function LoginScreen() {
             >
               <View className="flex-row items-center w-full my-8">
                 <View className="flex-1 h-[0.5px] bg-white/10" />
-                <Text className="mx-4 text-xs font-bold text-white/20 uppercase tracking-widest">
+                <Text className="mx-4 text-xs font-bold text-white/20 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>
                   Secure Access
                 </Text>
                 <View className="flex-1 h-[0.5px] bg-white/10" />
@@ -317,20 +312,20 @@ export default function LoginScreen() {
 
               {/* Native Auth Options */}
               <View className="flex-row w-full gap-x-4 mb-10">
-                <TouchableOpacity
+                <Pressable
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 h-14 rounded-2xl active:bg-white/10"
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 >
                   <MaterialCommunityIcons name="apple" size={22} color="white" />
                   <Text className="text-sm font-semibold text-white ml-2">Apple</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </Pressable>
+                <Pressable
                   className="flex-1 flex-row items-center justify-center bg-white/5 border border-white/10 h-14 rounded-2xl active:bg-white/10"
                   onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 >
                   <MaterialCommunityIcons name="google" size={20} color="white" />
                   <Text className="text-sm font-semibold text-white ml-2">Google</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               <Pressable 
@@ -338,7 +333,7 @@ export default function LoginScreen() {
                   Haptics.selectionAsync();
                   router.push('/(auth)/register');
                 }}
-                className="pb-10"
+                className="pb-10 active:opacity-70"
               >
                 <Text className="text-white/40 text-sm font-medium">
                   Don't have an account? <Text className="text-primary font-bold">Register</Text>
