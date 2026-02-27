@@ -9,22 +9,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Pressable
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useRegister } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
-import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const { pendingTicketCode, token } = useAuthStore();
   const register = useRegister();
@@ -36,25 +39,29 @@ export default function RegisterScreen() {
   }, [token, router]);
 
   const handleRegister = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!email || !password || !fullName) {
-      Alert.alert('Error', 'Tots els camps són obligatoris.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Alert.alert('Required Fields', 'All fields are mandatory to create your account.');
       return;
     }
 
     register.mutate({ email, password, fullName }, {
       onSuccess: () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         if (pendingTicketCode) {
           Alert.alert(
-            "Registrat amb èxit", 
-            "El teu compte s'ha creat i l'entrada s'ha associat correctament.",
-            [{ text: "Continuar", onPress: () => router.replace('/(tabs)') }]
+            "Account Created", 
+            "Your profile is ready and your ticket has been successfully linked.",
+            [{ text: "Continue", onPress: () => router.replace('/(tabs)') }]
           );
         } else {
           router.replace('/(tabs)');
         }
       },
       onError: (error: any) => {
-        Alert.alert('Error de Registre', error.message);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert('Registration Error', error.message);
       }
     });
   };
@@ -62,126 +69,139 @@ export default function RegisterScreen() {
   const isLoading = register.isPending;
 
   return (
-    <View className="flex-1 bg-[#0A0A0B]">
+    <View className="flex-1 bg-[#050505]">
       <StatusBar style="light" />
       
-      {/* Background Decor */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <View className="absolute -top-20 -left-20 w-80 h-80 bg-primary/20 rounded-full blur-[100px]" />
-        <View className="absolute bottom-40 -right-20 w-80 h-80 bg-red-900/10 rounded-full blur-[80px]" />
-      </View>
-
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-          <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }} showsVerticalScrollIndicator={false}>
-            
-            <TouchableOpacity onPress={() => router.back()} className="mt-4 w-10 h-10 items-center justify-center rounded-full bg-white/5 border border-white/10">
-              <Feather name="arrow-left" size={24} color="white" />
-            </TouchableOpacity>
-
-            {/* Header */}
-            <View className="pt-8 pb-8 items-center">
-              <LinearGradient
-                colors={['#FF3B30', '#E03028']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="w-16 h-16 mb-6 rounded-2xl items-center justify-center shadow-lg shadow-primary/40"
+          <ScrollView 
+            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28 }} 
+            showsVerticalScrollIndicator={false}
+          >
+            <Animated.View 
+              entering={FadeIn.duration(400)}
+              className="mt-6 -ml-2"
+            >
+              <TouchableOpacity 
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  router.back();
+                }} 
+                className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10"
               >
-                <Feather name="user-plus" size={32} color="white" />
-              </LinearGradient>
-              <Text className="text-h1 font-black text-white text-center mb-2">
-                Join the Grid
+                <Feather name="chevron-left" size={28} color="white" />
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Header section matching login */}
+            <Animated.View 
+              entering={FadeInDown.duration(800).delay(100)}
+              className="pt-8 pb-10 items-center"
+            >
+              <View className="w-20 h-20 mb-8 rounded-[22px] bg-white items-center justify-center shadow-2xl">
+                <MaterialCommunityIcons name="account-plus" size={44} color="#000" />
+              </View>
+              <Text className="text-4xl font-bold text-white tracking-tight mb-3">
+                Create Profile
               </Text>
               
               {pendingTicketCode ? (
-                <View className="bg-primary/20 px-4 py-2 rounded-xl border border-primary/30 mt-2 flex-row items-center">
-                   <Feather name="tag" size={16} color={colors.primary} className="mr-2" />
-                   <Text className="text-white text-sm font-bold">Ticket Pending Sync</Text>
+                <View className="bg-primary/20 px-5 py-2.5 rounded-2xl border border-primary/30 mt-3 flex-row items-center">
+                   <Feather name="check-circle" size={16} color={colors.primary} />
+                   <Text className="text-white text-sm font-bold ml-2">Ticket Ready to Sync</Text>
                 </View>
               ) : (
-                <Text className="text-small text-slate-400 text-center px-4">
-                  Create an account to unlock full race experience and persistent data.
+                <Text className="text-base text-white/50 text-center font-medium px-4">
+                  Join the elite crew and access real-time race analytics.
                 </Text>
               )}
-            </View>
+            </Animated.View>
 
-            {/* Form Content */}
-            <View className="bg-white/5 border border-white/10 p-6 rounded-3xl mb-8 shadow-2xl">
-              
-              <View className="mb-6">
-                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  Full Name
-                </Text>
-                <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
-                  autoCapitalize="words" 
-                  placeholder="Joan Gausí"
-                  placeholderTextColor="#4b5563"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  editable={!isLoading}
-                />
-              </View>
+            {/* Form Container matching login style */}
+            <Animated.View 
+              layout={Layout.springify()}
+              entering={FadeIn.duration(600).delay(300)}
+              className="mb-8"
+            >
+              <View className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-8">
+                {/* Full Name Input */}
+                <View className="flex-row items-center px-4 py-3.5 border-b border-white/5">
+                  <Feather name="user" size={18} color="rgba(255,255,255,0.4)" />
+                  <TextInput 
+                    className="flex-1 text-white text-lg font-medium ml-3"
+                    autoCapitalize="words" 
+                    placeholder="Full Name"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    value={fullName}
+                    onChangeText={setFullName}
+                    editable={!isLoading}
+                  />
+                </View>
 
-              <View className="mb-6">
-                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  Email Address
-                </Text>
-                <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
-                  keyboardType="email-address" 
-                  autoCapitalize="none" 
-                  placeholder="usuari@exemple.com"
-                  placeholderTextColor="#4b5563"
-                  value={email}
-                  onChangeText={setEmail}
-                  editable={!isLoading}
-                />
-              </View>
-              
-              <View className="mb-8">
-                <Text className="text-tiny font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  Password
-                </Text>
-                <TextInput 
-                  className="border-b border-slate-700 text-white text-lg py-3 font-medium"
-                  secureTextEntry 
-                  placeholder="••••••••"
-                  placeholderTextColor="#4b5563"
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!isLoading}
-                />
+                {/* Email Input */}
+                <View className="flex-row items-center px-4 py-3.5 border-b border-white/5">
+                  <Feather name="mail" size={18} color="rgba(255,255,255,0.4)" />
+                  <TextInput 
+                    className="flex-1 text-white text-lg font-medium ml-3"
+                    keyboardType="email-address" 
+                    autoCapitalize="none" 
+                    placeholder="Email address"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    value={email}
+                    onChangeText={setEmail}
+                    editable={!isLoading}
+                  />
+                </View>
+                
+                {/* Password Input */}
+                <View className="flex-row items-center px-4 py-3.5">
+                  <Feather name="lock" size={18} color="rgba(255,255,255,0.4)" />
+                  <TextInput 
+                    className="flex-1 text-white text-lg font-medium ml-3"
+                    secureTextEntry={!showPassword} 
+                    placeholder="Create Password"
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    value={password}
+                    onChangeText={setPassword}
+                    editable={!isLoading}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity 
                 onPress={handleRegister}
                 disabled={isLoading}
                 activeOpacity={0.8}
+                className="w-full"
               >
-                <LinearGradient
-                  colors={['#FF3B30', '#E03028']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                  className="py-4 rounded-xl items-center justify-center shadow-lg shadow-primary/30"
-                >
+                <View className="bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl">
                   {isLoading ? (
-                    <ActivityIndicator color="white" />
+                    <ActivityIndicator color="black" />
                   ) : (
-                    <Text className="text-white font-black tracking-widest">CREATE ACCOUNT</Text>
+                    <Text className="text-black text-base font-bold">Launch Account</Text>
                   )}
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
 
-            <TouchableOpacity 
-              onPress={() => router.push('/(auth)/login')}
-              disabled={isLoading}
+            <Animated.View 
+              entering={FadeInDown.duration(800).delay(500)}
               className="items-center pb-12"
             >
-              <Text className="text-slate-400">
-                Already have an account? <Text className="text-primary font-bold">Log in</Text>
-              </Text>
-            </TouchableOpacity>
+              <Pressable 
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  router.push('/(auth)/login');
+                }}
+              >
+                <Text className="text-white/40 text-sm font-medium">
+                  Already a member? <Text className="text-primary font-bold">Log in here</Text>
+                </Text>
+              </Pressable>
+            </Animated.View>
 
           </ScrollView>
         </KeyboardAvoidingView>

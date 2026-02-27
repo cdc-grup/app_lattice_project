@@ -1,3 +1,4 @@
+import '../../src/utils/viro-shim';
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
@@ -17,8 +18,12 @@ import { useCategories } from '../../src/hooks/queries/useCategories';
 import { getCategoryIcon } from '../../src/utils/poiUtils';
 import Animated from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
+import { useCameraTilt } from '../../src/hooks/useCameraTilt';
+import { AROverlay } from '../../src/components/ar/AROverlay';
+import { Camera } from 'expo-camera';
 import { Feather } from '@expo/vector-icons';
 import { useMapStore } from '../../src/store/useMapStore';
+import { MapContent } from '../../src/components/map/MapContent';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -35,13 +40,23 @@ const styles = StyleSheet.create({
   filtersContainer: { paddingHorizontal: 16 },
 });
 
-import { MapContent } from '../../src/components/map/MapContent';
-
-export default function MapScreen() {
+function MapIndex() {
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   const { selectedPoiId, deselect, triggerRecenter, selectPoi } = useMapStore();
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
+
+  const { pitch, arState } = useCameraTilt();
+  const [cameraPermission, setCameraPermission] = React.useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (arState === 'AR' && cameraPermission === null) {
+      (async () => {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        setCameraPermission(status === 'granted');
+      })();
+    }
+  }, [arState, cameraPermission]);
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -75,6 +90,7 @@ export default function MapScreen() {
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
         />
+        <AROverlay isVisible={arState === 'AR' && cameraPermission === true} />
         {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />
@@ -100,6 +116,14 @@ export default function MapScreen() {
           </View>
         </View>
 
+        {/* AR Debug Indicator */}
+        <View className="absolute top-14 right-4 items-end">
+          <View style={{ backgroundColor: 'rgba(24, 24, 27, 0.8)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }} className="px-3 py-1 rounded-full flex-row items-center gap-2">
+            <View className={`w-2 h-2 rounded-full ${arState === 'AR' ? 'bg-green-500' : arState === 'TRANSITION' ? 'bg-yellow-500' : 'bg-zinc-500'}`} />
+            <Text className="text-white text-xs font-medium">Pitch: {Math.round(pitch)}° ({arState})</Text>
+          </View>
+        </View>
+
         <View className="flex-1" />
 
         <Animated.View pointerEvents="box-none" className="pb-4">
@@ -122,3 +146,4 @@ export default function MapScreen() {
   );
 }
 
+export default MapIndex;

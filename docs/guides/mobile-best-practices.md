@@ -24,9 +24,10 @@ We use `@maplibre/maplibre-react-native` for the map engine.
 ## AR Transitions (Tilt-to-AR)
 
 Transitions between 2D and AR are governed by device sensors:
-- Manage sensor subscriptions carefully to avoid battery drain.
-- Use `expo-sensors` (DeviceMotion) to detect pitch.
-- Thresholds: >60° for AR activation, <30° for 2D return.
+- **Sensor Polling:** Use `expo-sensors` (DeviceMotion) with a fast interval (100ms) for responsiveness.
+- **Pitch Calculation:** Monitor the gravity vector to determine the device pitch.
+- **Magnetic Interference:** Always check for magnetic interference before activating AR to avoid "spinning" markers.
+- **Compass Calibration:** Require the user to perform the "figure-eight" motion if the compass accuracy is low.
 
 ## Accessibility
 
