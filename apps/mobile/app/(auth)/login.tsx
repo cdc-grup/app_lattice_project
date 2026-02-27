@@ -57,7 +57,10 @@ export default function LoginScreen() {
         return;
       }
 
-      syncTicket.mutate(ticketId, {
+      // Automatically format it as JSON with a mock email for manual ID entry testing
+      const payload = JSON.stringify({ code: ticketId, email: `local_${ticketId.toLowerCase()}@example.com` });
+
+      syncTicket.mutate(payload, {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           router.replace('/(tabs)');
@@ -110,7 +113,7 @@ export default function LoginScreen() {
     setIsScanning(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (data) {
-      setTicketId(data);
+      setTicketId(data); // Display whatever string we scanned for visual feedback
       syncTicket.mutate(data, {
         onSuccess: () => {
           router.replace('/(tabs)');
@@ -122,9 +125,26 @@ export default function LoginScreen() {
     }
   };
 
-  const toggleAuthMode = (mode: 'ticket' | 'account') => {
-    Haptics.selectionAsync();
-    setAuthMode(mode);
+  const handlePickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Mock QR data
+      const mockPayload = JSON.stringify({ code: 'CIRCUIT25', email: 'test_auto_create@example.com' });
+      setTicketId('CIRCUIT25 (Mock)');
+      syncTicket.mutate(mockPayload, {
+        onSuccess: () => {
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Sync Failed', error.message);
+        }
+      });
+    }
   };
 
   if (isScanning) {
@@ -283,24 +303,20 @@ export default function LoginScreen() {
                 </View>
               )}
 
-              {/* Action Button */}
-              <TouchableOpacity
-                onPress={handleSyncAccess}
-                disabled={isLoading}
-                activeOpacity={0.8}
-                className="w-full"
-              >
-                <View className="bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl">
-                  {isLoading ? (
-                    <ActivityIndicator color="black" />
-                  ) : (
-                    <Text className="text-black text-base font-bold">
-                      {authMode === 'ticket' ? 'Sync Race Pass' : 'Sign In'}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
+            {/* Footer Actions */}
+            <View className="items-center gap-y-6">
+              
+              {authMode === 'account' && (
+                <TouchableOpacity 
+                  onPress={() => router.push('/(auth)/register')}
+                  disabled={isLoading}
+                  className="py-2"
+                >
+                  <Text className="text-slate-400">
+                    Don't have an account? <Text className="text-primary font-bold">Register here</Text>
+                  </Text>
+                </TouchableOpacity>
+              )}
 
             {/* Secondary Actions */}
             <Animated.View 
@@ -333,18 +349,14 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Pressable 
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  router.push('/(auth)/register');
-                }}
-                className="pb-10"
-              >
-                <Text className="text-white/40 text-sm font-medium">
-                  Don't have an account? <Text className="text-primary font-bold">Register</Text>
+              {/* AR Status */}
+              <View className="mt-4 flex-row items-center px-4 py-2 rounded-full bg-white/5 border border-white/5 mb-8">
+                <Feather name="box" size={16} color={colors.primary} className="mr-2" />
+                <Text className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  AR Experience Ready
                 </Text>
-              </Pressable>
-            </Animated.View>
+              </View>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

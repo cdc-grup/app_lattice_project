@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
@@ -9,11 +9,6 @@ import { useRouter } from 'expo-router';
 export default function ProfileScreen() {
   const { user, activeTicket, tickets, logout } = useAuthStore();
   const router = useRouter();
-  
-  // Local state for toggles
-  const [avoidStairs, setAvoidStairs] = useState(false);
-  const [avoidCrowds, setAvoidCrowds] = useState(false);
-  const [avoidSlopes, setAvoidSlopes] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -78,71 +73,51 @@ export default function ProfileScreen() {
               <Feather name="chevron-right" size={24} color="#9ca3af" />
             </TouchableOpacity>
 
-            {/* Scan Ticket Item */}
+            {/* Scan / Claim Ticket Item */}
             <TouchableOpacity 
-              onPress={() => router.push('/scan' as any)}
+              onPress={() => {
+                if (user && !user.hasTicket) {
+                  // Simulate claiming a ticket via mock QR
+                  Alert.alert(
+                    "Link Ticket",
+                    "Choose a method to link your ticket",
+                    [
+                      {
+                        text: "Scan QR",
+                        onPress: () => router.push('/scan' as any)
+                      },
+                      {
+                        text: "Simulate Scan",
+                        onPress: async () => {
+                          const success = await useAuthStore.getState().claimTicket('CIRCUIT25');
+                          if (success) {
+                            Alert.alert('Success', 'Ticket claimed successfully!');
+                          } else {
+                            Alert.alert('Error', 'Could not claim ticket');
+                          }
+                        }
+                      },
+                      { text: "Cancel", style: "cancel" }
+                    ]
+                  );
+                } else if (user && user.hasTicket) {
+                  Alert.alert('Notice', 'You already have an active ticket linked.');
+                } else {
+                   router.push('/scan' as any);
+                }
+              }}
               className="flex-row justify-between items-center py-4 px-5 border-b border-white/5"
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
                   <Feather name="maximize" size={20} color={colors.primary} />
                 </View>
-                <Text className="text-white text-base font-medium">Scan Ticket</Text>
+                <Text className="text-white text-base font-medium">
+                  {user?.hasTicket ? 'Ticket Active ✓' : 'Scan & Link Ticket'}
+                </Text>
               </View>
               <Feather name="chevron-right" size={24} color="#9ca3af" />
             </TouchableOpacity>
-
-            <View className="px-5 py-3 bg-black/20">
-              <Text className="text-muted text-xs font-bold uppercase tracking-wider">Routing Preferences</Text>
-            </View>
-
-            {/* Avoid Stairs Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="chevron-left" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Stairs</Text>
-              </View>
-              <Switch 
-                value={avoidStairs} 
-                onValueChange={setAvoidStairs} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
-
-            {/* Avoid Crowds Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="users" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Crowds</Text>
-              </View>
-              <Switch 
-                value={avoidCrowds} 
-                onValueChange={setAvoidCrowds} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
-
-            {/* Avoid Slopes Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="alert-triangle" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Steep Slopes</Text>
-              </View>
-              <Switch 
-                value={avoidSlopes} 
-                onValueChange={setAvoidSlopes} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
 
             {/* Theme Link */}
             <TouchableOpacity className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
