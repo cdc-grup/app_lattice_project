@@ -56,7 +56,10 @@ export default function LoginScreen() {
         return;
       }
 
-      syncTicket.mutate(ticketId, {
+      // Automatically format it as JSON with a mock email for manual ID entry testing
+      const payload = JSON.stringify({ code: ticketId, email: `local_${ticketId.toLowerCase()}@example.com` });
+
+      syncTicket.mutate(payload, {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           router.replace('/(tabs)');
@@ -109,7 +112,7 @@ export default function LoginScreen() {
     setIsScanning(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (data) {
-      setTicketId(data);
+      setTicketId(data); // Display whatever string we scanned for visual feedback
       syncTicket.mutate(data, {
         onSuccess: () => {
           router.replace('/(tabs)');
@@ -121,9 +124,26 @@ export default function LoginScreen() {
     }
   };
 
-  const toggleAuthMode = (mode: 'ticket' | 'account') => {
-    Haptics.selectionAsync();
-    setAuthMode(mode);
+  const handlePickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Mock QR data
+      const mockPayload = JSON.stringify({ code: 'CIRCUIT25', email: 'test_auto_create@example.com' });
+      setTicketId('CIRCUIT25 (Mock)');
+      syncTicket.mutate(mockPayload, {
+        onSuccess: () => {
+          router.replace('/(tabs)');
+        },
+        onError: (error: any) => {
+          Alert.alert('Sync Failed', error.message);
+        }
+      });
+    }
   };
 
   if (isScanning) {
@@ -281,21 +301,20 @@ export default function LoginScreen() {
                 </View>
               )}
 
-              {/* Action Button */}
-              <Pressable
-                onPress={handleSyncAccess}
-                disabled={isLoading}
-                className={`w-full bg-white py-4 rounded-2xl items-center justify-center flex-row shadow-xl active:opacity-90 ${isLoading ? 'opacity-50' : ''}`}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="black" />
-                ) : (
-                  <Text className="text-black text-base font-bold">
-                    {authMode === 'ticket' ? 'Sync Race Pass' : 'Sign In'}
+            {/* Footer Actions */}
+            <View className="items-center gap-y-6">
+              
+              {authMode === 'account' && (
+                <TouchableOpacity 
+                  onPress={() => router.push('/(auth)/register')}
+                  disabled={isLoading}
+                  className="py-2"
+                >
+                  <Text className="text-slate-400">
+                    Don't have an account? <Text className="text-primary font-bold">Register here</Text>
                   </Text>
-                )}
-              </Pressable>
-            </Animated.View>
+                </TouchableOpacity>
+              )}
 
             {/* Secondary Actions */}
             <Animated.View 
@@ -338,8 +357,8 @@ export default function LoginScreen() {
                 <Text className="text-white/40 text-sm font-medium">
                   Don't have an account? <Text className="text-primary font-bold">Register</Text>
                 </Text>
-              </Pressable>
-            </Animated.View>
+              </View>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

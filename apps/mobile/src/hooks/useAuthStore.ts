@@ -53,6 +53,7 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
       const ticket = await authService.claimTicket(ticketCode, token ?? undefined);
       if (ticket) {
         setTicket(ticket);
+        set({ user: { ...get().user!, hasTicket: true } }); // Update User State
         setPendingTicketCode(null);
         return true;
       }

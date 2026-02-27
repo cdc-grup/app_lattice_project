@@ -77,16 +77,48 @@ export default function ProfileScreen() {
               <Feather name="chevron-right" size={24} color="#9ca3af" />
             </Pressable>
 
-            {/* Scan Ticket Item */}
+            {/* Scan / Claim Ticket Item */}
             <Pressable 
-              onPress={() => router.push('/scan' as any)}
+              onPress={() => {
+                if (user && !user.hasTicket) {
+                  // Simulate claiming a ticket via mock QR
+                  Alert.alert(
+                    "Link Ticket",
+                    "Choose a method to link your ticket",
+                    [
+                      {
+                        text: "Scan QR",
+                        onPress: () => router.push('/scan' as any)
+                      },
+                      {
+                        text: "Simulate Scan",
+                        onPress: async () => {
+                          const success = await useAuthStore.getState().claimTicket('CIRCUIT25');
+                          if (success) {
+                            Alert.alert('Success', 'Ticket claimed successfully!');
+                          } else {
+                            Alert.alert('Error', 'Could not claim ticket');
+                          }
+                        }
+                      },
+                      { text: "Cancel", style: "cancel" }
+                    ]
+                  );
+                } else if (user && user.hasTicket) {
+                  Alert.alert('Notice', 'You already have an active ticket linked.');
+                } else {
+                   router.push('/scan' as any);
+                }
+              }}
               className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5"
             >
               <View className="flex-row items-center">
                 <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
                   <Feather name="maximize" size={20} color={colors.primary} />
                 </View>
-                <Text className="text-white text-base font-medium">Scan Ticket</Text>
+                <Text className="text-white text-base font-medium">
+                  {user?.hasTicket ? 'Ticket Active ✓' : 'Scan & Link Ticket'}
+                </Text>
               </View>
               <Feather name="chevron-right" size={24} color="#9ca3af" />
             </Pressable>
