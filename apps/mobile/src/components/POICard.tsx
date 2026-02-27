@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import { getCategoryMetadata } from '../utils/poiUtils';
@@ -25,7 +25,10 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
   return (
     <Pressable
       onPress={() => onSelect(poi.id, poi.geometry.coordinates)}
-      className="mx-4 mb-4 bg-surface/90 rounded-3xl p-4 border border-white/10 shadow-2xl active:opacity-90"
+      className="mx-4 mb-4 rounded-3xl p-4 border border-white/10 shadow-2xl active:opacity-90"
+      style={styles.card}
+      accessibilityLabel={`Point of interest: ${poi.name}`}
+      accessibilityRole="button"
     >
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
@@ -44,28 +47,38 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
             </Text>
           ) : null}
 
-          {(poi.time || poi.distance) && (
+          {poi.time || poi.distance ? (
             <View className="flex-row items-center">
               <Feather name="clock" size={14} color={colors.muted} />
               <Text className="text-muted text-xs ml-1">
                 {poi.time ? `${poi.time} walk` : ''} {poi.distance ? `(${poi.distance})` : ''}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
 
         <Pressable
           onPress={onClose}
           className="w-8 h-8 items-center justify-center rounded-full active:opacity-70"
-          style={{ backgroundColor: theme.glass.low }}
+          style={styles.closeButton}
+          accessibilityLabel="Close POI details"
         >
           <Feather name="x" size={20} color={colors.muted} />
         </Pressable>
       </View>
 
-      {showImages && poi.images && <POIImageGallery images={poi.images} />}
+      {showImages && poi.images ? <POIImageGallery images={poi.images} /> : null}
 
       <POIActions onNavigate={onNavigate} />
     </Pressable>
   );
+});
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: 'rgba(28, 28, 30, 0.95)',
+  },
+  closeButton: {
+    backgroundColor: theme.glass.low,
+  },
 });

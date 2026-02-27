@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
+import { SettingItem } from '../../src/components/ui/SettingItem';
 
 export default function ProfileScreen() {
   const { user, activeTicket, tickets, logout } = useAuthStore();
@@ -51,158 +52,96 @@ export default function ProfileScreen() {
           {/* List Section */}
           <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
             
-            {/* Ticket Wallet Item */}
-            <Pressable 
+            <SettingItem 
+              label="Ticket Wallet"
+              icon="tag"
+              secondaryText={activeTicket ? `Active: ${activeTicket.code}` : undefined}
               onPress={() => {
                 if (tickets && tickets.length > 0) {
-                  // In a real app, this would navigate to a dedicated wallet screen
                   Alert.alert('Wallet', `You have ${tickets.length} tickets. Active: ${activeTicket?.code}`);
                 } else {
                   router.push('/scan' as any);
                 }
               }}
-              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5"
-            >
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <Feather name="tag" size={20} color={colors.primary} />
-                </View>
-                <View>
-                  <Text className="text-white text-base font-medium">Ticket Wallet</Text>
-                  {activeTicket && (
-                    <Text className="text-primary text-xs mt-0.5">Active: {activeTicket.code}</Text>
-                  )}
-                </View>
-              </View>
-              <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </Pressable>
+            />
 
-            {/* Scan / Claim Ticket Item */}
-            <Pressable 
+            <SettingItem 
+              label={user?.hasTicket ? 'Ticket Active ✓' : 'Scan & Link Ticket'}
+              icon="maximize"
               onPress={() => {
                 if (user && !user.hasTicket) {
-                  // Simulate claiming a ticket via mock QR
                   Alert.alert(
                     "Link Ticket",
                     "Choose a method to link your ticket",
                     [
-                      {
-                        text: "Scan QR",
-                        onPress: () => router.push('/scan' as any)
-                      },
+                      { text: "Scan QR", onPress: () => router.push('/scan' as any) },
                       {
                         text: "Simulate Scan",
                         onPress: async () => {
                           const success = await useAuthStore.getState().claimTicket('CIRCUIT25');
-                          if (success) {
-                            Alert.alert('Success', 'Ticket claimed successfully!');
-                          } else {
-                            Alert.alert('Error', 'Could not claim ticket');
-                          }
+                          if (success) Alert.alert('Success', 'Ticket claimed successfully!');
+                          else Alert.alert('Error', 'Could not claim ticket');
                         }
                       },
                       { text: "Cancel", style: "cancel" }
                     ]
                   );
-                } else if (user && user.hasTicket) {
+                } else if (user?.hasTicket) {
                   Alert.alert('Notice', 'You already have an active ticket linked.');
                 } else {
-                   router.push('/scan' as any);
+                  router.push('/scan' as any);
                 }
               }}
-              className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5"
-            >
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-primary/10 items-center justify-center mr-4">
-                  <Feather name="maximize" size={20} color={colors.primary} />
-                </View>
-                <Text className="text-white text-base font-medium">
-                  {user?.hasTicket ? 'Ticket Active ✓' : 'Scan & Link Ticket'}
-                </Text>
-              </View>
-              <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </Pressable>
+            />
 
             <View className="px-5 py-3 bg-black/20">
               <Text className="text-muted text-xs font-bold uppercase tracking-wider">Routing Preferences</Text>
             </View>
 
-            {/* Avoid Stairs Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="chevron-left" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Stairs</Text>
-              </View>
-              <Switch 
-                value={avoidStairs} 
-                onValueChange={setAvoidStairs} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
+            <SettingItem 
+              label="Avoid Stairs"
+              icon="chevron-left"
+              type="toggle"
+              value={avoidStairs}
+              onValueChange={setAvoidStairs}
+              iconBgColor="rgba(255, 255, 255, 0.1)"
+            />
 
-            {/* Avoid Crowds Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="users" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Crowds</Text>
-              </View>
-              <Switch 
-                value={avoidCrowds} 
-                onValueChange={setAvoidCrowds} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
+            <SettingItem 
+              label="Avoid Crowds"
+              icon="users"
+              type="toggle"
+              value={avoidCrowds}
+              onValueChange={setAvoidCrowds}
+              iconBgColor="rgba(255, 255, 255, 0.1)"
+            />
 
-            {/* Avoid Slopes Toggle */}
-            <View className="flex-row justify-between items-center py-4 px-5 border-b border-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="alert-triangle" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Avoid Steep Slopes</Text>
-              </View>
-              <Switch 
-                value={avoidSlopes} 
-                onValueChange={setAvoidSlopes} 
-                trackColor={{ false: '#374151', true: colors.primary }}
-                thumbColor={'#ffffff'}
-              />
-            </View>
+            <SettingItem 
+              label="Avoid Steep Slopes"
+              icon="alert-triangle"
+              type="toggle"
+              value={avoidSlopes}
+              onValueChange={setAvoidSlopes}
+              iconBgColor="rgba(255, 255, 255, 0.1)"
+            />
 
-            {/* Theme Link */}
-            <Pressable className="flex-row justify-between items-center py-4 px-5 border-b border-white/5 active:bg-white/5">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-white/10 items-center justify-center mr-4">
-                  <Feather name="package" size={20} color="white" />
-                </View>
-                <Text className="text-white text-base font-medium">Theme</Text>
-              </View>
-              <Feather name="chevron-right" size={24} color="#9ca3af" />
-            </Pressable>
+            <SettingItem 
+              label="Theme"
+              icon="package"
+              iconBgColor="rgba(255, 255, 255, 0.1)"
+              onPress={() => Alert.alert('Info', 'Theme switching coming soon!')}
+            />
             
             <View className="px-5 py-3 bg-black/20">
               <Text className="text-muted text-xs font-bold uppercase tracking-wider">Account</Text>
             </View>
 
-            {/* Logout Item */}
-            <Pressable 
+            <SettingItem 
+              label="Log out"
+              icon="log-out"
+              destructive
               onPress={handleLogout}
-              className="flex-row justify-between items-center py-4 px-5 active:bg-white/5"
-            >
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 rounded-xl bg-red-500/10 items-center justify-center mr-4">
-                  <Feather name="log-out" size={20} color={colors.red[500]} />
-                </View>
-                <Text className="text-red-500 text-base font-bold">Log out</Text>
-              </View>
-              <Feather name="chevron-right" size={24} color={colors.red[500]} />
-            </Pressable>
+            />
           </View>
         </View>
       </ScrollView>

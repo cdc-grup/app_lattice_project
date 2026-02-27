@@ -8,7 +8,7 @@ Circuit Copilot is a premium mobile application designed to enhance the spectato
   - **Environment:** Custom Development Builds (required for MMKV, Reanimated, Viro).
 - **Map Engine:** MapLibre GL (`@maplibre/maplibre-react-native`).
   - **Optimization:** SurfaceView for maximum GPU performance on Android.
-- **Augmented Reality:** ViroCommunity (ViroReact) for location-based AR.
+- **Augmented Reality:** React Three Fiber (R3F) for modern, cross-platform AR scenes.
 - **Backend:** Node.js (Express) within a microservices architecture.
 - **Database:** PostgreSQL with PostGIS extension.
 - **Real-time:** Socket.io with MessagePack for binary compression.

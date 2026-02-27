@@ -77,7 +77,14 @@ function MapIndex() {
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
         />
-        <AROverlay isVisible={isARVisible} />
+        <AROverlay 
+          isVisible={isARVisible} 
+          onExitAR={() => {
+            // In a production app, we would use ScreenOrientation to lock back to portrait
+            // or update a state that overrides the sensor-based activation.
+            console.log('User requested AR exit');
+          }}
+        />
         {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />

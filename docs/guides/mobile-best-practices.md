@@ -21,13 +21,19 @@ We use `@maplibre/maplibre-react-native` for the map engine.
 - **Local Persistence:** Use `react-native-mmkv` for critical settings (Auth, Offline Cache). Avoid `AsyncStorage`.
 - **Animation:** Use `react-native-reanimated` for all UI transitions.
 
-## AR Transitions (Tilt-to-AR)
+## AR Activation (Orientation Based)
 
-Transitions between 2D and AR are governed by device sensors:
-- **Sensor Polling:** Use `expo-sensors` (DeviceMotion) with a fast interval (100ms) for responsiveness.
-- **Pitch Calculation:** Monitor the gravity vector to determine the device pitch.
-- **Magnetic Interference:** Always check for magnetic interference before activating AR to avoid "spinning" markers.
-- **Compass Calibration:** Require the user to perform the "figure-eight" motion if the compass accuracy is low.
+Transitions between 2D and AR are governed by device orientation to ensure a smooth, professional experience.
+
+- **Trigger:** AR activates only when the device is held in **Landscape** mode (rotated horizontally).
+- **Smooth Transitions:** Uses `react-native-reanimated` (opacity fade) and a small mounting delay to ensure GPU stability, especially on emulators.
+- **Orientation Lock:** Ensure `AndroidManifest.xml` has `android:screenOrientation="unspecified"` to allow rotation.
+
+## Clean Code & Scalability
+
+- **SettingItem Pattern:** Use the `SettingItem` component for all list-based UI screens (Profile, Settings) to ensure consistent iconography and feedback.
+- **StyleSheet.create:** Prefer `StyleSheet.create` over inline objects for shadows and complex compositions to improve rendering performance.
+- **Conditional Rendering:** Always use ternary operators `condition ? <Component /> : null` instead of the `&&` short-circuit to avoid rendering unexpected `0` or `NaN` values in the UI.
 
 ## Accessibility
 
