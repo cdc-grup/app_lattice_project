@@ -91,6 +91,11 @@ export default function LoginScreen() {
     }
   };
 
+  const toggleAuthMode = (mode: 'ticket' | 'account') => {
+    Haptics.selectionAsync();
+    setAuthMode(mode);
+  };
+
   const isLoading = syncTicket.isPending || login.isPending;
 
   const handleStartScan = async () => {
@@ -214,7 +219,8 @@ export default function LoginScreen() {
             >
               <Pressable
                 onPress={() => toggleAuthMode('ticket')}
-                className={`flex-1 py-3 px-4 rounded-xl items-center transition-all ${authMode === 'ticket' ? 'bg-white shadow-sm' : ''}`}
+                className="flex-1 py-3 px-4 rounded-xl items-center"
+                style={authMode === 'ticket' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 } : undefined}
               >
                 <Text className={`text-sm font-semibold ${authMode === 'ticket' ? 'text-black' : 'text-white/40'}`}>
                   Ticket Sync
@@ -222,7 +228,8 @@ export default function LoginScreen() {
               </Pressable>
               <Pressable
                 onPress={() => toggleAuthMode('account')}
-                className={`flex-1 py-3 px-4 rounded-xl items-center transition-all ${authMode === 'account' ? 'bg-white shadow-sm' : ''}`}
+                className="flex-1 py-3 px-4 rounded-xl items-center"
+                style={authMode === 'account' ? { backgroundColor: '#ffffff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 } : undefined}
               >
                 <Text className={`text-sm font-semibold ${authMode === 'account' ? 'text-black' : 'text-white/40'}`}>
                   Account
@@ -300,30 +307,44 @@ export default function LoginScreen() {
                   </View>
                 </View>
               )}
+            </Animated.View>
 
             {/* Footer Actions */}
-            <View className="items-center gap-y-6">
-              
-              {authMode === 'account' && (
-                <TouchableOpacity 
-                  onPress={() => router.push('/(auth)/register')}
-                  disabled={isLoading}
-                  className="py-2"
-                >
-                  <Text className="text-slate-400">
-                    Don't have an account? <Text className="text-primary font-bold">Register here</Text>
+            <View className="items-center mb-8">
+              <Pressable
+                className="w-full bg-[#FF3B30] h-14 rounded-2xl items-center justify-center active:opacity-90"
+                style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 }}
+                onPress={handleSyncAccess}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white text-lg font-bold">
+                    {authMode === 'ticket' ? 'Sync Access' : 'Sign In'}
                   </Text>
-                </TouchableOpacity>
-              )}
+                )}
+              </Pressable>
+              
+              <Pressable 
+                onPress={() => router.push('/(auth)/register')}
+                disabled={isLoading}
+                className="py-6 active:opacity-70"
+              >
+                <Text className="text-white/40 text-sm font-medium">
+                  Don't have an account? <Text className="text-primary font-bold">Register here</Text>
+                </Text>
+              </Pressable>
+            </View>
 
             {/* Secondary Actions */}
             <Animated.View 
               entering={FadeInDown.duration(800).delay(600)}
               className="items-center"
             >
-              <View className="flex-row items-center w-full my-8">
+              <View className="flex-row items-center w-full my-4">
                 <View className="flex-1 h-[0.5px] bg-white/10" />
-                <Text className="mx-4 text-xs font-bold text-white/20 uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                <Text className="mx-4 text-xs font-bold text-white/20 uppercase tracking-widest">
                   Secure Access
                 </Text>
                 <View className="flex-1 h-[0.5px] bg-white/10" />
@@ -346,19 +367,7 @@ export default function LoginScreen() {
                   <Text className="text-sm font-semibold text-white ml-2">Google</Text>
                 </Pressable>
               </View>
-
-              <Pressable 
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  router.push('/(auth)/register');
-                }}
-                className="pb-10 active:opacity-70"
-              >
-                <Text className="text-white/40 text-sm font-medium">
-                  Don't have an account? <Text className="text-primary font-bold">Register</Text>
-                </Text>
-              </View>
-            </View>
+            </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

@@ -14,7 +14,7 @@ export const useCameraTilt = (options: UseCameraTiltOptions = {}) => {
   const {
     updateInterval = 100,
     lowThreshold = 30,
-    highThreshold = 60,
+    highThreshold = 75,
   } = options;
 
   const [pitch, setPitch] = useState(0);

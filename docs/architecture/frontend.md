@@ -45,8 +45,8 @@ The transition between 2D (Map) and AR is driven by **Device Sensors** (Tilt-to-
 | Pitch Angle | State | UI Behavior |
 | :--- | :--- | :--- |
 | **< 30°** | 2D Map | Full MapLibre view. Low sensor polling. |
-| **30° - 60°** | Transition | Interpolated blur. Start Camera & AR engine. |
-| **> 60°** | AR Live | Overlay ViroARScene on top of Camera. |
+| **30° - 75°** | Transition | Interpolated blur. Start Camera & AR engine. |
+| **> 75°** | AR Live | Overlay ViroARScene on top of Camera. |
 
 **Automatic Overrides:**
 - AR is disabled if `battery < 15%`.
