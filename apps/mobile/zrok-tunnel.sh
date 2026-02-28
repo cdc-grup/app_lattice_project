@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_PORT=3000
 METRO_PORT=8081
-ENV_FILE=".env"
+ENV_FILE="$SCRIPT_DIR/.env"
 
-echo "🚀 Starting zrok tunnels for Circuit Copilot Mobile..."
+echo "🚀 Starting zrok tunnels for Circuit Copilot Mobile from $SCRIPT_DIR..."
 
 # Check if zrok is installed
 if ! command -v zrok &> /dev/null; then
@@ -16,10 +17,16 @@ fi
 # Function to stop tunnels on exit
 cleanup() {
     echo "🛑 Stopping tunnels..."
-    kill $(jobs -p)
+    # Kill background jobs
+    kill $(jobs -p) 2>/dev/null
+    # Specifically target any remaining zrok shares
+    pkill -f "zrok share public" 2>/dev/null
     exit
 }
-trap cleanup SIGINT SIGTERM
+trap cleanup SIGINT SIGTERM EXIT
+
+# Clean up any existing leaked zrok processes before starting
+pkill -f "zrok share public" 2>/dev/null
 
 # Function to wait for a zrok URL in a log file
 wait_for_url() {
@@ -54,9 +61,9 @@ wait_for_url() {
 # Start API tunnel
 echo "📡 Starting API tunnel on port $API_PORT..."
 # Remove old log if exists
-rm -f api_zrok.log
-zrok share public http://localhost:$API_PORT --headless > api_zrok.log 2>&1 &
-API_URL=$(wait_for_url api_zrok.log "API")
+rm -f "$SCRIPT_DIR/api_zrok.log"
+zrok share public http://localhost:$API_PORT --headless > "$SCRIPT_DIR/api_zrok.log" 2>&1 &
+API_URL=$(wait_for_url "$SCRIPT_DIR/api_zrok.log" "API")
 
 if [ $? -ne 0 ]; then
     cleanup
@@ -66,9 +73,9 @@ echo "✅ API Tunnel: $API_URL"
 # Start Metro tunnel
 echo "📡 Starting Metro tunnel on port $METRO_PORT..."
 # Remove old log if exists
-rm -f metro_zrok.log
-zrok share public http://localhost:$METRO_PORT --headless > metro_zrok.log 2>&1 &
-METRO_URL=$(wait_for_url metro_zrok.log "Metro")
+rm -f "$SCRIPT_DIR/metro_zrok.log"
+zrok share public http://localhost:$METRO_PORT --headless > "$SCRIPT_DIR/metro_zrok.log" 2>&1 &
+METRO_URL=$(wait_for_url "$SCRIPT_DIR/metro_zrok.log" "Metro")
 
 if [ $? -ne 0 ]; then
     cleanup
@@ -94,10 +101,9 @@ fi
 
 # Run Metro Bundler with proxy settings
 echo "📦 Starting Metro Bundler..."
-# Note: expo run:android doesn't support --clear easily via npm scripts sometimes
-# We use EXPO_PACKAGER_PROXY_URL and start the dev server
+# Change to the mobile app directory
+cd "$SCRIPT_DIR" || exit 1
 export EXPO_PACKAGER_PROXY_URL="$METRO_URL"
-npx expo start --android --clear
 
-# Wait for background processes
-wait
+# Start expo
+npx expo start --android --clear
