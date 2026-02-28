@@ -12,7 +12,8 @@
     "seed": "tsx src/seed.ts",
     "seed:pedralbes": "tsx src/seed-pedralbes.ts",
     "studio": "drizzle-kit studio",
-    "check": "tsx src/check-db.ts"
+    "check": "tsx src/check-db.ts",
+    "qrs": "tsx src/generate-qrs.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
