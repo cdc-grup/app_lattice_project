@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../hooks/useAuthStore';
-import { Ticket, User } from '../types';
+import { Ticket, User } from '../types/models/auth';
 import { apiClient } from './apiClient';
 import { API_ENDPOINTS } from '../constants/api';
 
@@ -10,14 +10,21 @@ export const useSyncTicket = () => {
 
   return useMutation({
     mutationFn: async (ticketCode: string) => {
-      return apiClient.post<{ user: User; token: string; ticket_info: Ticket }>(
+      return apiClient.post<{ user: User; token: string; ticket_info: Ticket; requires_setup: boolean }>(
         API_ENDPOINTS.AUTH.TICKET_SYNC,
         { qr_code_data: ticketCode, device_id: 'mobile-app' }
       );
     },
     onSuccess: (data) => {
-      setAuth(data.token, data.user, true); // Mark as guest/ticket session
-      setTicket(data.ticket_info);
+      const { setRegistrationRequired, setAuth, setTicket } = useAuthStore.getState();
+      
+      if (data.requires_setup) {
+        setRegistrationRequired(true, data.user.email);
+        setTicket(data.ticket_info);
+      } else {
+        setAuth(data.token, data.user, true);
+        setTicket(data.ticket_info);
+      }
     },
   });
 };
