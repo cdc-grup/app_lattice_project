@@ -24,6 +24,31 @@ async function seed() {
     console.log('Test user already exists.');
   }
 
+  // Seeding additional tester accounts for QR flow
+  const testerEmails = [
+    'tester_circuitvip2026@example.com',
+    'tester_circuitg2026@example.com'
+  ];
+
+  for (const email of testerEmails) {
+    await db
+      .insert(users)
+      .values({
+        email,
+        passwordHash: 'password123',
+        fullName: email.split('@')[0],
+        hasTicket: true,
+      })
+      .onConflictDoUpdate({
+        target: users.email,
+        set: { 
+          passwordHash: 'password123',
+          fullName: email.split('@')[0]
+        }
+      });
+    console.log(`Ensured tester account exists and is updated: ${email}`);
+  }
+
   // 2. We skip clearing POIs to preserve any manual changes or telemetry data
   // await db.delete(pointsOfInterest);
   console.log('Synchronizing points of interest...');

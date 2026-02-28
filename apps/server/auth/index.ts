@@ -354,6 +354,7 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       },
       token: `mock_jwt_token_for_${user.id}`,
       ticket_info: ticketInfo,
+      requires_setup: user.passwordHash === 'auto_generated_pass',
     });
   } catch (error) {
     console.error('Auth Error:', error);

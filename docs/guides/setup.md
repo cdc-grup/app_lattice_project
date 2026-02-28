@@ -87,5 +87,27 @@ This is the fastest, most stable, and preferred method for local testing.
 > [!NOTE]
 > When using `adb reverse`, the device acts as if the server is running on its own `localhost`.
 
+## Authentication & Onboarding Flow
+
+The application features a premium onboarding experience designed to bridge physical tickets with digital accounts.
+
+### The Welcome Flow
+When a user launches the app for the first time:
+1.  **Welcome Screen**: Asks "Do you have a ticket?".
+2.  **With Ticket**: Opens the QR scanner.
+    -   **Existing Account**: If the ticket email is linked to a full account, the user is logged in immediately.
+    -   **New Account**: If the email is new, the user is sent to the Register screen with their email pre-filled to set a password.
+3.  **Without Ticket**: Asks if the user is new or returning, leading to Register or Login respectively.
+
+### Testing the Flow
+To test ticket-based onboarding, you can generate test QR codes directly in your terminal:
+
+```bash
+# Generate test tickets (with Paddock Club and Grandstand G examples)
+npm run qrs -w @app/db
+```
+
+Scan the generated QR codes with your physical device's camera inside the app to verify the redirection logic.
+
 ---
 > For contribution guidelines, see [**Contribution Standards**](./standards.md).
