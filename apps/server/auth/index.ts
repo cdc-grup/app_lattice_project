@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { logger, errorHandler } from '@app/core';
-import { db, users, eq } from '@app/db';
+import { db, users, tickets, eq, and } from '@app/db';
 
 // Load environment variables
 dotenv.config();
@@ -54,8 +54,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
         const user = updatedUser[0];
 
         if (ticket_code) {
-          const dbTickets = require('@app/db').tickets;
-          await db.update(dbTickets).set({ userId: user.id }).where(eq(dbTickets.code, ticket_code));
+          await db.update(tickets).set({ userId: user.id }).where(eq(tickets.code, ticket_code));
         }
 
         return res.status(200).json({
@@ -98,8 +97,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
       .returning();
 
     if (ticket_code) {
-      const dbTickets = require('@app/db').tickets;
-      await db.update(dbTickets).set({ userId: newUser[0].id }).where(eq(dbTickets.code, ticket_code));
+      await db.update(tickets).set({ userId: newUser[0].id }).where(eq(tickets.code, ticket_code));
     }
 
     res.status(201).json({
@@ -149,8 +147,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
     // Link ticket if provided
     if (ticket_code) {
-      const dbTickets = require('@app/db').tickets;
-      await db.update(dbTickets).set({ userId: user.id }).where(eq(dbTickets.code, ticket_code));
+      await db.update(tickets).set({ userId: user.id }).where(eq(tickets.code, ticket_code));
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, user.id));
       hasTicket = true;
     }
@@ -186,11 +183,8 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
   }
 
   try {
-    const dbTickets = require('@app/db').tickets;
-    const { and, isNull } = require('drizzle-orm');
-
     // Find the ticket
-    const ticketResult = await db.select().from(dbTickets).where(eq(dbTickets.code, ticket_code)).limit(1);
+    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, ticket_code)).limit(1);
     const ticket = ticketResult[0];
 
     if (!ticket) {
@@ -233,7 +227,7 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
       const userId = parseInt(userIdStr, 10);
 
       // Claim ticket
-      await db.update(dbTickets).set({ userId }).where(eq(dbTickets.code, ticket_code));
+      await db.update(tickets).set({ userId }).where(eq(tickets.code, ticket_code));
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, userId));
 
       return res.json({
@@ -331,14 +325,13 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
     }
 
     // 4. Link ticket
-    const dbTickets = require('@app/db').tickets;
     
     // Check if ticket exists in DB (mock creation if it doesn't exist for demo purposes)
-    const existingTicket = await db.select().from(dbTickets).where(eq(dbTickets.code, ticketCode)).limit(1);
+    const existingTicket = await db.select().from(tickets).where(eq(tickets.code, ticketCode)).limit(1);
     let ticketInfo;
 
     if (existingTicket.length > 0) {
-       await db.update(dbTickets).set({ userId: user.id }).where(eq(dbTickets.code, ticketCode));
+       await db.update(tickets).set({ userId: user.id }).where(eq(tickets.code, ticketCode));
        ticketInfo = existingTicket[0];
     } else {
        // Mock ticket for demo
@@ -361,6 +354,7 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       },
       token: `mock_jwt_token_for_${user.id}`,
       ticket_info: ticketInfo,
+      requires_setup: user.passwordHash === 'auto_generated_pass',
     });
   } catch (error) {
     console.error('Auth Error:', error);

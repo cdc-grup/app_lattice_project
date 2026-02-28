@@ -14,6 +14,7 @@
     "seed": "turbo run seed --filter=!//",
     "seed:pedralbes": "turbo run seed:pedralbes --filter=!//",
     "studio": "turbo run studio --filter=!//",
+    "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "workspaces": [

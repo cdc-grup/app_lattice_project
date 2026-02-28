@@ -196,6 +196,20 @@ export default function LoginScreen() {
             contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 28 }} 
             showsVerticalScrollIndicator={false}
           >
+            <Animated.View 
+              entering={FadeIn.duration(400)}
+              className="mt-6 -ml-2"
+            >
+              <Pressable 
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  router.back();
+                }} 
+                className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
+              >
+                <Feather name="chevron-left" size={28} color="white" />
+              </Pressable>
+            </Animated.View>
             {/* Header section with refined Apple aesthetic */}
             <Animated.View 
               entering={FadeInDown.duration(800).delay(200)}

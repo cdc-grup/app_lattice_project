@@ -28,8 +28,14 @@ export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const { pendingTicketCode, token } = useAuthStore();
+  const { pendingTicketCode, token, registrationRequired, prefilledEmail } = useAuthStore();
   const register = useRegister();
+
+  useEffect(() => {
+    if (prefilledEmail) {
+      setEmail(prefilledEmail);
+    }
+  }, [prefilledEmail]);
 
   useEffect(() => {
     if (token) {
@@ -84,6 +90,7 @@ export default function RegisterScreen() {
               <Pressable 
                 onPress={() => {
                   Haptics.selectionAsync();
+                  useAuthStore.getState().clearRegistrationData();
                   router.back();
                 }} 
                 className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
@@ -101,10 +108,15 @@ export default function RegisterScreen() {
                 <MaterialCommunityIcons name="account-plus" size={44} color="#000" />
               </View>
               <Text className="text-4xl font-bold text-white tracking-tight mb-3">
-                Create Profile
+                {registrationRequired ? 'Finish Profile' : 'Create Profile'}
               </Text>
               
-              {pendingTicketCode ? (
+              {registrationRequired ? (
+                <View className="bg-primary/20 px-5 py-2.5 rounded-2xl border border-primary/30 mt-3 flex-row items-center">
+                   <Feather name="check-circle" size={16} color={colors.primary} />
+                   <Text className="text-white text-sm font-bold ml-2">Ticket Scanned! Set Password</Text>
+                </View>
+              ) : pendingTicketCode ? (
                 <View className="bg-primary/20 px-5 py-2.5 rounded-2xl border border-primary/30 mt-3 flex-row items-center">
                    <Feather name="check-circle" size={16} color={colors.primary} />
                    <Text className="text-white text-sm font-bold ml-2">Ticket Ready to Sync</Text>
@@ -148,7 +160,7 @@ export default function RegisterScreen() {
                     placeholderTextColor="rgba(255,255,255,0.2)"
                     value={email}
                     onChangeText={setEmail}
-                    editable={!isLoading}
+                    editable={!isLoading && !registrationRequired}
                   />
                 </View>
                 
