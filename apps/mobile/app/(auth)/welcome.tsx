@@ -110,6 +110,7 @@ export default function WelcomeScreen() {
             <Pressable 
               onPress={() => {
                 Haptics.selectionAsync();
+                useAuthStore.getState().clearRegistrationData();
                 setStep(1);
               }}
               className="w-10 h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"

@@ -26,6 +26,7 @@ interface AuthState {
   addTicketToWallet: (ticket: Ticket) => void;
   setPendingTicketCode: (code: string | null) => void;
   setRegistrationRequired: (required: boolean, email?: string | null) => void;
+  clearRegistrationData: () => void;
   claimTicket: (ticketCode: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -53,6 +54,7 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   })),
   setPendingTicketCode: (code) => set({ pendingTicketCode: code }),
   setRegistrationRequired: (required, email = null) => set({ registrationRequired: required, prefilledEmail: email }),
+  clearRegistrationData: () => set({ registrationRequired: false, prefilledEmail: null, pendingTicketCode: null }),
   claimTicket: async (ticketCode: string) => {
     const { token, setTicket, setPendingTicketCode } = get();
     try {

@@ -90,6 +90,7 @@ export default function RegisterScreen() {
               <Pressable 
                 onPress={() => {
                   Haptics.selectionAsync();
+                  useAuthStore.getState().clearRegistrationData();
                   router.back();
                 }} 
                 className="w-12 h-12 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
