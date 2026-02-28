@@ -98,10 +98,25 @@ export default function WelcomeScreen() {
       <StatusBar style="light" />
       <SafeAreaView className="flex-1 px-8">
         
-        {/* Progress indicator */}
-        <View className="flex-row gap-x-2 mt-4 mb-12">
-          <View className={`h-1 rounded-full flex-1 ${step >= 1 ? 'bg-primary' : 'bg-white/10'}`} />
-          <View className={`h-1 rounded-full flex-1 ${step >= 2 ? 'bg-primary' : 'bg-white/10'}`} />
+        {/* Progress indicator - Top of screen */}
+        <View className="flex-row gap-x-2 mt-4 mb-6">
+          <View className={`h-1.5 rounded-full flex-1 ${step >= 1 ? 'bg-primary' : 'bg-white/10'}`} />
+          <View className={`h-1.5 rounded-full flex-1 ${step >= 2 ? 'bg-primary' : 'bg-white/10'}`} />
+        </View>
+
+        {/* Back Button Row - Below progress bar */}
+        <View className="h-12 mb-4">
+          {step === 2 && (
+            <Pressable 
+              onPress={() => {
+                Haptics.selectionAsync();
+                setStep(1);
+              }}
+              className="w-10 h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
+            >
+              <Feather name="chevron-left" size={28} color="white" />
+            </Pressable>
+          )}
         </View>
 
         <Animated.View 
@@ -110,7 +125,7 @@ export default function WelcomeScreen() {
           className="flex-1"
         >
           {step === 1 ? (
-            <View className="flex-1 justify-center">
+            <View className="flex-1 justify-center -mt-20">
               <View className="items-center mb-12">
                 <View className="w-24 h-24 mb-10 rounded-[28px] bg-white items-center justify-center shadow-2xl">
                   <MaterialCommunityIcons name="ticket-confirmation" size={48} color="#000" />
@@ -149,15 +164,7 @@ export default function WelcomeScreen() {
               </View>
             </View>
           ) : (
-            <View className="flex-1 justify-center">
-               <Pressable 
-                onPress={() => setStep(1)}
-                className="mb-8 flex-row items-center active:opacity-60"
-              >
-                <Feather name="arrow-left" size={20} color="white" />
-                <Text className="text-white ml-2 font-medium">Tornar</Text>
-              </Pressable>
-
+            <View className="flex-1 justify-center -mt-16">
               <View className="items-center mb-12">
                 <View className="w-24 h-24 mb-10 rounded-[28px] bg-white/5 border border-white/10 items-center justify-center shadow-2xl">
                   <Feather name="user" size={42} color="white" />
