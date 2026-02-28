@@ -25,10 +25,11 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR }) => 
   useEffect(() => {
     if (isVisible && isCameraReady) {
       // Small delay before mounting the 3D scene once camera is ready
+      // Minimal delay to ensure camera view has rendered its native component
       const timer = setTimeout(() => {
         setMountScene(true);
-        hudOpacity.value = withTiming(1, { duration: 800 });
-      }, 500);
+        hudOpacity.value = withTiming(1, { duration: 600 });
+      }, 50);
       return () => clearTimeout(timer);
     } else if (!isVisible) {
       setMountScene(false);
@@ -38,7 +39,7 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR }) => 
 
   const hudAnimatedStyle = useAnimatedStyle(() => ({
     opacity: hudOpacity.value,
-    transform: [{ translateY: withTiming(hudOpacity.value === 1 ? 0 : 20, { duration: 800 }) }]
+    transform: [{ translateY: withTiming(hudOpacity.value === 1 ? 0 : 20, { duration: 600 }) }]
   }));
 
   if (!isVisible) return null;

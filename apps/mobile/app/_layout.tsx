@@ -9,6 +9,18 @@ import '../global.css';
 
 const queryClient = new QueryClient();
 
+// Catch unhandled promise rejections that might cause crashes (like KeepAwake failure)
+if (typeof ErrorUtils !== 'undefined') {
+  const originalHandler = ErrorUtils.getGlobalHandler();
+  ErrorUtils.setGlobalHandler((error: any, isFatal?: boolean) => {
+    if (error?.message?.includes('keep awake') || error?.message?.includes('KeepAwake')) {
+      console.warn('[KeepAwake] Suppressed activation error:', error.message);
+      return;
+    }
+    originalHandler(error, isFatal);
+  });
+}
+
 export default function RootLayout() {
   const { loaded, error } = useAppFonts();
 
