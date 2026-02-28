@@ -59,9 +59,9 @@ This is best for testing without a cable or when someone else needs to see your 
 
 1.  **Install Zrok:** [zrok.io](https://zrok.io).
 2.  **Authenticate:** `zrok enable <token>`.
-3.  **Run the Helper Script:**
+3.  **Run the Tunnel Command (Root):**
     ```bash
-    ./apps/mobile/zrok-tunnel.sh
+    npm run dev:zrok
     ```
     This script will:
     - Create public tunnels for both Metro (8081) and the API (3000).
