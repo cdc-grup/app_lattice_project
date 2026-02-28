@@ -49,13 +49,43 @@ npm run android -w mobile
 npm run ios -w mobile
 ```
 
-## Local Tunneling (Zrok)
+## Local Tunneling (Remote & Physical Devices)
 
-To test on a physical device outside your local network:
-1. Install Zrok from [zrok.io](https://zrok.io).
-2. Authenticate: `zrok enable <your_token>`.
-3. Share the Gateway: `zrok share public http://localhost:3000`.
-4. Update `EXPO_PUBLIC_API_URL` in your mobile `.env.development` with the provided Zrok URL.
+To test on a physical device, you have two main options:
+
+### Option A: Using Zrok (Remote/Wireless)
+
+This is best for testing without a cable or when someone else needs to see your work.
+
+1.  **Install Zrok:** [zrok.io](https://zrok.io).
+2.  **Authenticate:** `zrok enable <token>`.
+3.  **Run the Tunnel Command (Root):**
+    ```bash
+    npm run dev:zrok
+    ```
+    This script will:
+    - Create public tunnels for both Metro (8081) and the API (3000).
+    - Automatically update your `EXPO_PUBLIC_API_URL` in `.env`.
+    - Set `EXPO_PACKAGER_PROXY_URL` so Expo uses the tunnel.
+
+### Option B: Using ADB Reverse (USB Cable - Recommended)
+
+This is the fastest, most stable, and preferred method for local testing.
+
+1.  **Connect Device:** Ensure USB Debugging is enabled.
+2.  **Run Port Forwarding:**
+    ```bash
+    adb reverse tcp:8081 tcp:8081
+    adb reverse tcp:3000 tcp:3000
+    ```
+3.  **Update .env:** Ensure `EXPO_PUBLIC_API_URL` points to `http://localhost:3000/api/v1`.
+4.  **Start App:**
+    ```bash
+    npm run android -w mobile
+    ```
+
+> [!NOTE]
+> When using `adb reverse`, the device acts as if the server is running on its own `localhost`.
 
 ---
 > For contribution guidelines, see [**Contribution Standards**](./standards.md).
