@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
@@ -14,13 +15,14 @@ import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
 import { Feather } from '@expo/vector-icons';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
+import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
 
 // Configure MapLibre
@@ -39,6 +41,7 @@ const styles = StyleSheet.create({
 });
 
 function MapIndex() {
+  const router = useRouter();
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   const { selectedPoiId, deselect, triggerRecenter, selectPoi } = useMapStore();
   const { data: categories } = useCategories();
@@ -81,8 +84,6 @@ function MapIndex() {
         <AROverlay 
           isVisible={isARVisible} 
           onExitAR={() => {
-            // In a production app, we would use ScreenOrientation to lock back to portrait
-            // or update a state that overrides the sensor-based activation.
             console.log('User requested AR exit');
           }}
         />
@@ -93,55 +94,61 @@ function MapIndex() {
         )}
       </View>
 
-      <View pointerEvents="box-none" style={styles.overlay}>
-        <View pointerEvents="auto">
-          <SearchBar />
-          <View className="mt-4">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContainer}>
-              {categories?.map((cat) => (
-                <FilterChip
-                  key={cat.id}
-                  label={cat.label}
-                  icon={cat.icon as any}
-                  active={activeCategoryId === cat.id}
-                  onPress={() => {
-                    if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
-                      // Direct Access: Find and select immediately, don't filter
-                      const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
-                      if (poi) {
-                        selectPoi(poi.properties.id, poi.geometry.coordinates);
-                      }
-                    } else {
-                      // Filter: Toggle and deselect existing items
-                      setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
-                      deselect();
+      {/* Map Controls (Floating) */}
+      <View pointerEvents="box-none" style={[styles.overlay, { paddingBottom: 120 }]}>
+        <View className="flex-1" />
+        <View pointerEvents="auto" className="items-end px-4 mb-3">
+          <Pressable 
+            onPress={handleRecenter}
+            className="w-12 h-12 items-center justify-center rounded-full active:opacity-70 bg-black/80 border border-white/10"
+          >
+            <Feather name="navigation" size={24} color="white" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Apple/Waze Style Bottom Sheet */}
+      <MapBottomSheet 
+        header={
+          <SearchBar onArPress={() => router.push('/(main)/profile')} />
+        }
+      >
+        <View className="mt-2">
+          <Text className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-4 ml-1">Quick Access</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            className="flex-row"
+          >
+            {categories?.map((cat) => (
+              <FilterChip
+                key={cat.id}
+                label={cat.label}
+                icon={cat.icon as any}
+                active={activeCategoryId === cat.id}
+                onPress={() => {
+                  if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
+                    const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
+                    if (poi) {
+                      selectPoi(poi.properties.id, poi.geometry.coordinates);
                     }
-                  }}
-                />
-              ))}
-            </ScrollView>
-          </View>
+                  } else {
+                    setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
+                    deselect();
+                  }
+                }}
+              />
+            ))}
+          </ScrollView>
         </View>
 
-
-        <View className="flex-1" />
-
-        <Animated.View pointerEvents="box-none" className="pb-4">
-          <View pointerEvents="auto" className="items-end px-4 mb-3 gap-3">
-            <Pressable 
-              onPress={handleRecenter}
-              className="w-10 h-10 items-center justify-center rounded-full active:opacity-70" 
-              style={{ backgroundColor: 'rgba(24, 24, 27, 0.8)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }}
-            >
-              <Feather name="navigation" size={20} color="white" />
-            </Pressable>
-          </View>
-
-          <View pointerEvents="auto">
-            <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} />
-          </View>
-        </Animated.View>
-      </View>
+        {/* Selected POI Details inside the sheet */}
+        {selectedPoi && (
+          <Animated.View entering={FadeInDown} className="mt-8">
+            <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
+          </Animated.View>
+        )}
+      </MapBottomSheet>
     </View>
   );
 }

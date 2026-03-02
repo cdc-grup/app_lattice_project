@@ -18,7 +18,7 @@ export default function Index() {
   useEffect(() => {
     if (isReady) {
       if (token) {
-        router.replace('/(tabs)');
+        router.replace('/(main)');
       } else {
         router.replace('/(auth)/welcome');
       }

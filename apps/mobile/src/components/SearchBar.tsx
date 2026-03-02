@@ -16,9 +16,9 @@ export const SearchBar = React.memo(({
   onArPress,
 }: SearchBarProps) => {
   return (
-    <View className="flex-row items-center gap-3 px-4 pt-12">
+    <View className="flex-row items-center gap-3 px-4 py-2">
       <View
-        className="flex-1 flex-row items-center bg-surface/80 px-4 h-12 rounded-full border border-white/10"
+        className="flex-1 flex-row items-center bg-surface/80 px-4 h-12 rounded-2xl border border-white/10"
         style={styles.searchContainer}
       >
         <Feather name="search" size={20} color={colors.muted} />
@@ -38,9 +38,9 @@ export const SearchBar = React.memo(({
         onPress={onArPress}
         className="w-12 h-12 items-center justify-center rounded-full border border-transparent active:opacity-70"
         style={styles.arButton}
-        accessibilityLabel="Open augmented reality"
+        accessibilityLabel="Go to profile"
       >
-        <Feather name="camera" size={22} color="white" />
+        <Feather name="user" size={22} color="white" />
       </Pressable>
     </View>
   );
