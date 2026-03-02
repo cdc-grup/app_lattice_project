@@ -368,17 +368,52 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/users/me', async (req: Request, res: Response) => {
-  // Mock Auth: Expect "Authorization: Bearer <user_id>" or just assume 'kore@example.com' if testing
+app.patch('/users/me', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
-  // In a real app we 'd verify JWT. Here we just take the token as if it were the ID or ignore it for the seed user.
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
+  const { avoidStairs, avoidCrowds, avoidSlopes, avoidGrandstands, fullName } = req.body;
+
+  try {
+    const updatedUser = await db
+      .update(users)
+      .set({
+        avoidStairs: avoidStairs !== undefined ? avoidStairs : undefined,
+        avoidCrowds: avoidCrowds !== undefined ? avoidCrowds : undefined,
+        avoidSlopes: avoidSlopes !== undefined ? avoidSlopes : undefined,
+        avoidGrandstands: avoidGrandstands !== undefined ? avoidGrandstands : undefined,
+        fullName: fullName || undefined,
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    const { passwordHash, ...safeUser } = updatedUser[0];
+    res.json(safeUser);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+app.get('/users/me', async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
 
   try {
     const userResult = await db
       .select()
       .from(users)
-      .where(eq(users.email, 'kore@example.com'))
+      .where(eq(users.id, userId))
       .limit(1);
+    
     if (userResult.length > 0) {
       const { passwordHash, ...safeUser } = userResult[0];
       res.json(safeUser);

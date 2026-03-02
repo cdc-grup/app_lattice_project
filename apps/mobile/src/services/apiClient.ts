@@ -53,4 +53,17 @@ export const apiClient = {
 
     return handleResponse<T>(response);
   },
+
+  patch: async <T>(endpoint: string, body: any, token?: string): Promise<T> => {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+
+    return handleResponse<T>(response);
+  },
 };

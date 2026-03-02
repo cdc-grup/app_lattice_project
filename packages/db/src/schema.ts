@@ -58,6 +58,7 @@ export const users = pgTable('users', {
   avoidStairs: boolean('avoid_stairs').default(false),
   avoidCrowds: boolean('avoid_crowds').default(false),
   avoidSlopes: boolean('avoid_slopes').default(false),
+  avoidGrandstands: boolean('avoid_grandstands').default(false),
   hasTicket: boolean('has_ticket').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });

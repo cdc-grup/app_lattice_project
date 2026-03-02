@@ -24,4 +24,8 @@ export const authService = {
   getMe: async (token: string): Promise<User> => {
     return apiClient.get<User>(API_ENDPOINTS.AUTH.ME, undefined, token);
   },
+
+  updateMe: async (data: Partial<User>, token: string): Promise<User> => {
+    return apiClient.patch<User>(API_ENDPOINTS.AUTH.ME, data, token);
+  },
 };

@@ -3,6 +3,10 @@ export interface User {
   email: string;
   fullName: string;
   hasTicket?: boolean;
+  avoidStairs?: boolean;
+  avoidCrowds?: boolean;
+  avoidSlopes?: boolean;
+  avoidGrandstands?: boolean;
 }
 
 export interface Ticket {
