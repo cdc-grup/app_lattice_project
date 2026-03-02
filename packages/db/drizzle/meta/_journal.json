@@ -43,6 +43,13 @@
       "when": 1772443930383,
       "tag": "0005_purple_amphibian",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772450742747,
+      "tag": "0006_eminent_shatterstar",
+      "breakpoints": true
     }
   ]
 }

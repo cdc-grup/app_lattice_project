@@ -21,9 +21,10 @@ interface AuthState {
   isGuest: boolean; // True if logged in via Ticket Sync only
   registrationRequired: boolean; // True if ticket sync found an account with no password
   prefilledEmail: string | null;
-  setAuth: (token: string, user: User, isGuest?: boolean) => void;
+  setAuth: (token: string, user: User, tickets?: Ticket[], isGuest?: boolean) => void;
   setTicket: (ticket: Ticket) => void;
   addTicketToWallet: (ticket: Ticket) => void;
+  syncTickets: () => Promise<void>;
   setPendingTicketCode: (code: string | null) => void;
   setRegistrationRequired: (required: boolean, email?: string | null) => void;
   clearRegistrationData: () => void;
@@ -40,25 +41,52 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   isGuest: false,
   registrationRequired: false,
   prefilledEmail: null,
-  setAuth: (token, user, isGuest = false) => set({ token, user, isGuest, registrationRequired: false, prefilledEmail: null }),
+  setAuth: (token, user, tickets, isGuest = false) => 
+    set((state) => ({ 
+      token, 
+      user, 
+      tickets: tickets ?? state.tickets ?? [], 
+      isGuest, 
+      registrationRequired: false, 
+      prefilledEmail: null 
+    })),
   setTicket: (ticket) => set((state) => ({ 
     activeTicket: ticket,
-    tickets: state.tickets.some(t => t.code === ticket.code) 
-      ? state.tickets 
-      : [...state.tickets, ticket]
+    tickets: (state.tickets || []).some(t => t.code === ticket.code) 
+      ? (state.tickets || [])
+      : [...(state.tickets || []), ticket]
   })),
   addTicketToWallet: (ticket) => set((state) => ({
-    tickets: state.tickets.some(t => t.code === ticket.code) 
-      ? state.tickets 
-      : [...state.tickets, ticket]
+    tickets: (state.tickets || []).some(t => t.code === ticket.code) 
+      ? (state.tickets || [])
+      : [...(state.tickets || []), ticket]
   })),
+  syncTickets: async () => {
+    const { token } = get();
+    if (!token) return;
+    try {
+      const tickets = await authService.getUserTickets(token);
+      set({ tickets });
+    } catch (error) {
+      console.error('Error syncing tickets:', error);
+    }
+  },
   setPendingTicketCode: (code) => set({ pendingTicketCode: code }),
   setRegistrationRequired: (required, email = null) => set({ registrationRequired: required, prefilledEmail: email }),
   clearRegistrationData: () => set({ registrationRequired: false, prefilledEmail: null, pendingTicketCode: null }),
   claimTicket: async (ticketCode: string) => {
     const { token, setTicket, setPendingTicketCode } = get();
+    
+    let finalCode = ticketCode;
     try {
-      const ticket = await authService.claimTicket(ticketCode, token ?? undefined);
+      const parsed = JSON.parse(ticketCode);
+      if (parsed.code) finalCode = parsed.code;
+    } catch (e) {
+      // Use raw code
+    }
+
+    try {
+      const ticket = await authService.claimTicket(finalCode, token ?? undefined);
       if (ticket) {
         setTicket(ticket);
         set({ user: { ...get().user!, hasTicket: true } }); // Update User State

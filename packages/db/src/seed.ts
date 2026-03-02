@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { db, pool } from './index';
-import { users, pointsOfInterest } from './schema';
+import { users, pointsOfInterest, tickets } from './schema';
 import { sql } from 'drizzle-orm';
 
 async function seed() {
@@ -49,7 +49,54 @@ async function seed() {
     console.log(`Ensured tester account exists and is updated: ${email}`);
   }
 
-  // 2. We skip clearing POIs to preserve any manual changes or telemetry data
+  // 2. Seed Test Tickets
+  console.log('Seeding test tickets...');
+  const testTickets = [
+    {
+      code: 'CIRCUIT-VIP-2026',
+      gate: 'Gate 1 (VIP)',
+      zoneName: 'Paddock Club',
+      seatRow: 'A',
+      seatNumber: '12',
+      isActive: true,
+      createdAt: new Date(),
+    },
+    {
+      code: 'CIRCUIT-G-2026',
+      gate: 'Gate 3',
+      zoneName: 'Grandstand G',
+      seatRow: '15',
+      seatNumber: '42',
+      isActive: true,
+      createdAt: new Date(),
+    },
+    {
+      code: 'CIRCUIT-PLATINUM-2026',
+      gate: 'Gate 0',
+      zoneName: 'Platinum Lounge',
+      seatRow: '1',
+      seatNumber: '1',
+      isActive: true,
+      createdAt: new Date(),
+    },
+    {
+      code: 'CIRCUIT-EXTRA-VIP',
+      email: 'tester_circuitvip2026@example.com',
+      gate: 'Gate 1 (VIP)',
+      zoneName: 'Paddock Club (Extra)',
+      seatRow: 'B',
+      seatNumber: '24',
+      isActive: true,
+      createdAt: new Date(),
+    },
+  ];
+
+  for (const ticket of testTickets) {
+    await db.insert(tickets).values(ticket).onConflictDoNothing();
+  }
+  console.log(`Seeded ${testTickets.length} test tickets.`);
+
+  // 3. We skip clearing POIs to preserve any manual changes or telemetry data
   // await db.delete(pointsOfInterest);
   console.log('Synchronizing points of interest...');
 

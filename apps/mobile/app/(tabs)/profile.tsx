@@ -7,6 +7,7 @@ import { authService } from '../../src/services/authService';
 import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
 import { SettingItem } from '../../src/components/ui/SettingItem';
+import { WalletStack } from '../../src/components/ui/WalletStack';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -20,6 +21,7 @@ export default function ProfileScreen() {
   const [avoidSlopes, setAvoidSlopes] = useState(user?.avoidSlopes ?? false);
   
   const [showWizard, setShowWizard] = useState(false);
+  const [showWallet, setShowWallet] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -115,10 +117,10 @@ export default function ProfileScreen() {
             <SettingItem 
               label="Billetera de Entradas"
               icon="tag"
-              secondaryText={activeTicket ? `Activa: ${activeTicket.code}` : undefined}
+              secondaryText={tickets && tickets.length > 0 ? `${tickets.length} entradas vinculadas` : 'Vincular entrada'}
               onPress={() => {
                 if (tickets && tickets.length > 0) {
-                  Alert.alert('Tickets', `Tienes ${tickets.length} entradas. Activa: ${activeTicket?.code}`);
+                  setShowWallet(true);
                 } else {
                   router.push('/scan' as any);
                 }
@@ -138,9 +140,13 @@ export default function ProfileScreen() {
                       {
                         text: "Simular Escaneo",
                         onPress: async () => {
-                          const success = await useAuthStore.getState().claimTicket('CIRCUIT25');
-                          if (success) Alert.alert('Éxito', 'Entrada vinculada correctamente!');
-                          else Alert.alert('Error', 'No se ha podido vincular la entrada');
+                          const ticketToClaim = (tickets && tickets.some(t => t.code === 'CIRCUIT-G-2026')) ? 'CIRCUIT-EXTRA-VIP' : 'CIRCUIT-G-2026';
+                          const success = await useAuthStore.getState().claimTicket(ticketToClaim);
+                          if (success) {
+                            Alert.alert('Éxito', `Entrada ${ticketToClaim} vinculada correctamente!`);
+                          } else {
+                            Alert.alert('Error', 'No se ha podido vincular la entrada. Asegúrate de que el código existe en la BD.');
+                          }
                         }
                       },
                       { text: "Cancelar", style: "cancel" }
@@ -185,6 +191,44 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Wallet Modal */}
+      <Modal
+        visible={showWallet}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowWallet(false)}
+      >
+        <SafeAreaView className="flex-1 bg-background">
+          <View className="flex-row items-center justify-between px-6 py-4">
+            <Text className="text-white text-3xl font-black">Mis Entradas</Text>
+            <View className="flex-row gap-x-3">
+              <Pressable 
+                onPress={() => {
+                  setShowWallet(false);
+                  router.push('/scan' as any);
+                }}
+                className="w-10 h-10 bg-primary rounded-full items-center justify-center"
+              >
+                <Feather name="plus" size={24} color="white" />
+              </Pressable>
+              <Pressable 
+                onPress={() => setShowWallet(false)}
+                className="w-10 h-10 bg-white/10 rounded-full items-center justify-center"
+              >
+                <Feather name="x" size={24} color="white" />
+              </Pressable>
+            </View>
+          </View>
+          
+          <ScrollView 
+            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <WalletStack tickets={tickets} />
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
 
       {/* Preferences Wizard Modal */}
       <Modal

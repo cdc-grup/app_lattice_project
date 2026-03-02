@@ -28,17 +28,47 @@ async function generateTestTickets() {
       isActive: true,
       createdAt: new Date(),
     },
+    {
+      userId: 1,
+      code: 'CIRCUIT-PLATINUM-2026',
+      gate: 'Gate 0',
+      zoneName: 'Platinum Lounge',
+      seatRow: '1',
+      seatNumber: '1',
+      isActive: true,
+      createdAt: new Date(),
+    },
+    {
+      userId: 1,
+      code: 'CIRCUIT-EXTRA-VIP',
+      email: 'tester_circuitvip2026@example.com',
+      gate: 'Gate 1 (VIP)',
+      zoneName: 'Paddock Club (Extra)',
+      seatRow: 'B',
+      seatNumber: '24',
+      isActive: true,
+      createdAt: new Date(),
+    },
   ];
 
-    for (const ticket of testTickets) {
+    for (const ticket of (testTickets as any[])) {
       // Create JSON Payload
       const payload = JSON.stringify({
         code: ticket.code,
-        email: `tester_${ticket.code.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com`
+        email: ticket.email || `tester_${ticket.code.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com`
       });
 
       // Insert ticket into DB if it doesn't exist
-      await db.insert(tickets).values(ticket).onConflictDoNothing();
+      await db.insert(tickets).values({
+        userId: ticket.userId,
+        code: ticket.code,
+        gate: ticket.gate,
+        zoneName: ticket.zoneName,
+        seatRow: ticket.seatRow,
+        seatNumber: ticket.seatNumber,
+        isActive: ticket.isActive,
+        createdAt: ticket.createdAt,
+      }).onConflictDoNothing();
       
       console.log(`\n================================`);
       console.log(`🎟️  ${ticket.zoneName} - ${ticket.code}`);

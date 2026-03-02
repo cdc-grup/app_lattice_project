@@ -14,4 +14,6 @@ export interface Ticket {
   code: string;
   zoneName: string;
   gate: string;
+  seatRow?: string;
+  seatNumber?: string;
 }

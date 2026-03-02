@@ -100,6 +100,9 @@ app.post('/auth/register', async (req: Request, res: Response) => {
       await db.update(tickets).set({ userId: newUser[0].id }).where(eq(tickets.code, ticket_code));
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, newUser[0].id));
+
     res.status(201).json({
       user: {
         id: newUser[0].id,
@@ -108,6 +111,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
         hasTicket: newUser[0].hasTicket,
       },
       token: `mock_jwt_token_for_${newUser[0].id}`,
+      tickets: userTickets,
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -152,6 +156,9 @@ app.post('/auth/login', async (req: Request, res: Response) => {
       hasTicket = true;
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, user.id));
+
     res.json({
       user: {
         id: user.id,
@@ -160,6 +167,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
         hasTicket,
       },
       token: `mock_jwt_token_for_${user.id}`,
+      tickets: userTickets,
     });
   } catch (error) {
     console.error('Login Error:', error);
@@ -182,9 +190,17 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
     });
   }
 
+  let finalCode = ticket_code;
+  try {
+    const parsed = JSON.parse(ticket_code);
+    if (parsed.code) finalCode = parsed.code;
+  } catch (e) {
+    // Not JSON, use raw code
+  }
+
   try {
     // Find the ticket
-    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, ticket_code)).limit(1);
+    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, finalCode)).limit(1);
     const ticket = ticketResult[0];
 
     if (!ticket) {
@@ -227,7 +243,7 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
       const userId = parseInt(userIdStr, 10);
 
       // Claim ticket
-      await db.update(tickets).set({ userId }).where(eq(tickets.code, ticket_code));
+      await db.update(tickets).set({ userId }).where(eq(tickets.code, finalCode));
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, userId));
 
       return res.json({
@@ -344,6 +360,9 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       };
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, user.id));
+
     // 5. Return Full Session Response
     res.json({
       user: {
@@ -354,6 +373,7 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       },
       token: `mock_jwt_token_for_${user.id}`,
       ticket_info: ticketInfo,
+      tickets: userTickets,
       requires_setup: user.passwordHash === 'auto_generated_pass',
     });
   } catch (error) {
@@ -365,6 +385,23 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
         status: 500,
       },
     });
+  }
+});
+
+app.get('/auth/tickets', async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
+
+  try {
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+    res.json(userTickets);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
   }
 });
 

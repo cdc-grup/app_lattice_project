@@ -22,7 +22,7 @@ export const useSyncTicket = () => {
         setRegistrationRequired(true, data.user.email);
         setTicket(data.ticket_info);
       } else {
-        setAuth(data.token, data.user, true);
+        setAuth(data.token, data.user, (data as any).tickets || [], true);
         setTicket(data.ticket_info);
       }
     },
@@ -45,8 +45,8 @@ export const useLogin = () => {
         }
       );
     },
-    onSuccess: (data) => {
-      setAuth(data.token, data.user, false);
+    onSuccess: (data: any) => {
+      setAuth(data.token, data.user, data.tickets || [], false);
       if (data.ticket_info) {
         setTicket(data.ticket_info);
       }
@@ -71,8 +71,8 @@ export const useRegister = () => {
         }
       );
     },
-    onSuccess: (data) => {
-      setAuth(data.token, data.user, false);
+    onSuccess: (data: any) => {
+      setAuth(data.token, data.user, data.tickets || [], false);
       if (data.ticket_info) {
         useAuthStore.getState().setTicket(data.ticket_info);
       }
