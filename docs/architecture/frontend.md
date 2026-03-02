@@ -33,10 +33,11 @@ Given the typical network saturation at circuits, the app is designed to be func
 
 ## Augmented Reality (AR)
 
-- **Engine:** ReactVision (ViroReact).
+- **Engine:** React Three Fiber (R3F).
 - **Implementation Strategy:** 
-    - **World Tracking:** Using GPS and Compass (Native) to align the AR coordinate system with the real world.
-    - **Asset Rendering:** Custom 3D components for POI markers and SVG-based paths projected into 3D space.
+    - **View Layering:** `expo-camera` provides the background feed, with a R3F `Canvas` overlaid for 3D rendering.
+    - **World Tracking:** Aligning the AR coordinate system using GPS and device sensors.
+    - **Asset Rendering:** Optimized 3D components and `drei` for text projections in 3D space.
 
 ## App States & Transitions
 
@@ -47,7 +48,7 @@ The transition between 2D (Map) and AR is driven by **Device Sensors** (Tilt-to-
 | **Portrait** | Any | 2D Map | Full MapLibre view. |
 | **Landscape** | **< 30°** | 2D Map | Full MapLibre view. Low sensor polling. |
 | **Landscape** | **30° - 75°** | Transition | Interpolated blur. Start Camera & AR engine. |
-| **Landscape** | **> 75°** | AR Live | Overlay ViroARScene on top of Camera. |
+| **Landscape** | **> 75°** | AR Live | Overlay R3F Scene on top of Camera. |
 
 **Important:** AR is restricted to **Landscape (Horizontal)** mode to ensure better field of view and stability.
 

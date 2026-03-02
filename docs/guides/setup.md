@@ -18,7 +18,7 @@ Welcome to the Circuit Copilot development team. This guide will help you get yo
    ```
 
 2. **Environment Configuration:**
-   Copy `.env.example` to `.env.development` in Each service folder under `apps/server/` and `apps/mobile/`.
+   Copy `.env.example` to `.env` in `apps/mobile/` and each service folder under `apps/server/` (e.g., `auth`, `geo`, `social`, `gateway`).
 
 3. **Start Infrastructure:**
    ```bash
@@ -35,6 +35,7 @@ Welcome to the Circuit Copilot development team. This guide will help you get yo
    ```bash
    npm run dev
    ```
+   This command starts the API Gateway and the Mobile Metro bundler simultaneously.
 
 ## Mobile Development (Custom Builds)
 

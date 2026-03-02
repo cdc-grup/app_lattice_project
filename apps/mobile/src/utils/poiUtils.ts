@@ -21,6 +21,8 @@ const CATEGORY_MAP: Record<string, CategoryMetadata> = {
   meetup_point: { icon: 'users', color: '#5AC8FA', label: 'Meetup Point' }, // Apple Sky Blue
 };
 
+export const DIRECT_ACCESS_CATEGORIES = ['gate', 'grandstand', 'parking'];
+
 const DEFAULT_METADATA: CategoryMetadata = {
   icon: 'map-pin',
   color: '#8E8E93',

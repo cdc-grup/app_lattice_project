@@ -1,53 +1,13 @@
-import 'dotenv/config';
 import { db, pool } from './index';
-import { users, pointsOfInterest } from './schema';
+import { pointsOfInterest } from './schema';
 import { sql } from 'drizzle-orm';
+import { seedCommon } from './seed-common';
 
 async function seed() {
-  console.log('Seeding database...');
+  console.log('Seeding database (Montmeló)...');
 
-  // 1. Seed a test user
-  const [testUser] = await db
-    .insert(users)
-    .values({
-      email: 'kore@example.com',
-      passwordHash: 'password123', // Updated for easier testing
-      fullName: 'Kore User',
-      mobilityMode: 'standard',
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  if (testUser) {
-    console.log('Created test user:', testUser.email);
-  } else {
-    console.log('Test user already exists.');
-  }
-
-  // Seeding additional tester accounts for QR flow
-  const testerEmails = [
-    'tester_circuitvip2026@example.com',
-    'tester_circuitg2026@example.com'
-  ];
-
-  for (const email of testerEmails) {
-    await db
-      .insert(users)
-      .values({
-        email,
-        passwordHash: 'password123',
-        fullName: email.split('@')[0],
-        hasTicket: true,
-      })
-      .onConflictDoUpdate({
-        target: users.email,
-        set: { 
-          passwordHash: 'password123',
-          fullName: email.split('@')[0]
-        }
-      });
-    console.log(`Ensured tester account exists and is updated: ${email}`);
-  }
+  // 1. Seed common data (users, profiles)
+  await seedCommon(db);
 
   // 2. We skip clearing POIs to preserve any manual changes or telemetry data
   // await db.delete(pointsOfInterest);

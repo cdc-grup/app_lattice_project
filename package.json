@@ -11,8 +11,9 @@
     "test": "turbo test --filter=!//",
     "generate": "turbo run generate --filter=!//",
     "migrate": "turbo run migrate --filter=!//",
-    "seed": "turbo run seed --filter=!//",
+    "seed:montmelo": "turbo run seed:montmelo --filter=!//",
     "seed:pedralbes": "turbo run seed:pedralbes --filter=!//",
+    "db:clean": "turbo run db:clean --filter=!//",
     "studio": "turbo run studio --filter=!//",
     "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""

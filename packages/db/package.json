@@ -9,8 +9,9 @@
     "build": "tsc",
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
-    "seed": "tsx src/seed.ts",
+    "seed:montmelo": "tsx src/seed-montmelo.ts",
     "seed:pedralbes": "tsx src/seed-pedralbes.ts",
+    "db:clean": "tsx src/db-clean.ts",
     "studio": "drizzle-kit studio",
     "check": "tsx src/check-db.ts",
     "qrs": "tsx src/generate-qrs.ts"

@@ -75,7 +75,7 @@ We have recently improved the maintainability of the mobile application:
 
 ## 🛠️ Technology Stack
 
-- **Frontend:** React Native via Expo (`apps/mobile`).
-- **Backend:** Node.js Microservices (`apps/server/*`).
+- **Frontend:** React Native via Expo (`apps/mobile`) with **React Three Fiber (R3F)** for Augmented Reality.
+- **Backend:** Node.js **Microservices** (`apps/server/*`) orchestrated via Docker.
 - **Shared:** Common types and logic (`packages/shared`).
-- **Infrastructure:** Postgres + PostGIS via Docker (`packages/db`).
+- **Infrastructure:** Postgres + PostGIS via Docker, with Redis for real-time telemetry.

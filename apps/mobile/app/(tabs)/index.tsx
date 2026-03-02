@@ -21,6 +21,7 @@ import { AROverlay } from '../../src/components/ar/AROverlay';
 import { Feather } from '@expo/vector-icons';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
+import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -103,7 +104,19 @@ function MapIndex() {
                   label={cat.label}
                   icon={cat.icon as any}
                   active={activeCategoryId === cat.id}
-                  onPress={() => setActiveCategoryId(prev => prev === cat.id ? null : cat.id)}
+                  onPress={() => {
+                    if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
+                      // Direct Access: Find and select immediately, don't filter
+                      const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
+                      if (poi) {
+                        selectPoi(poi.properties.id, poi.geometry.coordinates);
+                      }
+                    } else {
+                      // Filter: Toggle and deselect existing items
+                      setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
+                      deselect();
+                    }
+                  }}
                 />
               ))}
             </ScrollView>

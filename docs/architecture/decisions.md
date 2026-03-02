@@ -39,10 +39,10 @@ Utilized over standard JSON for WebSockets.
 Implemented as a secondary storage layer alongside Drizzle/PostgreSQL.
 - **Reasoning:** Critical for handling high-frequency real-time telemetry (GPS) and reducing database load during event peaks. Redis's in-memory nature allows sub-millisecond responses impossible with traditional SQL during massive concurrency.
 
-## 8. Augmented Reality Engine: ReactVision (ViroReact)
+## 8. Augmented Reality Engine: React Three Fiber (R3F)
 
-Chosen for location-based AR over `expo-three` or custom WebGL implementations.
-- **Reasoning:** Highest level of abstraction for ARKit/ARCore, native Expo Plugin support, and built-in handling of 3D scene graphs and coordinate systems. It allows focusing on business logic (GPS-to-AR conversion) rather than low-level rendering.
+Chosen for modern, cross-platform AR scenes over ViroReact or custom WebGL implementations.
+- **Reasoning:** Better performance with React Native's New Architecture, seamless integration with the Expo ecosystem, and a more robust ecosystem of components (`drei`, `cannon`) for high-fidelity 3D visualization.
 
 ---
 > These decisions form the foundation of our scalability strategy.

@@ -5,7 +5,7 @@ Circuit Copilot is a premium mobile application designed to enhance the spectato
 ## Technology Stack
 
 - **Mobile Framework:** Expo (React Native)
-  - **Environment:** Custom Development Builds (required for MMKV, Reanimated, Viro).
+  - **Environment:** Custom Development Builds (required for MMKV, Reanimated, R3F).
 - **Map Engine:** MapLibre GL (`@maplibre/maplibre-react-native`).
   - **Optimization:** SurfaceView for maximum GPU performance on Android.
 - **Augmented Reality:** React Three Fiber (R3F) for modern, cross-platform AR scenes.

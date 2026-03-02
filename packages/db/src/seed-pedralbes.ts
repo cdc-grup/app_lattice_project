@@ -1,9 +1,14 @@
-import 'dotenv/config';
 import { db, pool } from './index';
 import { pointsOfInterest } from './schema';
 import { sql } from 'drizzle-orm';
+import { seedCommon } from './seed-common';
 
 async function seedPedralbes() {
+  console.log('Seeding database (Pedralbes)...');
+
+  // 1. Seed common data (users, profiles)
+  await seedCommon(db);
+
   console.log('Seeding Pedralbes test POIs...');
 
   const pedralbesPois = [
