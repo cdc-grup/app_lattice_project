@@ -11,15 +11,17 @@ interface MapContentProps {
   userCoords: number[] | null;
   locationStatus: string;
   poisGeoJSON: any;
+  onDeselect?: () => void;
 }
 
 export const MapContent = React.memo(({ 
   userCoords, 
   locationStatus, 
-  poisGeoJSON 
+  poisGeoJSON,
+  onDeselect
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
-  const { selectedPoiId, selectedCoords, recenterCount, selectPoi, deselect } = useMapStore();
+  const { selectedPoiId, selectedCoords, recenterCount, selectPoi, deselect: storeDeselect } = useMapStore();
   const isSelectingMarker = useRef(false);
 
   // Handle recenter trigger from store
@@ -39,8 +41,12 @@ export const MapContent = React.memo(({
       isSelectingMarker.current = false;
       return;
     }
-    deselect();
-  }, [deselect]);
+    if (onDeselect) {
+      onDeselect();
+    } else {
+      storeDeselect();
+    }
+  }, [onDeselect, storeDeselect]);
 
   const onSourcePress = useCallback((event: any) => {
     const feature = event.features[0];

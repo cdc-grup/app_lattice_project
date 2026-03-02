@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -24,6 +25,11 @@ if (typeof ErrorUtils !== 'undefined') {
 export default function RootLayout() {
   const { loaded, error } = useAppFonts();
 
+  useEffect(() => {
+    console.log('[RootLayout] Mounted');
+    return () => console.log('[RootLayout] Unmounted');
+  }, []);
+
   if (!loaded && !error) {
     return null;
   }
@@ -32,7 +38,13 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(main)" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="scan" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
           <StatusBar style="light" />
         </QueryClientProvider>
       </SafeAreaProvider>

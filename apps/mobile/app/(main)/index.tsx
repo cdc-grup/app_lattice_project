@@ -6,6 +6,7 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
@@ -36,18 +37,51 @@ MapLibreGL.Logger.setLogCallback((log) => {
 const styles = StyleSheet.create({
   mapContainer: { flex: 1, backgroundColor: '#0A0A0A' },
   map: { flex: 1 },
-  overlay: { ...StyleSheet.absoluteFillObject },
+  overlay: { 
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 90,
+  },
   filtersContainer: { paddingHorizontal: 16 },
 });
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 function MapIndex() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   const { selectedPoiId, deselect, triggerRecenter, selectPoi } = useMapStore();
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   const { isVisible: isARVisible } = useCameraTilt();
+
+  // Animation State: Negative offsets from absolute bottom
+  const snapPoints = useMemo(() => ({
+    collapsed: -(insets.bottom + 85), // Handle (16) + SearchBar (44) + padding
+    half: -(insets.bottom + 160),      // Compact view for details
+    expanded: -(SCREEN_HEIGHT - insets.top),
+  }), [insets.bottom, insets.top]);
+
+  const translateY = useSharedValue(snapPoints.collapsed);
+
+  const scrollTo = useCallback((destination: number) => {
+    translateY.value = withSpring(destination, { damping: 20, stiffness: 90 });
+  }, [translateY]);
+
+  // Auto-snap when POI selection changes
+  React.useEffect(() => {
+    if (selectedPoiId) {
+      scrollTo(snapPoints.half);
+    } else {
+      scrollTo(snapPoints.collapsed);
+    }
+  }, [selectedPoiId, scrollTo, snapPoints]);
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -72,20 +106,26 @@ function MapIndex() {
     triggerRecenter();
   }, [requestPermission, triggerRecenter]);
 
+  // Sync Recenter Button with Bottom Sheet
+  const rRecenterButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: translateY.value }],
+    };
+  });
 
   return (
-    <View className="flex-1 bg-black">
-      <View style={styles.mapContainer}>
+    <View className="flex-1 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
+      {/* Map Content (Full Screen) */}
+      <View style={StyleSheet.absoluteFill}>
         <MapContent 
           userCoords={userCoords}
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
+          onDeselect={deselect}
         />
         <AROverlay 
           isVisible={isARVisible} 
-          onExitAR={() => {
-            console.log('User requested AR exit');
-          }}
+          onExitAR={() => {}}
         />
         {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
@@ -94,63 +134,77 @@ function MapIndex() {
         )}
       </View>
 
-      {/* Map Controls (Floating) */}
-      <View pointerEvents="box-none" style={[styles.overlay, { paddingBottom: 120 }]}>
-        <View className="flex-1" />
-        <View pointerEvents="auto" className="items-end px-4 mb-3">
+      {/* Floating Recenter Button (Synced) */}
+      {/* Anchor at 0 (bottom of screen) - translateY will lift it */}
+      <Animated.View 
+        pointerEvents="box-none" 
+        style={[
+          styles.overlay, 
+          { bottom: 0 }, 
+          rRecenterButtonStyle
+        ]}
+      >
+        <View pointerEvents="auto" className="items-end px-4 mb-4">
           <Pressable 
             onPress={handleRecenter}
-            className="w-12 h-12 items-center justify-center rounded-full active:opacity-70 bg-black/80 border border-white/10"
+            className="w-12 h-12 items-center justify-center rounded-full active:opacity-70 bg-black/60 border border-white/5 shadow-lg"
           >
             <Feather name="navigation" size={24} color="white" />
           </Pressable>
         </View>
-      </View>
+      </Animated.View>
 
-      {/* Apple/Waze Style Bottom Sheet */}
+      {/* Re-architected Transparent Bottom Sheet */}
       <MapBottomSheet 
-        header={
-          <SearchBar onArPress={() => router.push('/(main)/profile')} />
-        }
+        translateY={translateY}
+        snapPoints={snapPoints}
       >
-        <View className="mt-2">
-          <Text className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-4 ml-1">Quick Access</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            className="flex-row"
-          >
-            {categories?.map((cat) => (
-              <FilterChip
-                key={cat.id}
-                label={cat.label}
-                icon={cat.icon as any}
-                active={activeCategoryId === cat.id}
-                onPress={() => {
-                  if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
-                    const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
-                    if (poi) {
-                      selectPoi(poi.properties.id, poi.geometry.coordinates);
+        {/* Unified vertical flow for precise spacing */}
+        <View className="px-4">
+          {/* SearchBar */}
+          <SearchBar onArPress={() => router.push('/(main)/profile')} />
+          
+          {/* Filters */}
+          <View className="mt-2">
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              className="flex-row"
+              contentContainerStyle={{ paddingRight: 20 }}
+            >
+              {categories?.map((cat) => (
+                <FilterChip
+                  key={cat.id}
+                  label={cat.label}
+                  icon={cat.icon as any}
+                  active={activeCategoryId === cat.id}
+                  onPress={() => {
+                    if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
+                      const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
+                      if (poi) {
+                        selectPoi(poi.properties.id, poi.geometry.coordinates);
+                      }
+                    } else {
+                      setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
+                      deselect();
                     }
-                  } else {
-                    setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
-                    deselect();
-                  }
-                }}
-              />
-            ))}
-          </ScrollView>
-        </View>
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
 
-        {/* Selected POI Details inside the sheet */}
-        {selectedPoi && (
-          <Animated.View entering={FadeInDown} className="mt-8">
-            <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
-          </Animated.View>
-        )}
+          {/* Details Card */}
+          {selectedPoi && (
+            <Animated.View entering={FadeInDown} className="mt-2">
+              <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
+            </Animated.View>
+          )}
+        </View>
       </MapBottomSheet>
     </View>
   );
 }
+
 
 export default MapIndex;

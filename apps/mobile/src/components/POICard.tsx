@@ -58,14 +58,6 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect, noFloat
           ) : null}
         </View>
 
-        <Pressable
-          onPress={onClose}
-          className="w-8 h-8 items-center justify-center rounded-full active:opacity-70"
-          style={styles.closeButton}
-          accessibilityLabel="Close POI details"
-        >
-          <Feather name="x" size={20} color={colors.muted} />
-        </Pressable>
       </View>
 
       {showImages && poi.images ? <POIImageGallery images={poi.images} /> : null}

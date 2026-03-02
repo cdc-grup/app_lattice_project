@@ -49,7 +49,7 @@ export default function WelcomeScreen() {
         if (response.requires_setup) {
           router.push('/(auth)/register');
         } else {
-          router.replace('/(tabs)');
+          router.replace('/(main)');
         }
       },
       onError: (error: any) => {
