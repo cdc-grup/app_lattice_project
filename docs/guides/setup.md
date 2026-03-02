@@ -27,8 +27,11 @@ Welcome to the Circuit Copilot development team. This guide will help you get yo
 
 4. **Prepare Database:**
    ```bash
-   npm run migrate
-   npm run seed:pedralbes # Feed testing POIs
+   npm run db:migrate
+   npm run db:clean          # Optional: Start with a fresh DB
+   npm run db:seed-montmelo  # Feed Montmeló POIs (Standard)
+   # OR
+   npm run db:seed-pedralbes # Feed Pedralbes POIs (Testing)
    ```
 
 5. **Run Development Server:**

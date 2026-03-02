@@ -7,14 +7,14 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
-    "generate": "drizzle-kit generate",
-    "migrate": "tsx src/migrate.ts",
-    "seed:montmelo": "tsx src/seed-montmelo.ts",
-    "seed:pedralbes": "tsx src/seed-pedralbes.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:seed-montmelo": "tsx src/seed-montmelo.ts",
+    "db:seed-pedralbes": "tsx src/seed-pedralbes.ts",
     "db:clean": "tsx src/db-clean.ts",
-    "studio": "drizzle-kit studio",
-    "check": "tsx src/check-db.ts",
-    "qrs": "tsx src/generate-qrs.ts"
+    "db:studio": "drizzle-kit studio",
+    "db:check": "tsx src/check-db.ts",
+    "db:qrs": "tsx src/generate-qrs.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

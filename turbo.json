@@ -13,20 +13,23 @@
       "cache": false,
       "persistent": true
     },
-    "generate": {
+    "db:generate": {
       "cache": false
     },
-    "migrate": {
+    "db:migrate": {
       "cache": false,
       "dependsOn": ["build"]
     },
-    "seed": {
+    "db:seed-montmelo": {
       "cache": false
     },
-    "seed:pedralbes": {
+    "db:seed-pedralbes": {
       "cache": false
     },
-    "studio": {
+    "db:clean": {
+      "cache": false
+    },
+    "db:studio": {
       "cache": false,
       "persistent": true
     }

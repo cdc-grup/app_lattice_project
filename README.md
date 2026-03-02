@@ -43,6 +43,9 @@ You can manage the entire project directly from the root of the monorepo:
 | `npm run lint`           | Runs the linter across the entire project.                  |
 | `npm run test`           | Runs unit and integration tests.                            |
 | `npm run format`         | Formats code across the entire project with Prettier.       |
+| `npm run db:clean`       | Resets all database tables across the monorepo.             |
+| `npm run db:seed-montmelo` | Populates the database with Montmeló circuit data.          |
+| `npm run db:seed-pedralbes` | Populates the database with Pedralbes test data.            |
 | `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
 
 ## 🧪 Testing Infrastructure
@@ -69,9 +72,12 @@ We have recently improved the maintainability of the mobile application:
 > [!CAUTION]
 > Use `migrate` with caution in production environments.
 
-- `npm run generate`: Generates Drizzle migration files based on the schema.
-- `npm run migrate`: Applies pending migrations to the database.
-- `npm run studio`: Opens the Drizzle visual interface to explore data.
+- `npm run db:generate`: Generates Drizzle migration files based on the schema.
+- `npm run db:migrate`: Applies pending migrations to the database.
+- `npm run db:clean`: Safely truncates all tables for environment reset.
+- `npm run db:seed-montmelo`: Seeds the database for the Montmeló circuit.
+- `npm run db:seed-pedralbes`: Seeds the database for the Pedralbes test environment.
+- `npm run db:studio`: Opens the Drizzle visual interface to explore data.
 
 ## 🛠️ Technology Stack
 

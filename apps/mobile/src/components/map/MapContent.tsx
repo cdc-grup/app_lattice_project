@@ -22,24 +22,12 @@ export const MapContent = React.memo(({
   const { selectedPoiId, selectedCoords, recenterCount, selectPoi, deselect } = useMapStore();
   const isSelectingMarker = useRef(false);
 
-  // Handle camera animations when selection changes
-  useEffect(() => {
-    if (selectedCoords && camera.current) {
-      camera.current.setCamera({
-        centerCoordinate: selectedCoords,
-        zoomLevel: 17,
-        animationDuration: 1200,
-        animationMode: 'flyTo',
-      });
-    }
-  }, [selectedCoords]);
-
   // Handle recenter trigger from store
   useEffect(() => {
     if (recenterCount > 0 && userCoords && camera.current) {
       camera.current.setCamera({
         centerCoordinate: userCoords,
-        zoomLevel: 15,
+        zoomLevel: 18,
         animationDuration: 1000,
         animationMode: 'flyTo',
       });
