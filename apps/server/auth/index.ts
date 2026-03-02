@@ -368,7 +368,7 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
   }
 });
 
-app.patch('/users/me', async (req: Request, res: Response) => {
+app.patch('/auth/me', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -398,7 +398,7 @@ app.patch('/users/me', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/users/me', async (req: Request, res: Response) => {
+app.get('/auth/me', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
     return res.status(401).json({ error: 'Unauthorized' });

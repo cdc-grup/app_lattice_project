@@ -101,18 +101,7 @@ export default function ProfileScreen() {
           
           <View className="flex-row gap-x-3 mt-6">
             <Pressable 
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setShowWizard(true);
-              }}
-              className="bg-primary/10 border border-primary/20 py-3 px-6 rounded-full active:opacity-70 flex-row items-center"
-            >
-              <Feather name="settings" size={18} color={colors.primary} />
-              <Text className="text-primary font-bold text-base ml-2">Preferencias</Text>
-            </Pressable>
-            
-            <Pressable 
-              className="bg-white/5 border border-white/10 py-3 px-6 rounded-full active:opacity-70"
+              className="bg-primary py-3 px-8 rounded-full active:opacity-90"
             >
               <Text className="text-white font-bold text-base">Editar Perfil</Text>
             </Pressable>
@@ -166,34 +155,18 @@ export default function ProfileScreen() {
             />
 
             <View className="px-5 py-3 bg-black/20">
-              <Text className="text-muted text-xs font-bold uppercase tracking-wider">Preferencias de Ruta</Text>
+              <Text className="text-muted text-xs font-bold uppercase tracking-wider">Preferencias de cuenta</Text>
             </View>
 
             <SettingItem 
-              label="Evitar Escaleras"
-              icon="chevron-up"
-              type="toggle"
-              value={avoidStairs}
-              onValueChange={(val) => handleToggle('avoidStairs', val)}
-              iconBgColor="rgba(255, 255, 255, 0.1)"
-            />
-
-            <SettingItem 
-              label="Evitar Graderías"
-              icon="layers"
-              type="toggle"
-              value={avoidGrandstands}
-              onValueChange={(val) => handleToggle('avoidGrandstands', val)}
-              iconBgColor="rgba(255, 255, 255, 0.1)"
-            />
-
-            <SettingItem 
-              label="Evitar Pendientes"
-              icon="trending-up"
-              type="toggle"
-              value={avoidSlopes}
-              onValueChange={(val) => handleToggle('avoidSlopes', val)}
-              iconBgColor="rgba(255, 255, 255, 0.1)"
+              label="Configurar Preferencias"
+              icon="settings"
+              secondaryText="Ajustar rutas y accesibilidad"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setShowWizard(true);
+              }}
+              iconBgColor="rgba(255, 59, 48, 0.1)"
             />
 
             <SettingItem 
@@ -202,10 +175,6 @@ export default function ProfileScreen() {
               iconBgColor="rgba(255, 255, 255, 0.1)"
               onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
             />
-            
-            <View className="px-5 py-3 bg-black/20">
-              <Text className="text-muted text-xs font-bold uppercase tracking-wider">Cuenta</Text>
-            </View>
 
             <SettingItem 
               label="Cerrar sesión"

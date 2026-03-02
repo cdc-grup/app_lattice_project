@@ -38,8 +38,8 @@ wait_for_url() {
 
     echo "⏳ Waiting for $name URL to appear in $log_file..." >&2
     while [ $attempt -le $max_attempts ]; do
-        # Use a more permissive regex and handle potential escaping/JSON
-        url=$(grep -oE "https://[a-zA-Z0-9\.-]+\.share\.zrok\.io" "$log_file" | head -n 1)
+        # Only grep for valid-looking random character URLs, avoid generic "error" strings
+        url=$(grep -oE "https://[a-zA-Z0-9]{12}\.share\.zrok\.io" "$log_file" | head -n 1)
         if [ -n "$url" ]; then
             echo "$url"
             return 0
@@ -47,7 +47,9 @@ wait_for_url() {
         
         # Check if zrok process is still running
         if ! pgrep -f "zrok share public" > /dev/null; then
-            echo "❌ zrok process for $name died prematurely. Check $log_file" >&2
+            # Check for explicit errors in log
+            local err_msg=$(grep -i "error" "$log_file" | tail -n 1)
+            echo "❌ zrok process for $name died. Error: $err_msg" >&2
             return 1
         fi
         
@@ -80,7 +82,10 @@ METRO_URL=$(wait_for_url "$SCRIPT_DIR/metro_zrok.log" "Metro")
 if [ $? -ne 0 ]; then
     cleanup
 fi
-echo "✅ Metro Tunnel: $METRO_URL"
+if [ -z "$API_URL" ] || [ -z "$METRO_URL" ]; then
+    echo "❌ Failed to retrieve one or more tunnel URLs. Aborting."
+    cleanup
+fi
 
 # Update .env file
 echo "📝 Updating $ENV_FILE with new API URL..."
