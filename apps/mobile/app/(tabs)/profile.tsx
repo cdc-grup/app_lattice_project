@@ -128,35 +128,29 @@ export default function ProfileScreen() {
             />
 
             <SettingItem 
-              label={user?.hasTicket ? 'Entrada Activa ✓' : 'Vincular Entrada'}
+              label="Vincular Entrada"
               icon="maximize"
               onPress={() => {
-                if (user && !user.hasTicket) {
-                  Alert.alert(
-                    "Vincular Entrada",
-                    "Elige un método para vincular tu entrada",
-                    [
-                      { text: "Escanear QR", onPress: () => router.push('/scan' as any) },
-                      {
-                        text: "Simular Escaneo",
-                        onPress: async () => {
-                          const ticketToClaim = (tickets && tickets.some(t => t.code === 'CIRCUIT-G-2026')) ? 'CIRCUIT-EXTRA-VIP' : 'CIRCUIT-G-2026';
-                          const success = await useAuthStore.getState().claimTicket(ticketToClaim);
-                          if (success) {
-                            Alert.alert('Éxito', `Entrada ${ticketToClaim} vinculada correctamente!`);
-                          } else {
-                            Alert.alert('Error', 'No se ha podido vincular la entrada. Asegúrate de que el código existe en la BD.');
-                          }
+                Alert.alert(
+                  "Vincular Entrada",
+                  "Elige un método para vincular tu entrada",
+                  [
+                    { text: "Escanear QR", onPress: () => router.push('/scan' as any) },
+                    {
+                      text: "Simular Escaneo",
+                      onPress: async () => {
+                        const ticketToClaim = (tickets && tickets.some(t => t.code === 'CIRCUIT-G-2026')) ? 'CIRCUIT-EXTRA-VIP' : 'CIRCUIT-G-2026';
+                        const success = await useAuthStore.getState().claimTicket(ticketToClaim);
+                        if (success) {
+                          Alert.alert('Éxito', `Entrada ${ticketToClaim} vinculada correctamente!`);
+                        } else {
+                          Alert.alert('Error', 'No se ha podido vincular la entrada. Asegúrate de que el código existe en la BD.');
                         }
-                      },
-                      { text: "Cancelar", style: "cancel" }
-                    ]
-                  );
-                } else if (user?.hasTicket) {
-                  Alert.alert('Aviso', 'Ya tienes una entrada activa vinculada.');
-                } else {
-                  router.push('/scan' as any);
-                }
+                      }
+                    },
+                    { text: "Cancelar", style: "cancel" }
+                  ]
+                );
               }}
             />
 

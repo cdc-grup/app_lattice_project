@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMMKV } from 'react-native-mmkv';
 import { User, Ticket } from '../types/models/auth';
 import { authService } from '../services/authService';
+import { apiClient } from '../services/apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 const storage = createMMKV();
 
@@ -86,9 +88,17 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
     }
 
     try {
-      const ticket = await authService.claimTicket(finalCode, token ?? undefined);
-      if (ticket) {
-        setTicket(ticket);
+      const response = await apiClient.post<{ ticket_info: Ticket, tickets?: Ticket[] }>(
+        API_ENDPOINTS.AUTH.TICKET_CLAIM, 
+        { ticket_code: finalCode },
+        token ?? undefined
+      );
+
+      if (response.ticket_info) {
+        setTicket(response.ticket_info);
+        if (response.tickets) {
+          set({ tickets: response.tickets });
+        }
         set({ user: { ...get().user!, hasTicket: true } }); // Update User State
         setPendingTicketCode(null);
         return true;

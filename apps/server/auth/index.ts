@@ -215,11 +215,28 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
     }
 
     if (ticket.userId) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+        const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+        const userId = parseInt(userIdStr, 10);
+        
+        // If it's the same user, we consider it a success (idempotency)
+        if (ticket.userId === userId) {
+          const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+          return res.json({
+            success: true,
+            message: "Ticket already associated with your account",
+            ticket_info: ticket,
+            tickets: userTickets
+          });
+        }
+      }
+
       return res.status(400).json({
         error: {
           code: "TICKET_ALREADY_CLAIMED",
           message: "Ticket is already claimed by another user",
-          user_friendly_message: "Aquesta entrada ja està associada a un usuari.",
+          user_friendly_message: "Aquesta entrada ja està associada a un altre usuari.",
           status: 400
         }
       });
@@ -246,10 +263,14 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
       await db.update(tickets).set({ userId }).where(eq(tickets.code, finalCode));
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, userId));
 
+      // Fetch all tickets for the user to return updated state
+      const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+
       return res.json({
         success: true,
         message: "Ticket claimed successfully",
-        ticket_info: ticket
+        ticket_info: ticket,
+        tickets: userTickets
       });
     } else {
       // User is not logged in / explicitly providing token
