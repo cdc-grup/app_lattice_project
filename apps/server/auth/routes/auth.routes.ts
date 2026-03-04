@@ -1,0 +1,20 @@
+import { Router } from 'express';
+import * as authController from '../controllers/auth.controller';
+import { authenticate } from '@app/core';
+
+const router = Router();
+
+// Public routes
+router.get('/health', authController.healthCheck);
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.post('/ticket-sync', authController.ticketSync);
+
+// Protected routes
+router.post('/ticket/claim', authenticate, authController.claimTicket);
+router.post('/ticket/unclaim', authenticate, authController.unclaimTicket);
+router.get('/tickets', authenticate, authController.getTickets);
+router.get('/me', authenticate, authController.getMe);
+router.patch('/me', authenticate, authController.updateMe);
+
+export default router;
