@@ -48,6 +48,16 @@ async function generateTestTickets() {
       isActive: true,
       createdAt: new Date(),
     },
+    {
+      code: 'CIRCUIT-G-2026-EXTRA',
+      ownerEmail: 'tester_circuitg2026@example.com',
+      gate: 'Gate 3',
+      zoneName: 'Grandstand G (Extra)',
+      seatRow: '15',
+      seatNumber: '43',
+      isActive: true,
+      createdAt: new Date(),
+    },
   ];
 
     for (const ticket of (testTickets as any[])) {
