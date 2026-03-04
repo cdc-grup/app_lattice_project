@@ -62,7 +62,7 @@ export default function LoginScreen() {
       syncTicket.mutate(payload, {
         onSuccess: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          router.replace('/(tabs)');
+          router.replace('/(main)');
         },
         onError: (error: any) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -80,7 +80,7 @@ export default function LoginScreen() {
         {
           onSuccess: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            router.replace('/(tabs)');
+            router.replace('/(main)');
           },
           onError: (error: any) => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -120,7 +120,7 @@ export default function LoginScreen() {
       setTicketId(data); // Display whatever string we scanned for visual feedback
       syncTicket.mutate(data, {
         onSuccess: () => {
-          router.replace('/(tabs)');
+          router.replace('/(main)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);
@@ -142,7 +142,7 @@ export default function LoginScreen() {
       setTicketId('CIRCUIT25 (Mock)');
       syncTicket.mutate(mockPayload, {
         onSuccess: () => {
-          router.replace('/(tabs)');
+          router.replace('/(main)');
         },
         onError: (error: any) => {
           Alert.alert('Sync Failed', error.message);

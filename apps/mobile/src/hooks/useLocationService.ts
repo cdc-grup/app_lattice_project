@@ -25,13 +25,12 @@ export const useLocationService = (): LocationState => {
         try {
           // 1. Try to get last known position first (fastest)
           try {
-            const lastKnown = await Location.getLastKnownPositionAsync();
+            const lastKnown = await Location.getLastKnownPositionAsync().catch(() => null);
             if (lastKnown) {
               setUserCoords([lastKnown.coords.longitude, lastKnown.coords.latitude]);
             }
           } catch (e) {
             // Silently handle if last location is unavailable
-            console.debug('Last known location unavailable');
           }
 
           // 2. Try to get current position (forces a refresh)

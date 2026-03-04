@@ -39,7 +39,7 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     if (token) {
-      router.replace('/(tabs)');
+      router.replace('/(main)');
     }
   }, [token, router]);
 

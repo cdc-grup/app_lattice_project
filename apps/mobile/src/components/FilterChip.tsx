@@ -17,7 +17,7 @@ export const FilterChip = React.memo(({ label, icon, active = false, onPress }: 
     <Pressable
       onPress={onPress}
       testID="filter-chip"
-      className={`flex-row items-center px-4 h-9 rounded-full mr-3 border active:opacity-70 ${
+      className={`flex-row items-center px-4 h-8 rounded-full mr-3 border active:opacity-70 ${
         active ? 'bg-primary border-primary' : 'border-transparent'
       }`}
       style={[

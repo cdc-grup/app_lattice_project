@@ -17,8 +17,9 @@ export default function Index() {
 
   useEffect(() => {
     if (isReady) {
+      console.log('[Index] Ready to redirect, token present:', !!token);
       if (token) {
-        router.replace('/(tabs)');
+        router.replace('/(main)');
       } else {
         router.replace('/(auth)/welcome');
       }

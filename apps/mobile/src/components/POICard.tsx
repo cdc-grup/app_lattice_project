@@ -14,9 +14,10 @@ interface POICardProps {
   onClose: () => void;
   onNavigate: () => void;
   onSelect: (id: number, coords: number[]) => void;
+  noFloat?: boolean;
 }
 
-export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICardProps) => {
+export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect, noFloat }: POICardProps) => {
   if (!poi) return null;
 
   const metadata = getCategoryMetadata(poi.category);
@@ -25,8 +26,8 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
   return (
     <Pressable
       onPress={() => onSelect(poi.id, poi.geometry.coordinates)}
-      className="mx-4 mb-4 rounded-3xl p-4 border border-white/10 shadow-2xl active:opacity-90"
-      style={styles.card}
+      className={`rounded-3xl p-4 border border-white/10 shadow-2xl active:opacity-90 ${noFloat ? 'mb-4' : 'mx-4 mb-4'}`}
+      style={[styles.card, !noFloat && styles.floating]}
       accessibilityLabel={`Point of interest: ${poi.name}`}
       accessibilityRole="button"
     >
@@ -57,14 +58,6 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
           ) : null}
         </View>
 
-        <Pressable
-          onPress={onClose}
-          className="w-8 h-8 items-center justify-center rounded-full active:opacity-70"
-          style={styles.closeButton}
-          accessibilityLabel="Close POI details"
-        >
-          <Feather name="x" size={20} color={colors.muted} />
-        </Pressable>
       </View>
 
       {showImages && poi.images ? <POIImageGallery images={poi.images} /> : null}
@@ -77,6 +70,13 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect }: POICa
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'rgba(28, 28, 30, 0.95)',
+  },
+  floating: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    zIndex: 50,
   },
   closeButton: {
     backgroundColor: theme.glass.low,
