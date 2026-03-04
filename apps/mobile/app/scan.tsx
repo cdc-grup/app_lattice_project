@@ -1,4 +1,4 @@
-import React from 'react';
+import { View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTicketScanner } from '../src/hooks/useTicketScanner';
 import { CameraPermissionView } from '../src/components/ui/CameraPermissionView';
@@ -15,20 +15,21 @@ export default function ScanScreen() {
   }
 
   return (
-    <CameraView
-      style={{ flex: 1 }}
-      facing="back"
-      onBarcodeScanned={scanned ? undefined : ({ data }) => handleBarCodeScanned(data)}
-      barcodeScannerSettings={{
-        barcodeTypes: ["qr"],
-      }}
-    >
+    <View style={{ flex: 1 }}>
+      <CameraView
+        style={{ flex: 1 }}
+        facing="back"
+        onBarcodeScanned={scanned ? undefined : ({ data }) => handleBarCodeScanned(data)}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr"],
+        }}
+      />
       <ScanOverlay 
         isProcessing={isProcessing} 
         scanned={scanned} 
         onReset={resetScanner} 
       />
-    </CameraView>
+    </View>
   );
 }
 

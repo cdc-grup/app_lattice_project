@@ -3,6 +3,10 @@ export interface User {
   email: string;
   fullName: string;
   hasTicket?: boolean;
+  avoidStairs?: boolean;
+  avoidCrowds?: boolean;
+  avoidSlopes?: boolean;
+  avoidGrandstands?: boolean;
 }
 
 export interface Ticket {
@@ -10,4 +14,8 @@ export interface Ticket {
   code: string;
   zoneName: string;
   gate: string;
+  seatRow?: string;
+  seatNumber?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }

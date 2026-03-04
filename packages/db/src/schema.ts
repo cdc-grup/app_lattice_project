@@ -58,6 +58,7 @@ export const users = pgTable('users', {
   avoidStairs: boolean('avoid_stairs').default(false),
   avoidCrowds: boolean('avoid_crowds').default(false),
   avoidSlopes: boolean('avoid_slopes').default(false),
+  avoidGrandstands: boolean('avoid_grandstands').default(false),
   hasTicket: boolean('has_ticket').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -65,9 +66,9 @@ export const users = pgTable('users', {
 export const tickets = pgTable('tickets', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
-    .references(() => users.id)
-    .notNull(),
+    .references(() => users.id),
   code: varchar('code').unique(),
+  ownerEmail: varchar('owner_email'),
   gate: varchar('gate'),
   zoneName: varchar('zone_name'),
   seatRow: varchar('seat_row'),

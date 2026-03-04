@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMMKV } from 'react-native-mmkv';
 import { User, Ticket } from '../types/models/auth';
 import { authService } from '../services/authService';
+import { apiClient } from '../services/apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 const storage = createMMKV();
 
@@ -21,13 +23,15 @@ interface AuthState {
   isGuest: boolean; // True if logged in via Ticket Sync only
   registrationRequired: boolean; // True if ticket sync found an account with no password
   prefilledEmail: string | null;
-  setAuth: (token: string, user: User, isGuest?: boolean) => void;
+  setAuth: (token: string, user: User, tickets?: Ticket[], isGuest?: boolean) => void;
   setTicket: (ticket: Ticket) => void;
   addTicketToWallet: (ticket: Ticket) => void;
+  syncTickets: () => Promise<void>;
   setPendingTicketCode: (code: string | null) => void;
   setRegistrationRequired: (required: boolean, email?: string | null) => void;
   clearRegistrationData: () => void;
   claimTicket: (ticketCode: string) => Promise<boolean>;
+  unclaimTicket: (ticketCode: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -40,27 +44,62 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
   isGuest: false,
   registrationRequired: false,
   prefilledEmail: null,
-  setAuth: (token, user, isGuest = false) => set({ token, user, isGuest, registrationRequired: false, prefilledEmail: null }),
+  setAuth: (token, user, tickets, isGuest = false) => 
+    set((state) => ({ 
+      token, 
+      user, 
+      tickets: tickets ?? state.tickets ?? [], 
+      isGuest, 
+      registrationRequired: false, 
+      prefilledEmail: null 
+    })),
   setTicket: (ticket) => set((state) => ({ 
     activeTicket: ticket,
-    tickets: state.tickets.some(t => t.code === ticket.code) 
-      ? state.tickets 
-      : [...state.tickets, ticket]
+    tickets: (state.tickets || []).some(t => t.code === ticket.code) 
+      ? (state.tickets || [])
+      : [...(state.tickets || []), ticket]
   })),
   addTicketToWallet: (ticket) => set((state) => ({
-    tickets: state.tickets.some(t => t.code === ticket.code) 
-      ? state.tickets 
-      : [...state.tickets, ticket]
+    tickets: (state.tickets || []).some(t => t.code === ticket.code) 
+      ? (state.tickets || [])
+      : [...(state.tickets || []), ticket]
   })),
+  syncTickets: async () => {
+    const { token } = get();
+    if (!token) return;
+    try {
+      const tickets = await authService.getUserTickets(token);
+      set({ tickets });
+    } catch (error) {
+      console.error('Error syncing tickets:', error);
+    }
+  },
   setPendingTicketCode: (code) => set({ pendingTicketCode: code }),
   setRegistrationRequired: (required, email = null) => set({ registrationRequired: required, prefilledEmail: email }),
   clearRegistrationData: () => set({ registrationRequired: false, prefilledEmail: null, pendingTicketCode: null }),
   claimTicket: async (ticketCode: string) => {
     const { token, setTicket, setPendingTicketCode } = get();
+    
+    let finalCode = ticketCode;
     try {
-      const ticket = await authService.claimTicket(ticketCode, token ?? undefined);
-      if (ticket) {
-        setTicket(ticket);
+      const parsed = JSON.parse(ticketCode);
+      if (parsed.code) finalCode = parsed.code;
+    } catch (e) {
+      // Use raw code
+    }
+
+    try {
+      const response = await apiClient.post<{ ticket_info: Ticket, tickets?: Ticket[] }>(
+        API_ENDPOINTS.AUTH.TICKET_CLAIM, 
+        { ticket_code: finalCode },
+        token ?? undefined
+      );
+
+      if (response.ticket_info) {
+        setTicket(response.ticket_info);
+        if (response.tickets) {
+          set({ tickets: response.tickets });
+        }
         set({ user: { ...get().user!, hasTicket: true } }); // Update User State
         setPendingTicketCode(null);
         return true;
@@ -68,6 +107,22 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
       return false;
     } catch (error) {
       console.error('Error claiming ticket:', error);
+      return false;
+    }
+  },
+  unclaimTicket: async (ticketCode: string) => {
+    const { token } = get();
+    if (!token) return false;
+    try {
+      const response = await authService.unclaimTicket(ticketCode, token);
+      set({ 
+        tickets: response.tickets,
+        activeTicket: response.tickets.length > 0 ? response.tickets[0] : null,
+        user: get().user ? { ...get().user!, hasTicket: response.tickets.length > 0 } : null
+      });
+      return true;
+    } catch (error) {
+      console.error('Error unclaiming ticket:', error);
       return false;
     }
   },

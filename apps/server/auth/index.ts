@@ -100,6 +100,9 @@ app.post('/auth/register', async (req: Request, res: Response) => {
       await db.update(tickets).set({ userId: newUser[0].id }).where(eq(tickets.code, ticket_code));
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, newUser[0].id));
+
     res.status(201).json({
       user: {
         id: newUser[0].id,
@@ -108,6 +111,7 @@ app.post('/auth/register', async (req: Request, res: Response) => {
         hasTicket: newUser[0].hasTicket,
       },
       token: `mock_jwt_token_for_${newUser[0].id}`,
+      tickets: userTickets,
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -152,6 +156,9 @@ app.post('/auth/login', async (req: Request, res: Response) => {
       hasTicket = true;
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, user.id));
+
     res.json({
       user: {
         id: user.id,
@@ -160,6 +167,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
         hasTicket,
       },
       token: `mock_jwt_token_for_${user.id}`,
+      tickets: userTickets,
     });
   } catch (error) {
     console.error('Login Error:', error);
@@ -182,9 +190,17 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
     });
   }
 
+  let finalCode = ticket_code;
+  try {
+    const parsed = JSON.parse(ticket_code);
+    if (parsed.code) finalCode = parsed.code;
+  } catch (e) {
+    // Not JSON, use raw code
+  }
+
   try {
     // Find the ticket
-    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, ticket_code)).limit(1);
+    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, finalCode)).limit(1);
     const ticket = ticketResult[0];
 
     if (!ticket) {
@@ -199,11 +215,28 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
     }
 
     if (ticket.userId) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+        const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+        const userId = parseInt(userIdStr, 10);
+        
+        // If it's the same user, we consider it a success (idempotency)
+        if (ticket.userId === userId) {
+          const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+          return res.json({
+            success: true,
+            message: "Ticket already associated with your account",
+            ticket_info: ticket,
+            tickets: userTickets
+          });
+        }
+      }
+
       return res.status(400).json({
         error: {
           code: "TICKET_ALREADY_CLAIMED",
           message: "Ticket is already claimed by another user",
-          user_friendly_message: "Aquesta entrada ja està associada a un usuari.",
+          user_friendly_message: "Aquesta entrada ja està associada a un altre usuari.",
           status: 400
         }
       });
@@ -226,14 +259,35 @@ app.post('/auth/ticket/claim', async (req: Request, res: Response) => {
       const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
       const userId = parseInt(userIdStr, 10);
 
+      // Verify email if ticket has an ownerEmail
+      if (ticket.ownerEmail) {
+        const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        const user = userResult[0];
+
+        if (!user || user.email !== ticket.ownerEmail) {
+          return res.status(403).json({
+            error: {
+              code: "EMAIL_MISMATCH",
+              message: "This ticket belongs to another email address",
+              user_friendly_message: "Aquesta entrada pertany a un altre correu electrònic.",
+              status: 403
+            }
+          });
+        }
+      }
+
       // Claim ticket
-      await db.update(tickets).set({ userId }).where(eq(tickets.code, ticket_code));
+      await db.update(tickets).set({ userId }).where(eq(tickets.code, finalCode));
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, userId));
+
+      // Fetch all tickets for the user to return updated state
+      const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
 
       return res.json({
         success: true,
         message: "Ticket claimed successfully",
-        ticket_info: ticket
+        ticket_info: { ...ticket, userId },
+        tickets: userTickets
       });
     } else {
       // User is not logged in / explicitly providing token
@@ -344,6 +398,9 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       };
     }
 
+    // Fetch all tickets for the user
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, user.id));
+
     // 5. Return Full Session Response
     res.json({
       user: {
@@ -354,6 +411,7 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
       },
       token: `mock_jwt_token_for_${user.id}`,
       ticket_info: ticketInfo,
+      tickets: userTickets,
       requires_setup: user.passwordHash === 'auto_generated_pass',
     });
   } catch (error) {
@@ -368,17 +426,69 @@ app.post('/auth/ticket-sync', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/users/me', async (req: Request, res: Response) => {
-  // Mock Auth: Expect "Authorization: Bearer <user_id>" or just assume 'kore@example.com' if testing
+app.get('/auth/tickets', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
-  // In a real app we 'd verify JWT. Here we just take the token as if it were the ID or ignore it for the seed user.
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
+
+  try {
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+    res.json(userTickets);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+app.patch('/auth/me', async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
+  const { avoidStairs, avoidCrowds, avoidSlopes, avoidGrandstands, fullName } = req.body;
+
+  try {
+    const updatedUser = await db
+      .update(users)
+      .set({
+        avoidStairs: avoidStairs !== undefined ? avoidStairs : undefined,
+        avoidCrowds: avoidCrowds !== undefined ? avoidCrowds : undefined,
+        avoidSlopes: avoidSlopes !== undefined ? avoidSlopes : undefined,
+        avoidGrandstands: avoidGrandstands !== undefined ? avoidGrandstands : undefined,
+        fullName: fullName || undefined,
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    const { passwordHash, ...safeUser } = updatedUser[0];
+    res.json(safeUser);
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+});
+
+app.get('/auth/me', async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
+  const userId = parseInt(userIdStr, 10);
 
   try {
     const userResult = await db
       .select()
       .from(users)
-      .where(eq(users.email, 'kore@example.com'))
+      .where(eq(users.id, userId))
       .limit(1);
+    
     if (userResult.length > 0) {
       const { passwordHash, ...safeUser } = userResult[0];
       res.json(safeUser);
@@ -387,6 +497,118 @@ app.get('/users/me', async (req: Request, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ error: String(error) });
+  }
+});
+
+app.post('/auth/ticket/unclaim', async (req: Request, res: Response) => {
+  const { ticket_code } = req.body;
+  const authHeader = req.headers.authorization;
+
+  if (!ticket_code) {
+    return res.status(400).json({
+      error: {
+        code: "MISSING_CODE",
+        message: "Ticket code is required",
+        user_friendly_message: "Falta el codi del ticket.",
+        status: 400
+      }
+    });
+  }
+
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to unclaim a ticket",
+        user_friendly_message: "Sessió no vàlida.",
+        status: 401
+      }
+    });
+  }
+
+  const userId = parseInt(authHeader.replace('Bearer mock_jwt_token_for_', ''), 10);
+  
+  let finalCode = ticket_code;
+  try {
+    const parsed = JSON.parse(ticket_code);
+    if (parsed.code) finalCode = parsed.code;
+  } catch (e) {
+    // Use raw code
+  }
+
+  console.log(`[Auth] Unclaim Request: User=${userId}, Ticket=${finalCode}`);
+
+  try {
+    // Find the ticket
+    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, finalCode)).limit(1);
+    const ticket = ticketResult[0];
+
+    if (!ticket) {
+      console.log(`[Auth] Unclaim Error: Ticket ${finalCode} not found in DB`);
+      // If not in DB, we consider it "removed" for the user's perspective
+      const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+      return res.json({
+        success: true,
+        message: "Ticket removed (not found in DB)",
+        tickets: userTickets
+      });
+    }
+
+    console.log(`[Auth] Unclaim Debug: Ticket.userId=${ticket.userId} (${typeof ticket.userId}), Request.userId=${userId} (${typeof userId})`);
+
+    // If it's already null, it's already unclaimed. Return success.
+    if (ticket.userId === null) {
+      console.log(`[Auth] Unclaim Success: Ticket already unclaimed`);
+      const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+      return res.json({
+        success: true,
+        message: "Ticket already removed",
+        tickets: userTickets
+      });
+    }
+
+    // Verify ownership - only block if it belongs to SOMEONE ELSE
+    if (Number(ticket.userId) !== Number(userId)) {
+      console.log(`[Auth] Unclaim Forbidden: Ownership mismatch. Owned by ${ticket.userId}`);
+      return res.status(403).json({
+        error: {
+          code: "FORBIDDEN",
+          message: "You do not own this ticket",
+          user_friendly_message: "No pots eliminar una entrada que no t'atany.",
+          status: 403
+        }
+      });
+    }
+
+    // Unclaim
+    await db.update(tickets).set({ userId: null }).where(eq(tickets.code, finalCode));
+
+    // Get updated tickets list
+    const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
+    
+    // Update user.hasTicket if no tickets left
+    if (userTickets.length === 0) {
+      await db.update(users).set({ hasTicket: false }).where(eq(users.id, userId));
+    }
+
+    console.log(`[Auth] Unclaim Success: Ticket ${finalCode} removed from User ${userId}`);
+
+    return res.json({
+      success: true,
+      message: "Ticket removed successfully",
+      tickets: userTickets
+    });
+
+  } catch (error) {
+    console.error('Unclaim Error:', error);
+    res.status(500).json({ 
+      error: {
+        code: "SERVER_ERROR",
+        message: String(error),
+        user_friendly_message: "Error intern del servidor al eliminar l'entrada.",
+        status: 500
+      }
+    });
   }
 });
 
