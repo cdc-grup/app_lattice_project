@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     TICKET_SYNC: '/auth/ticket-sync',
     ME: '/auth/me',
     TICKET_WALLET: '/auth/tickets',
+    TICKET_UNCLAIM: '/auth/ticket/unclaim',
   },
   GEO: {
     POIS: '/pois',

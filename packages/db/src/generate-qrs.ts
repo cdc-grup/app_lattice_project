@@ -9,8 +9,8 @@ async function generateTestTickets() {
 
   const testTickets = [
     {
-      userId: 1,
       code: 'CIRCUIT-VIP-2026',
+      ownerEmail: 'kore@example.com',
       gate: 'Gate 1 (VIP)',
       zoneName: 'Paddock Club',
       seatRow: 'A',
@@ -19,8 +19,8 @@ async function generateTestTickets() {
       createdAt: new Date(),
     },
     {
-      userId: 1,
       code: 'CIRCUIT-G-2026',
+      ownerEmail: 'tester_circuitg2026@example.com',
       gate: 'Gate 3',
       zoneName: 'Grandstand G',
       seatRow: '15',
@@ -29,8 +29,8 @@ async function generateTestTickets() {
       createdAt: new Date(),
     },
     {
-      userId: 1,
       code: 'CIRCUIT-PLATINUM-2026',
+      ownerEmail: 'tester_circuitplatinum2026@example.com',
       gate: 'Gate 0',
       zoneName: 'Platinum Lounge',
       seatRow: '1',
@@ -39,9 +39,8 @@ async function generateTestTickets() {
       createdAt: new Date(),
     },
     {
-      userId: 1,
       code: 'CIRCUIT-EXTRA-VIP',
-      email: 'tester_circuitvip2026@example.com',
+      ownerEmail: 'tester_circuitvip2026@example.com',
       gate: 'Gate 1 (VIP)',
       zoneName: 'Paddock Club (Extra)',
       seatRow: 'B',
@@ -55,20 +54,28 @@ async function generateTestTickets() {
       // Create JSON Payload
       const payload = JSON.stringify({
         code: ticket.code,
-        email: ticket.email || `tester_${ticket.code.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com`
+        email: ticket.ownerEmail || ticket.email || `tester_${ticket.code.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com`
       });
 
       // Insert ticket into DB if it doesn't exist
       await db.insert(tickets).values({
-        userId: ticket.userId,
+        userId: null,
         code: ticket.code,
+        ownerEmail: ticket.ownerEmail,
         gate: ticket.gate,
         zoneName: ticket.zoneName,
         seatRow: ticket.seatRow,
         seatNumber: ticket.seatNumber,
         isActive: ticket.isActive,
         createdAt: ticket.createdAt,
-      }).onConflictDoNothing();
+      }).onConflictDoUpdate({
+        target: tickets.code,
+        set: { 
+          userId: null,
+          ownerEmail: ticket.ownerEmail,
+          gate: ticket.gate
+        }
+      });
       
       console.log(`\n================================`);
       console.log(`🎟️  ${ticket.zoneName} - ${ticket.code}`);

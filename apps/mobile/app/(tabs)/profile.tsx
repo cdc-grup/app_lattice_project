@@ -215,12 +215,9 @@ export default function ProfileScreen() {
             </View>
           </View>
           
-          <ScrollView 
-            contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
-            showsVerticalScrollIndicator={false}
-          >
+          <View className="flex-1 px-6">
             <WalletStack tickets={tickets} />
-          </ScrollView>
+          </View>
         </SafeAreaView>
       </Modal>
 

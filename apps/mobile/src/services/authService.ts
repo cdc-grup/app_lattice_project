@@ -33,4 +33,12 @@ export const authService = {
   getUserTickets: async (token: string): Promise<Ticket[]> => {
     return apiClient.get<Ticket[]>(API_ENDPOINTS.AUTH.TICKET_WALLET, undefined, token);
   },
+  
+  unclaimTicket: async (ticketCode: string, token: string): Promise<{ tickets: Ticket[] }> => {
+    return apiClient.post<{ tickets: Ticket[] }>(
+      API_ENDPOINTS.AUTH.TICKET_UNCLAIM,
+      { ticket_code: ticketCode },
+      token
+    );
+  },
 };

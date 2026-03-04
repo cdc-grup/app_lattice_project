@@ -16,4 +16,6 @@ export interface Ticket {
   gate: string;
   seatRow?: string;
   seatNumber?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }

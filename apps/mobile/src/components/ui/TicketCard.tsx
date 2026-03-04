@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Alert, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ticket } from '../../types/models/auth';
@@ -14,9 +14,10 @@ const CARD_HEIGHT = CARD_WIDTH * 1.5;
 interface TicketCardProps {
   ticket: Ticket;
   index?: number;
+  onCardPress?: () => void;
 }
 
-export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0 }) => {
+export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0, onCardPress }) => {
   // Select a color scheme based on the zone
   const isTribuna = ticket.zoneName?.toLowerCase().includes('tribuna');
   const gradientColors = isTribuna 
@@ -28,7 +29,12 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0 }) => 
       entering={FadeIn.delay(index * 100)}
       style={styles.cardContainer}
     >
-      <LinearGradient
+      <TouchableOpacity 
+        activeOpacity={0.9} 
+        onPress={onCardPress}
+        style={{ flex: 1 }}
+      >
+        <LinearGradient
         colors={gradientColors as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -40,7 +46,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0 }) => 
             <Text style={styles.brandTitle}>CIRCUIT</Text>
             <Text style={styles.brandSub}>COPILOT</Text>
           </View>
-          <MaterialCommunityIcons name="integrated-circuit-chip" size={32} color="rgba(255,255,255,0.8)" />
+          <View style={styles.headerRight}>
+            <MaterialCommunityIcons name="integrated-circuit-chip" size={32} color="rgba(255,255,255,0.8)" />
+          </View>
         </View>
 
         {/* Content */}
@@ -84,6 +92,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0 }) => 
         <View style={styles.decorCircle} />
         <View style={styles.decorStripe} />
       </LinearGradient>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -109,6 +118,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   brandTitle: {

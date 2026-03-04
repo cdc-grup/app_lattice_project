@@ -54,6 +54,7 @@ async function seed() {
   const testTickets = [
     {
       code: 'CIRCUIT-VIP-2026',
+      ownerEmail: 'kore@example.com',
       gate: 'Gate 1 (VIP)',
       zoneName: 'Paddock Club',
       seatRow: 'A',
@@ -63,6 +64,7 @@ async function seed() {
     },
     {
       code: 'CIRCUIT-G-2026',
+      ownerEmail: 'tester_circuitg2026@example.com',
       gate: 'Gate 3',
       zoneName: 'Grandstand G',
       seatRow: '15',
@@ -72,6 +74,7 @@ async function seed() {
     },
     {
       code: 'CIRCUIT-PLATINUM-2026',
+      ownerEmail: 'tester_circuitplatinum2026@example.com',
       gate: 'Gate 0',
       zoneName: 'Platinum Lounge',
       seatRow: '1',
@@ -81,7 +84,7 @@ async function seed() {
     },
     {
       code: 'CIRCUIT-EXTRA-VIP',
-      email: 'tester_circuitvip2026@example.com',
+      ownerEmail: 'tester_circuitvip2026@example.com',
       gate: 'Gate 1 (VIP)',
       zoneName: 'Paddock Club (Extra)',
       seatRow: 'B',

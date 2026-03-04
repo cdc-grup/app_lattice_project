@@ -31,6 +31,7 @@ interface AuthState {
   setRegistrationRequired: (required: boolean, email?: string | null) => void;
   clearRegistrationData: () => void;
   claimTicket: (ticketCode: string) => Promise<boolean>;
+  unclaimTicket: (ticketCode: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -106,6 +107,22 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
       return false;
     } catch (error) {
       console.error('Error claiming ticket:', error);
+      return false;
+    }
+  },
+  unclaimTicket: async (ticketCode: string) => {
+    const { token } = get();
+    if (!token) return false;
+    try {
+      const response = await authService.unclaimTicket(ticketCode, token);
+      set({ 
+        tickets: response.tickets,
+        activeTicket: response.tickets.length > 0 ? response.tickets[0] : null,
+        user: get().user ? { ...get().user!, hasTicket: response.tickets.length > 0 } : null
+      });
+      return true;
+    } catch (error) {
+      console.error('Error unclaiming ticket:', error);
       return false;
     }
   },

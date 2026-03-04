@@ -68,6 +68,7 @@ export const tickets = pgTable('tickets', {
   userId: integer('user_id')
     .references(() => users.id),
   code: varchar('code').unique(),
+  ownerEmail: varchar('owner_email'),
   gate: varchar('gate'),
   zoneName: varchar('zone_name'),
   seatRow: varchar('seat_row'),
