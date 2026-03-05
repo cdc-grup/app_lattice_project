@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { SearchBar } from '../../src/components/SearchBar';
-import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
@@ -25,6 +24,9 @@ import { Feather } from '@expo/vector-icons';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
+import { QuickActions } from '../../src/components/map/QuickActions';
+import { GuidesSection } from '../../src/components/map/GuidesSection';
+import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
 
 // Configure MapLibre
@@ -158,45 +160,30 @@ function MapIndex() {
           {/* SearchBar */}
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
           
-          {/* Filters */}
-          <View className="mt-2">
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              className="flex-row"
-              contentContainerStyle={{ paddingRight: 20 }}
-            >
-              {categories?.map((cat) => (
-                <FilterChip
-                  key={cat.id}
-                  label={cat.label}
-                  icon={cat.icon as any}
-                  active={activeCategoryId === cat.id}
-                  onPress={() => {
-                    if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
-                      const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
-                      if (poi) {
-                        selectPoi(poi.properties.id, poi.geometry.coordinates);
-                      }
-                    } else {
-                      setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
-                      deselect();
-                    }
-                  }}
-                />
-              ))}
-            </ScrollView>
-          </View>
+          {!selectedPoi && (
+            <>
+              {/* Apple Maps Quick Actions (Sitios) */}
+              <QuickActions />
+              
+              {/* Apple Maps Guides (Tus guías) */}
+              <GuidesSection />
+
+              {/* Apple Maps Footer Actions */}
+              <SheetFooterActions />
+            </>
+          )}
 
           {/* Details Card */}
           {selectedPoi && (
-            <Animated.View entering={FadeInDown} className="mt-2">
+            <Animated.View entering={FadeInDown} className="mt-4">
               <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
+              {/* Extra spacing when showing a card */}
+              <View style={{ height: 100 }} />
             </Animated.View>
           )}
 
-          {/* Empty space block for Apple Maps feel where they display recently searched places below the search */}
-          <View style={{ height: 400 }} />
+          {/* Bottom padding to allow scrolling past everything */}
+          <View style={{ height: 100 }} />
         </View>
       </MapBottomSheet>
     </View>

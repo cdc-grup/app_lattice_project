@@ -16,27 +16,31 @@ interface MapBottomSheetProps {
 }
 
 const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
-  // We can animate the blur intensity based on the bottom sheet's position
-  const animatedProps = useAnimatedProps(() => {
+  const animatedStyle = useAnimatedStyle(() => {
     return {
-      intensity: interpolate(
-        animatedIndex.value, // index goes from 0 (collapsed) to 2 (expanded)
-        [0, 1, 2],
-        [40, 60, 80], // Higher intensity as we open
+      backgroundColor: `rgba(28, 28, 30, ${interpolate(
+        animatedIndex.value,
+        [-1, 0, 1, 2],
+        [0.4, 0.6, 0.75, 0.85],
         Extrapolate.CLAMP
-      ),
+      )})`,
     };
   });
 
   return (
-    <AnimatedBlurView
-      tint="dark"
-      animatedProps={animatedProps}
+    <Animated.View
       style={[
         style,
         styles.blurBackground,
+        animatedStyle,
       ]}
-    />
+    >
+        <BlurView
+            intensity={80}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+        />
+    </Animated.View>
   );
 };
 
@@ -79,20 +83,17 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
 
 const styles = StyleSheet.create({
   blurBackground: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     overflow: 'hidden',
-    // We add a subtle dark overlay on top of the blur just in case
-    backgroundColor: 'rgba(20, 20, 25, 0.4)',
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    width: 40,
-    marginTop: 6,
+    backgroundColor: 'rgba(150, 150, 150, 0.4)',
+    width: 36,
+    height: 5,
+    marginTop: 2,
   },
   headerContainer: {
     paddingHorizontal: 0,

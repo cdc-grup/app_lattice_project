@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../styles/colors';
 import { theme } from '../styles/theme';
@@ -11,36 +11,38 @@ interface SearchBarProps {
 }
 
 export const SearchBar = React.memo(({
-  placeholder = 'Find grandstands, food...',
+  placeholder = 'Mapas de Apple',
   onSearch,
   onArPress,
 }: SearchBarProps) => {
   return (
-    <View className="flex-row items-center">
+    <View className="flex-row items-center space-x-2">
       <View
-        className="flex-1 flex-row items-center bg-surface/80 px-4 h-11 rounded-2xl border border-white/10"
+        className="flex-1 flex-row items-center bg-surface/80 px-3 h-11 rounded-2xl border border-white/10"
         style={styles.searchContainer}
       >
         <Feather name="search" size={20} color={colors.muted} />
         <TextInput
-          className="flex-1 ml-2 text-white font-medium text-sm pt-0 pb-0"
+          className="flex-1 ml-2 text-white font-medium text-base pt-0 pb-0"
           placeholder={placeholder}
           placeholderTextColor={colors.muted}
           onChangeText={onSearch}
           accessibilityLabel="Main search input"
         />
-        <Pressable className="active:opacity-70" accessibilityLabel="Voice search">
+        <Pressable className="px-2 active:opacity-70" accessibilityLabel="Voice search">
           <Feather name="mic" size={20} color={colors.muted} />
         </Pressable>
       </View>
 
       <Pressable
         onPress={onArPress}
-        className="w-12 h-12 items-center justify-center rounded-full border border-transparent active:opacity-70"
+        className="w-11 h-11 items-center justify-center rounded-full border border-transparent active:opacity-70"
         style={styles.arButton}
         accessibilityLabel="Go to profile"
       >
-        <Feather name="user" size={22} color="white" />
+        <View className="w-9 h-9 rounded-full bg-slate-700 items-center justify-center">
+          <Text className="text-white font-bold text-sm">ND</Text>
+        </View>
       </Pressable>
     </View>
   );
@@ -48,11 +50,10 @@ export const SearchBar = React.memo(({
 
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: theme.glass.dark, 
-    borderColor: theme.glass.medium 
+    backgroundColor: 'rgba(30, 30, 35, 0.8)', 
+    borderColor: 'rgba(255, 255, 255, 0.1)' 
   },
   arButton: {
-    backgroundColor: theme.glass.dark,
-    borderColor: theme.glass.medium,
+    backgroundColor: 'transparent',
   },
 });
