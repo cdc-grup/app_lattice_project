@@ -11,27 +11,27 @@ interface QuickActionProps {
 }
 
 const QuickAction = ({ icon, label, sublabel, onPress, color = '#007AFF' }: QuickActionProps) => (
-  <View className="items-center mx-3">
+  <View className="items-center mx-3.5">
     <Pressable
       onPress={onPress}
-      style={[styles.actionButton, { backgroundColor: color === '#007AFF' ? 'rgba(0, 122, 255, 0.15)' : 'rgba(255, 255, 255, 0.1)' }]}
+      style={[styles.actionButton, { backgroundColor: color === '#007AFF' ? 'rgba(0, 122, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)' }]}
       className="w-16 h-16 rounded-full items-center justify-center active:opacity-70"
     >
-      <Feather name={icon as any} size={30} color={color} />
+      <Feather name={icon as any} size={28} color={color} />
     </Pressable>
-    <Text className="text-white text-xs font-semibold mt-2">{label}</Text>
-    {sublabel && <Text className="text-blue-500 text-[10px] mt-0.5">{sublabel}</Text>}
+    <Text className="text-white text-[13px] font-medium mt-2">{label}</Text>
+    {sublabel && <Text className="text-[#007AFF] text-[11px] mt-0.5">{sublabel}</Text>}
   </View>
 );
 
 export const QuickActions = () => {
   return (
-    <View className="mt-6 mb-8">
-      <View className="flex-row items-center mb-4 px-1">
-        <Text className="text-white text-xl font-bold">Sitios</Text>
-        <Feather name="chevron-right" size={20} color="#666" className="ml-1" />
+    <View className="mt-7 mb-6">
+      <View className="flex-row items-center mb-3 px-1">
+        <Text className="text-white text-[19px] font-bold">Sitios</Text>
+        <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.3)" className="ml-1 mt-0.5" />
       </View>
-      <View className="flex-row items-start">
+      <View className="flex-row items-start px-1">
         <QuickAction 
           icon="home" 
           label="Casa" 
@@ -48,7 +48,7 @@ export const QuickActions = () => {
           icon="plus" 
           label="Añadir" 
           onPress={() => {}} 
-          color="#999"
+          color="rgba(255, 255, 255, 0.4)"
         />
       </View>
     </View>

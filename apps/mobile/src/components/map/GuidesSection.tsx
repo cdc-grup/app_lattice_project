@@ -26,12 +26,12 @@ const GuideCard = ({ title, sublabel, icon }: { title: string, sublabel: string,
 
 export const GuidesSection = () => {
   return (
-    <View className="mt-4 mb-8">
-      <View className="flex-row items-center mb-4 px-1">
-        <Text className="text-white text-xl font-bold">Tus guías</Text>
-        <Feather name="chevron-right" size={20} color="#666" className="ml-1" />
+    <View className="mt-4 mb-7">
+      <View className="flex-row items-center mb-3 px-1">
+        <Text className="text-white text-[19px] font-bold">Tus guías</Text>
+        <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.3)" className="ml-1 mt-0.5" />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-1">
         <GuideCard 
           title="Favoritos" 
           sublabel="0 sitios" 

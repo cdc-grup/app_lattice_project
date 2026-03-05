@@ -106,8 +106,10 @@ function MapIndex() {
   // By using translateY = sheetPosition.value - SCREEN_HEIGHT, we get the offset relative to the bottom edge.
   // Add a -16 pixel padding so it sits just above the line of the bottom sheet.
   const rRecenterButtonStyle = useAnimatedStyle(() => {
+    // sheetPosition.value is absolute Y (decreases as it moves UP)
+    // We want the button to stay at (sheetPosition - offset)
     return {
-      transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 16 }],
+      transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 80 }],
     };
   });
 

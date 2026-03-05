@@ -16,32 +16,32 @@ export const SearchBar = React.memo(({
   onArPress,
 }: SearchBarProps) => {
   return (
-    <View className="flex-row items-center space-x-2">
+    <View className="flex-row items-center space-x-3" style={{ paddingBottom: 8 }}>
       <View
-        className="flex-1 flex-row items-center bg-surface/80 px-3 h-11 rounded-2xl border border-white/10"
+        className="flex-1 flex-row items-center px-4 h-12 rounded-2xl"
         style={styles.searchContainer}
       >
-        <Feather name="search" size={20} color={colors.muted} />
+        <Feather name="search" size={20} color="rgba(255, 255, 255, 0.4)" />
         <TextInput
-          className="flex-1 ml-2 text-white font-medium text-base pt-0 pb-0"
+          className="flex-1 ml-3 text-white font-medium text-[17px] pt-0 pb-0"
           placeholder={placeholder}
-          placeholderTextColor={colors.muted}
+          placeholderTextColor="rgba(255, 255, 255, 0.4)"
           onChangeText={onSearch}
           accessibilityLabel="Main search input"
+          style={{ height: 48 }}
         />
-        <Pressable className="px-2 active:opacity-70" accessibilityLabel="Voice search">
-          <Feather name="mic" size={20} color={colors.muted} />
+        <Pressable className="pl-2 active:opacity-70" accessibilityLabel="Voice search">
+          <Feather name="mic" size={20} color="rgba(255, 255, 255, 0.4)" />
         </Pressable>
       </View>
 
       <Pressable
         onPress={onArPress}
-        className="w-11 h-11 items-center justify-center rounded-full border border-transparent active:opacity-70"
-        style={styles.arButton}
+        className="w-12 h-12 items-center justify-center rounded-full active:opacity-70"
         accessibilityLabel="Go to profile"
       >
-        <View className="w-9 h-9 rounded-full bg-slate-700 items-center justify-center">
-          <Text className="text-white font-bold text-sm">ND</Text>
+        <View className="w-full h-full rounded-full bg-[#8E97C1] items-center justify-center shadow-lg">
+          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>ND</Text>
         </View>
       </Pressable>
     </View>
@@ -50,10 +50,11 @@ export const SearchBar = React.memo(({
 
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: 'rgba(30, 30, 35, 0.8)', 
-    borderColor: 'rgba(255, 255, 255, 0.1)' 
-  },
-  arButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(30, 30, 32, 0.95)', 
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 });
