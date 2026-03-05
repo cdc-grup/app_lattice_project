@@ -15,8 +15,8 @@ const FooterAction = ({ icon, label, onPress, isLast }: FooterActionProps) => (
     className="flex-row items-center justify-center h-14 w-full bg-[#1c1c1e] mb-3 rounded-2xl active:opacity-70"
     style={styles.actionButton}
   >
-    <Feather name={icon as any} size={20} color="#007AFF" />
-    <Text className="text-[#007AFF] text-base font-semibold ml-3">{label}</Text>
+    <Feather name={icon as any} size={20} color="#FF3B30" />
+    <Text className="text-[#FF3B30] text-base font-semibold ml-3">{label}</Text>
   </Pressable>
 );
 

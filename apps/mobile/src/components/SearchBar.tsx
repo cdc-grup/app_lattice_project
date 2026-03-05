@@ -40,7 +40,7 @@ export const SearchBar = React.memo(({
         className="w-12 h-12 items-center justify-center rounded-full active:opacity-70"
         accessibilityLabel="Go to profile"
       >
-        <View className="w-full h-full rounded-full bg-[#8E97C1] items-center justify-center shadow-lg">
+        <View className="w-full h-full rounded-full bg-[#FF3B30] items-center justify-center shadow-lg">
           <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>ND</Text>
         </View>
       </Pressable>

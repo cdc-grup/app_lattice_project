@@ -63,7 +63,7 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
         {/* Header */}
         <View style={styles.header}>
           <Pressable style={styles.headerIcon}>
-            <Feather name="share" size={20} color="#007AFF" />
+            <Feather name="share" size={20} color="#FF3B30" />
           </Pressable>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
@@ -82,11 +82,11 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
               <Text style={styles.driveButtonText}>11 min</Text>
             </Pressable>
             <Pressable style={styles.circleButton}>
-              <Feather name="phone" size={20} color="#007AFF" />
+              <Feather name="phone" size={20} color="#FF3B30" />
               <Text style={styles.circleButtonText}>Llamar</Text>
             </Pressable>
             <Pressable style={styles.circleButton}>
-              <Feather name="globe" size={20} color="#007AFF" />
+              <Feather name="globe" size={20} color="#FF3B30" />
               <Text style={styles.circleButtonText}>Sitio web</Text>
             </Pressable>
           </View>
@@ -95,7 +95,7 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Horario</Text>
-              <Text style={[styles.infoValue, { color: '#FF9500' }]}>Abre pronto</Text>
+              <Text style={[styles.infoValue, { color: '#FF3B30' }]}>Abre pronto</Text>
             </View>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>15 valoraciones</Text>
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   driveButton: {
     flex: 1.5,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FF3B30',
     height: 60,
     borderRadius: 12,
     alignItems: 'center',
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   circleButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 59, 48, 0.08)',
     height: 60,
     borderRadius: 12,
     alignItems: 'center',
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   circleButtonText: {
-    color: '#007AFF',
+    color: '#FF3B30',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 4,

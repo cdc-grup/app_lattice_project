@@ -122,9 +122,9 @@ export const MapContent = React.memo(({
             id="poiCircles"
             style={{
               circleRadius: 15,
-              circleColor: 'rgba(255, 255, 255, 0.15)',
+              circleColor: 'rgba(255, 59, 48, 0.15)',
               circleStrokeWidth: 1,
-              circleStrokeColor: 'rgba(255, 255, 255, 0.2)',
+              circleStrokeColor: 'rgba(255, 59, 48, 0.3)',
             }}
           />
           <MapLibreGL.SymbolLayer
@@ -148,14 +148,14 @@ export const MapContent = React.memo(({
             <View 
               pointerEvents="none"
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backgroundColor: 'rgba(255, 59, 48, 0.15)',
                 width: 30,
                 height: 30,
                 borderRadius: 15,
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.2)',
+                borderColor: 'rgba(255, 59, 48, 0.3)',
               }}
             >
               <Feather 
