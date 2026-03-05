@@ -73,6 +73,8 @@ fi
 echo "✅ API Tunnel: $API_URL"
 
 # Start Metro tunnel
+echo "📡 Wait a moment before starting Metro tunnel..."
+sleep 2
 echo "📡 Starting Metro tunnel on port $METRO_PORT..."
 # Remove old log if exists
 rm -f "$SCRIPT_DIR/metro_zrok.log"

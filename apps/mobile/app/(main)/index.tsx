@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useRef } from 'react';
 import {
   View,
   ScrollView,
@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { SearchBar } from '../../src/components/SearchBar';
 import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
@@ -47,7 +48,6 @@ const styles = StyleSheet.create({
 });
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -60,28 +60,21 @@ function MapIndex() {
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   const { isVisible: isARVisible } = useCameraTilt();
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
-  // Animation State: Negative offsets from absolute bottom
-  const snapPoints = useMemo(() => ({
-    collapsed: -(insets.bottom + 85), // Handle (16) + SearchBar (44) + padding
-    half: -(insets.bottom + 160),      // Compact view for details
-    expanded: -(SCREEN_HEIGHT - insets.top),
-  }), [insets.bottom, insets.top]);
-
-  const translateY = useSharedValue(snapPoints.collapsed);
-
-  const scrollTo = useCallback((destination: number) => {
-    translateY.value = withSpring(destination, { damping: 20, stiffness: 90 });
-  }, [translateY]);
+  // Keep track of the bottom sheet's true absolute Y position on screen (0 = top of screen)
+  // We initialize it to where the collapsed state roughly is so it doesn't jump
+  // Collapsed height = insets.bottom + 85. So position is SCREEN_HEIGHT - collapsedHeight
+  const sheetPosition = useSharedValue(SCREEN_HEIGHT - (insets.bottom + 85));
 
   // Auto-snap when POI selection changes
   React.useEffect(() => {
     if (selectedPoiId) {
-      scrollTo(snapPoints.half);
+      bottomSheetRef.current?.snapToIndex(1); // Halfway
     } else {
-      scrollTo(snapPoints.collapsed);
+      bottomSheetRef.current?.snapToIndex(0); // Collapsed
     }
-  }, [selectedPoiId, scrollTo, snapPoints]);
+  }, [selectedPoiId]);
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -107,9 +100,12 @@ function MapIndex() {
   }, [requestPermission, triggerRecenter]);
 
   // Sync Recenter Button with Bottom Sheet
+  // sheetPosition returns the exact Y pixel relative to the screen top where the sheet starts.
+  // By using translateY = sheetPosition.value - SCREEN_HEIGHT, we get the offset relative to the bottom edge.
+  // Add a -16 pixel padding so it sits just above the line of the bottom sheet.
   const rRecenterButtonStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateY: translateY.value }],
+      transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 16 }],
     };
   });
 
@@ -135,7 +131,7 @@ function MapIndex() {
       </View>
 
       {/* Floating Recenter Button (Synced) */}
-      {/* Anchor at 0 (bottom of screen) - translateY will lift it */}
+      {/* Anchor at 0 (bottom of screen) - translateY will lift it above the sheet */}
       <Animated.View 
         pointerEvents="box-none" 
         style={[
@@ -154,12 +150,10 @@ function MapIndex() {
         </View>
       </Animated.View>
 
-      {/* Re-architected Transparent Bottom Sheet */}
       <MapBottomSheet 
-        translateY={translateY}
-        snapPoints={snapPoints}
+        ref={bottomSheetRef}
+        translateY={sheetPosition}
       >
-        {/* Unified vertical flow for precise spacing */}
         <View className="px-4">
           {/* SearchBar */}
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
@@ -200,6 +194,9 @@ function MapIndex() {
               <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
             </Animated.View>
           )}
+
+          {/* Empty space block for Apple Maps feel where they display recently searched places below the search */}
+          <View style={{ height: 400 }} />
         </View>
       </MapBottomSheet>
     </View>
@@ -208,3 +205,4 @@ function MapIndex() {
 
 
 export default MapIndex;
+
