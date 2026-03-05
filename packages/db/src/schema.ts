@@ -89,13 +89,24 @@ export const pointsOfInterest = pgTable('points_of_interest', {
   hasPriorityLane: boolean('has_priority_lane'),
 });
 
+export const nodes = pgTable('nodes', {
+  id: serial('id').primaryKey(),
+  location: geometry('location').notNull(),
+  name: varchar('name'), // Optional name for key intersections
+});
+
 export const pathSegments = pgTable('path_segments', {
-  id: integer('id').primaryKey(), // ID is explicitly integer in DBML, not serial/increment
-  startNode: geometry('start_node'),
-  endNode: geometry('end_node'),
-  surface: surfaceTypeEnum('surface'),
-  slopePercentage: doublePrecision('slope_percentage'),
-  hasStairs: boolean('has_stairs'),
+  id: serial('id').primaryKey(),
+  sourceNodeId: integer('source_node_id')
+    .notNull()
+    .references(() => nodes.id),
+  targetNodeId: integer('target_node_id')
+    .notNull()
+    .references(() => nodes.id),
+  distance: doublePrecision('distance').notNull(), // Pre-calculated meters
+  surface: surfaceTypeEnum('surface').default('asphalt'),
+  slopePercentage: doublePrecision('slope_percentage').default(0),
+  hasStairs: boolean('has_stairs').default(false),
   crowdLevel: crowdLevelEnum('crowd_level').default('low'),
 });
 

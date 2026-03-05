@@ -7,6 +7,7 @@ export {
   users,
   tickets,
   pointsOfInterest,
+  nodes,
   pathSegments,
   groups,
   groupMembers,

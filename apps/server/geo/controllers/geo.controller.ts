@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { db, pointsOfInterest, sql } from '@app/db';
 
+import { findRoute } from '../services/navigation.service';
+
 export const healthCheck = (req: Request, res: Response) => {
   res.json({ status: 'geo_service_ok', timestamp: new Date() });
 };
@@ -71,6 +73,18 @@ export const getLocations = (req: Request, res: Response) => {
   res.json({ message: 'Locations endpoint not implemented yet' });
 };
 
-export const getRoute = (req: Request, res: Response) => {
-  res.json({ message: 'Navigation endpoint not implemented yet' });
+export const getRoute = async (req: Request, res: Response) => {
+  try {
+    const { origin, destination, avoidStairs } = req.body;
+
+    if (!origin || !destination) {
+      return res.status(400).json({ error: 'Origin and destination are required' });
+    }
+
+    const route = await findRoute(origin, destination, { avoidStairs });
+    res.json(route);
+  } catch (error) {
+    console.error('Error calculating route:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: String(error) });
+  }
 };
