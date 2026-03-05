@@ -1,32 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  Pressable,
-  Dimensions,
   StyleSheet,
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
+import Animated, { FadeInDown, Layout, SlideOutLeft } from 'react-native-reanimated';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { useSyncTicket } from '../../src/services/auth';
+import { AuthLayout } from '../../src/components/ui/AuthLayout';
+import { PremiumButton } from '../../src/components/ui/PremiumButton';
 
-const { width } = Dimensions.get('window');
+/**
+ * Step Content Component
+ * Encapsulates the visual representation of each step for scalability.
+ */
+interface StepProps {
+  icon: string;
+  iconLibrary: 'feather' | 'material';
+  title: string;
+  subtitle: string;
+  primaryAction: {
+    label: string;
+    icon?: string;
+    onPress: () => void;
+  };
+  secondaryAction?: {
+    label: string;
+    onPress: () => void;
+  };
+}
+
+const WelcomeStep = ({ icon, iconLibrary, title, subtitle, primaryAction, secondaryAction }: StepProps) => (
+  <Animated.View 
+    entering={FadeInDown.duration(600)}
+    exiting={SlideOutLeft.duration(400)}
+    className="flex-1 justify-center"
+  >
+    <View className="items-center mb-12">
+      <View className="w-24 h-24 mb-10 rounded-[28px] bg-white items-center justify-center shadow-2xl">
+        {iconLibrary === 'material' ? (
+          <MaterialCommunityIcons name={icon as any} size={48} color="#000" />
+        ) : (
+          <Feather name={icon as any} size={42} color="#000" />
+        )}
+      </View>
+      <Animated.Text 
+        entering={FadeInDown.delay(200).duration(600)}
+        className="text-4xl font-bold text-white tracking-tighter mb-4 text-center"
+      >
+        {title}
+      </Animated.Text>
+      <Animated.Text 
+        entering={FadeInDown.delay(300).duration(600)}
+        className="text-lg text-white/50 text-center font-medium leading-7 px-4"
+      >
+        {subtitle}
+      </Animated.Text>
+    </View>
+
+    <View className="gap-y-4">
+      <PremiumButton
+        onPress={primaryAction.onPress}
+        label={primaryAction.label}
+        icon={primaryAction.icon}
+        variant="primary"
+      />
+
+      {secondaryAction ? (
+        <PremiumButton
+          onPress={secondaryAction.onPress}
+          label={secondaryAction.label}
+          variant="outline"
+        />
+      ) : null}
+    </View>
+  </Animated.View>
+);
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isScanning, setIsScanning] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const syncTicket = useSyncTicket();
-  const { registrationRequired, prefilledEmail } = useAuthStore();
 
   const handleHaveTicket = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -58,6 +120,64 @@ export default function WelcomeScreen() {
     });
   };
 
+  const currentStepContent = useMemo(() => {
+    switch (step) {
+      case 1:
+        return (
+          <WelcomeStep
+            key="step-1"
+            icon="flag-checkered"
+            iconLibrary="material"
+            title="Benvingut"
+            subtitle="Estàs al Circuit de Barcelona-Catalunya. Prepara't per a la millor experiència de carrera."
+            primaryAction={{
+              label: 'COMENÇAR',
+              onPress: () => setStep(2)
+            }}
+          />
+        );
+      case 2:
+        return (
+          <WelcomeStep
+            key="step-2"
+            icon="ticket-confirmation"
+            iconLibrary="material"
+            title="Tens la teva entrada?"
+            subtitle="Escaneja el codi per activar el teu Copilot i trobar el teu seient ràpidament."
+            primaryAction={{
+              label: 'SÍ, LA TINC AQUÍ',
+              icon: 'qrcode-scan',
+              onPress: handleHaveTicket
+            }}
+            secondaryAction={{
+              label: 'ENCARA NO LA TINC',
+              onPress: () => setStep(3)
+            }}
+          />
+        );
+      case 3:
+        return (
+          <WelcomeStep
+            key="step-3"
+            icon="user"
+            iconLibrary="feather"
+            title="Accedeix al teu compte"
+            subtitle="Inicia sessió o crea un compte per guardar les teves preferències i historial."
+            primaryAction={{
+              label: 'SOC NOU USUARI',
+              onPress: () => router.push('/(auth)/register')
+            }}
+            secondaryAction={{
+              label: 'JA TINC COMPTE',
+              onPress: () => router.push({ pathname: '/(auth)/login', params: { mode: 'account' } })
+            }}
+          />
+        );
+      default:
+        return null;
+    }
+  }, [step]);
+
   if (isScanning) {
     return (
       <View style={StyleSheet.absoluteFill} className="bg-black">
@@ -67,149 +187,45 @@ export default function WelcomeScreen() {
           onBarcodeScanned={handleBarcodeScanned}
           barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
         />
-        <SafeAreaView className="flex-1 justify-between p-6">
-          <View className="flex-row justify-between items-center mt-4">
-            <Pressable 
-              onPress={() => setIsScanning(false)} 
-              className="bg-black/60 w-12 h-12 items-center justify-center rounded-full border border-white/10 active:opacity-70"
-            >
-              <Feather name="x" size={24} color="white" />
-            </Pressable>
-            <View className="bg-black/60 px-5 py-2.5 rounded-full border border-white/10">
-              <Text className="text-white font-semibold">Scan Ticket QR</Text>
-            </View>
-            <View className="w-12" />
-          </View>
-          <View className="items-center mb-24">
-            <View className="w-64 h-64 border-2 border-primary/50 rounded-[40px] items-center justify-center">
+        <AuthLayout 
+          showBack 
+          onBack={() => setIsScanning(false)} 
+          isScrollable={false}
+          transparent
+        >
+          <View className="items-center mb-24 flex-1 justify-center">
+            <View className="w-64 h-64 border-2 border-[#FF3B30]/50 rounded-[40px] items-center justify-center">
                <View className="w-48 h-48 border border-white/20 rounded-3xl border-dashed" />
             </View>
             <Text className="text-white/80 text-center mt-8 bg-black/60 px-6 py-3 rounded-full overflow-hidden border border-white/5">
               Center the QR code in the frame
             </Text>
           </View>
-        </SafeAreaView>
+        </AuthLayout>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#050505]">
-      <StatusBar style="light" />
-      <SafeAreaView className="flex-1 px-8">
-        
-        {/* Progress indicator - Top of screen */}
-        <View className="flex-row gap-x-2 mt-4 mb-6">
-          <View className={`h-1.5 rounded-full flex-1 ${step >= 1 ? 'bg-primary' : 'bg-white/10'}`} />
-          <View className={`h-1.5 rounded-full flex-1 ${step >= 2 ? 'bg-primary' : 'bg-white/10'}`} />
+    <AuthLayout 
+      step={step} 
+      totalSteps={3} 
+      showBack={step > 1} 
+      onBack={() => {
+        if (step === 3) useAuthStore.getState().clearRegistrationData();
+        setStep((prev) => (prev - 1) as 1 | 2 | 3);
+      }}
+    >
+      <Animated.View layout={Layout.springify()} className="flex-1">
+        {currentStepContent}
+      </Animated.View>
+
+      {syncTicket.isPending ? (
+        <View style={StyleSheet.absoluteFill} className="bg-black/80 items-center justify-center">
+          <ActivityIndicator size="large" color="#FF3B30" />
+          <Text className="text-white mt-4 font-semibold">Verificant entrada...</Text>
         </View>
-
-        {/* Back Button Row - Below progress bar */}
-        <View className="h-12 mb-4">
-          {step === 2 && (
-            <Pressable 
-              onPress={() => {
-                Haptics.selectionAsync();
-                useAuthStore.getState().clearRegistrationData();
-                setStep(1);
-              }}
-              className="w-10 h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 active:opacity-70"
-            >
-              <Feather name="chevron-left" size={28} color="white" />
-            </Pressable>
-          )}
-        </View>
-
-        <Animated.View 
-          key={step}
-          entering={FadeInDown.duration(600)}
-          className="flex-1"
-        >
-          {step === 1 ? (
-            <View className="flex-1 justify-center -mt-20">
-              <View className="items-center mb-12">
-                <View className="w-24 h-24 mb-10 rounded-[28px] bg-white items-center justify-center shadow-2xl">
-                  <MaterialCommunityIcons name="ticket-confirmation" size={48} color="#000" />
-                </View>
-                <Text className="text-5xl font-bold text-white tracking-tighter mb-4 text-center">
-                  Circuit Copilot
-                </Text>
-                <Text className="text-xl text-white/50 text-center font-medium leading-7">
-                  Benvingut al circuit. Comencem el teu viatge.
-                </Text>
-              </View>
-
-              <View className="gap-y-4">
-                <Text className="text-white/30 text-xs font-bold uppercase tracking-widest mb-2 text-center">
-                  Tens entrada per l'esdeveniment?
-                </Text>
-                
-                <Pressable
-                  onPress={handleHaveTicket}
-                  className="bg-[#FF3B30] h-16 rounded-2xl flex-row items-center justify-center px-6 active:opacity-90"
-                  style={{ shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 15 }}
-                >
-                  <MaterialCommunityIcons name="qrcode-scan" size={22} color="white" />
-                  <Text className="text-white text-lg font-bold ml-3">SÍ, TINC ENTRADA</Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setStep(2);
-                  }}
-                  className="bg-white/5 border border-white/10 h-16 rounded-2xl items-center justify-center active:bg-white/10"
-                >
-                  <Text className="text-white/80 text-lg font-bold">NO, ENCARA NO</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <View className="flex-1 justify-center -mt-16">
-              <View className="items-center mb-12">
-                <View className="w-24 h-24 mb-10 rounded-[28px] bg-white/5 border border-white/10 items-center justify-center shadow-2xl">
-                  <Feather name="user" size={42} color="white" />
-                </View>
-                <Text className="text-4xl font-bold text-white tracking-tighter mb-4 text-center">
-                  Ets nou aquí?
-                </Text>
-                <Text className="text-lg text-white/50 text-center font-medium leading-7">
-                  Tria com vols accedir al teu perfil.
-                </Text>
-              </View>
-
-              <View className="gap-y-4">
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    router.push('/(auth)/register');
-                  }}
-                  className="bg-[#FF3B30] h-16 rounded-2xl items-center justify-center active:opacity-90"
-                >
-                  <Text className="text-white text-lg font-bold">SOC NOU USUARI</Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push('/(auth)/login');
-                  }}
-                  className="bg-white/5 border border-white/10 h-16 rounded-2xl items-center justify-center active:bg-white/10"
-                >
-                  <Text className="text-white/80 text-lg font-bold">JA TINC COMPTE</Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
-        </Animated.View>
-
-        {syncTicket.isPending && (
-          <View style={StyleSheet.absoluteFill} className="bg-black/80 items-center justify-center">
-            <ActivityIndicator size="large" color="#FF3B30" />
-            <Text className="text-white mt-4 font-semibold">Verificant entrada...</Text>
-          </View>
-        )}
-      </SafeAreaView>
-    </View>
+      ) : null}
+    </AuthLayout>
   );
 }

@@ -42,7 +42,9 @@
     "turbo": "^2.4.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2"
   },
   "overrides": {
     "eslint-plugin-react-hooks": "^5.2.0"

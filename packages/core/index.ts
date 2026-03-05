@@ -18,3 +18,16 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     },
   });
 };
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer mock_jwt_token_for_')) {
+    return res.status(401).json({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Unauthorized access',
+        status: 401,
+      },
+    });
+  }
+  next();
+};
