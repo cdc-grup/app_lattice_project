@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useRef } from 'react';
 import {
   View,
   ScrollView,
@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { SearchBar } from '../../src/components/SearchBar';
-import { FilterChip } from '../../src/components/FilterChip';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
@@ -24,6 +24,10 @@ import { Feather } from '@expo/vector-icons';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
+import { QuickActions } from '../../src/components/map/QuickActions';
+import { SearchFilters } from '../../src/components/map/SearchFilters';
+import { GuidesSection } from '../../src/components/map/GuidesSection';
+import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
 
 // Configure MapLibre
@@ -33,6 +37,8 @@ MapLibreGL.Logger.setLogCallback((log) => {
   if (msg.includes('Failed to obtain last location update') || msg.includes('Last location unavailable')) return true;
   return false;
 });
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   mapContainer: { flex: 1, backgroundColor: '#0A0A0A' },
@@ -46,10 +52,9 @@ const styles = StyleSheet.create({
   filtersContainer: { paddingHorizontal: 16 },
 });
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 
 function MapIndex() {
   const router = useRouter();
@@ -60,28 +65,31 @@ function MapIndex() {
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   const { isVisible: isARVisible } = useCameraTilt();
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const poiDetailSheetRef = useRef<BottomSheet>(null);
 
-  // Animation State: Negative offsets from absolute bottom
-  const snapPoints = useMemo(() => ({
-    collapsed: -(insets.bottom + 85), // Handle (16) + SearchBar (44) + padding
-    half: -(insets.bottom + 160),      // Compact view for details
-    expanded: -(SCREEN_HEIGHT - insets.top),
-  }), [insets.bottom, insets.top]);
+  // Position for the main search sheet
+  const sheetPosition = useSharedValue(SCREEN_HEIGHT);
+  // Position for the POI detail sheet
+  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
-  const translateY = useSharedValue(snapPoints.collapsed);
+  // Active sheet position for the location button to track
+  const activePosition = useMemo(() => {
+    return selectedPoiId ? poiSheetPosition : sheetPosition;
+  }, [selectedPoiId, poiSheetPosition, sheetPosition]);
 
-  const scrollTo = useCallback((destination: number) => {
-    translateY.value = withSpring(destination, { damping: 20, stiffness: 90 });
-  }, [translateY]);
-
-  // Auto-snap when POI selection changes
+  // Handle POI selection changes
   React.useEffect(() => {
     if (selectedPoiId) {
-      scrollTo(snapPoints.half);
+      // Show detail sheet, hide search sheet
+      poiDetailSheetRef.current?.snapToIndex(0);
+      bottomSheetRef.current?.close();
     } else {
-      scrollTo(snapPoints.collapsed);
+      // Show search sheet, hide detail sheet
+      poiDetailSheetRef.current?.close();
+      bottomSheetRef.current?.snapToIndex(0);
     }
-  }, [selectedPoiId, scrollTo, snapPoints]);
+  }, [selectedPoiId]);
 
   const activeCategory = useMemo(() => {
     return categories?.find(c => c.id === activeCategoryId)?.category;
@@ -96,8 +104,8 @@ function MapIndex() {
     return {
       ...f.properties,
       geometry: f.geometry,
-      distance: '350m',
-      time: '5 min'
+      distance: '3,5 km',
+      time: '11 min'
     };
   }, [selectedPoiId, poisData]);
 
@@ -106,10 +114,9 @@ function MapIndex() {
     triggerRecenter();
   }, [requestPermission, triggerRecenter]);
 
-  // Sync Recenter Button with Bottom Sheet
   const rRecenterButtonStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateY: translateY.value }],
+      transform: [{ translateY: activePosition.value - SCREEN_HEIGHT - 80 }],
     };
   });
 
@@ -135,7 +142,6 @@ function MapIndex() {
       </View>
 
       {/* Floating Recenter Button (Synced) */}
-      {/* Anchor at 0 (bottom of screen) - translateY will lift it */}
       <Animated.View 
         pointerEvents="box-none" 
         style={[
@@ -154,57 +160,34 @@ function MapIndex() {
         </View>
       </Animated.View>
 
-      {/* Re-architected Transparent Bottom Sheet */}
+      {/* Main Search Bottom Sheet */}
       <MapBottomSheet 
-        translateY={translateY}
-        snapPoints={snapPoints}
+        ref={bottomSheetRef}
+        translateY={sheetPosition}
       >
-        {/* Unified vertical flow for precise spacing */}
-        <View className="px-4">
-          {/* SearchBar */}
+        <View>
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
-          
-          {/* Filters */}
-          <View className="mt-2">
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              className="flex-row"
-              contentContainerStyle={{ paddingRight: 20 }}
-            >
-              {categories?.map((cat) => (
-                <FilterChip
-                  key={cat.id}
-                  label={cat.label}
-                  icon={cat.icon as any}
-                  active={activeCategoryId === cat.id}
-                  onPress={() => {
-                    if (DIRECT_ACCESS_CATEGORIES.includes(cat.category)) {
-                      const poi = poisData?.features.find((f: any) => f.properties.category === cat.category);
-                      if (poi) {
-                        selectPoi(poi.properties.id, poi.geometry.coordinates);
-                      }
-                    } else {
-                      setActiveCategoryId(prev => prev === cat.id ? null : cat.id);
-                      deselect();
-                    }
-                  }}
-                />
-              ))}
-            </ScrollView>
+          <SearchFilters />
+          <View className="px-4">
+            <QuickActions />
+            <GuidesSection />
+            <SheetFooterActions />
+            <View style={{ height: 100 }} />
           </View>
-
-          {/* Details Card */}
-          {selectedPoi && (
-            <Animated.View entering={FadeInDown} className="mt-2">
-              <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
-            </Animated.View>
-          )}
         </View>
       </MapBottomSheet>
+
+      {/* POI Detail Bottom Sheet */}
+      <PoiDetailSheet 
+        ref={poiDetailSheetRef}
+        poi={selectedPoi}
+        onClose={deselect}
+        translateY={poiSheetPosition}
+      />
     </View>
   );
 }
 
 
 export default MapIndex;
+

@@ -1,159 +1,106 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
-import { Gesture, GestureDetector, ScrollView } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  interpolate,
-  Extrapolate,
-  runOnJS,
-  SharedValue,
-} from 'react-native-reanimated';
-import { theme } from '../../styles/theme';
-import { colors } from '../../styles/colors';
-
+import React, { useMemo, forwardRef } from 'react';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
+import { BlurView } from 'expo-blur';
+import Animated, { SharedValue, useAnimatedProps, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 interface MapBottomSheetProps {
   children: React.ReactNode;
   header?: React.ReactNode;
   translateY: SharedValue<number>;
-  snapPoints: {
-    collapsed: number;
-    half: number;
-    expanded: number;
-  };
+  snapPoints?: any; // kept for backwards compat but ignored
 }
 
-export const MapBottomSheet = ({ 
-  children, 
-  header, 
-  translateY,
-  snapPoints,
-}: MapBottomSheetProps) => {
-  const insets = useSafeAreaInsets();
-  const context = useSharedValue({ y: 0 });
-
-  const scrollTo = useCallback((destination: number) => {
-    'worklet';
-    translateY.value = withSpring(destination, { damping: 20, stiffness: 90 });
-  }, [translateY]);
-
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      context.value = { y: translateY.value };
-    })
-    .onUpdate((event) => {
-      translateY.value = event.translationY + context.value.y;
-      // Allow minor over-drag at top for rubber-banding effect (optional, keeping it simple for now)
-      translateY.value = Math.max(translateY.value, snapPoints.expanded);
-    })
-    .onEnd((event) => {
-      const { velocityY, translationY } = event;
-      
-      // If flicking fast, respect the direction
-      if (Math.abs(velocityY) > 400) {
-        if (velocityY > 0) { // Flick down
-          scrollTo(translateY.value > snapPoints.half ? snapPoints.collapsed : snapPoints.half);
-        } else { // Flick up
-          scrollTo(translateY.value < snapPoints.half ? snapPoints.expanded : snapPoints.half);
-        }
-        return;
-      }
-
-      // If dragging slowly, snap to closest point with weighted bias
-      const currentY = translateY.value;
-      
-      // Snapping logic: easier to escape extremes
-      // If we've dragged 10% of the distance away from expanded, snap down.
-      // If we've dragged 40% of the distance away from collapsed, snap up.
-      const collThreshold = snapPoints.half * 0.4; 
-      const halfExpandThreshold = snapPoints.expanded + (snapPoints.half - snapPoints.expanded) * 0.1;
-
-      if (currentY > collThreshold) {
-        scrollTo(snapPoints.collapsed);
-      } else if (currentY > halfExpandThreshold) {
-        scrollTo(snapPoints.half);
-      } else {
-        scrollTo(snapPoints.expanded);
-      }
-    });
-
-  const rBottomSheetStyle = useAnimatedStyle(() => {
-    const borderRadius = interpolate(
-      translateY.value,
-      [snapPoints.expanded + 50, snapPoints.expanded],
-      [32, 0],
-      Extrapolate.CLAMP
-    );
-
+const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
+  const animatedStyle = useAnimatedStyle(() => {
     return {
-      borderRadius,
-      transform: [{ translateY: translateY.value }],
+      backgroundColor: `rgba(28, 28, 30, ${interpolate(
+        animatedIndex.value,
+        [-1, 0, 1, 2],
+        [0.4, 0.6, 0.75, 0.85],
+        Extrapolate.CLAMP
+      )})`,
     };
   });
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View 
-        style={[
-          styles.bottomSheetContainer, 
-          { top: SCREEN_HEIGHT - insets.bottom }, 
-          rBottomSheetStyle
-        ]}
-      >
-        <View style={styles.line} />
-        {header && <View style={styles.headerContainer}>{header}</View>}
-        <ScrollView 
-          style={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
-          scrollEnabled={true}
-        >
-          {children}
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </Animated.View>
-    </GestureDetector>
+    <Animated.View
+      style={[
+        style,
+        styles.blurBackground,
+        animatedStyle,
+      ]}
+    >
+        <BlurView
+            intensity={80}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+        />
+    </Animated.View>
   );
 };
 
+export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({ 
+  children, 
+  header, 
+  translateY,
+}, ref) => {
+  const insets = useSafeAreaInsets();
+
+  // Define actual heights or percentages from bottom instead of translated values pointing to top
+  // You want to measure from bottom up. Example: search bar size, half size, full
+  const snapPointsCalculated = useMemo(() => [
+    insets.bottom + 85,          // Collapsed (1)
+    insets.bottom + 220,         // Half (2)
+    SCREEN_HEIGHT - insets.top   // Expanded (3)
+  ], [insets.bottom, insets.top]);
+
+  return (
+    <BottomSheet
+      ref={ref}
+      index={0}
+      snapPoints={snapPointsCalculated}
+      backgroundComponent={CustomBackground}
+      handleIndicatorStyle={styles.handleIndicator}
+      // Pass the animated position up to let the map sync with it
+      animatedPosition={translateY}
+    >
+      {header && <View style={styles.headerContainer}>{header}</View>}
+      <BottomSheetScrollView 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+        <View style={{ height: 40 }} />
+      </BottomSheetScrollView>
+    </BottomSheet>
+  );
+});
+
 const styles = StyleSheet.create({
-  bottomSheetContainer: {
-    height: SCREEN_HEIGHT,
-    width: '100%',
-    backgroundColor: '#0F0F10', // Dark navbar color from theme
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    // Add shadow to separate from map
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 20,
+  blurBackground: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
+    borderTopWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  line: {
-    width: 32,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-    borderRadius: 2,
+  handleIndicator: {
+    backgroundColor: 'rgba(150, 150, 150, 0.4)',
+    width: 36,
+    height: 5,
+    marginTop: 2,
   },
   headerContainer: {
     paddingHorizontal: 0,
     paddingBottom: 2,
   },
   contentContainer: {
-    flex: 1,
     paddingHorizontal: 16,
   },
 });
+

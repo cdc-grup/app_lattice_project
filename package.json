@@ -16,7 +16,9 @@
     "db:seed-pedralbes": "turbo run db:seed-pedralbes --filter=!//",
     "db:studio": "turbo run db:studio --filter=!//",
     "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "workspaces": [
     "apps/*",
@@ -46,5 +48,8 @@
   },
   "overrides": {
     "eslint-plugin-react-hooks": "^5.2.0"
+    "expo": "~54.0.33",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
   }
 }
