@@ -37,6 +37,8 @@ MapLibreGL.Logger.setLogCallback((log) => {
   return false;
 });
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const styles = StyleSheet.create({
   mapContainer: { flex: 1, backgroundColor: '#0A0A0A' },
   map: { flex: 1 },
@@ -49,9 +51,9 @@ const styles = StyleSheet.create({
   filtersContainer: { paddingHorizontal: 16 },
 });
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 
 function MapIndex() {
   const router = useRouter();
@@ -63,18 +65,31 @@ function MapIndex() {
 
   const { isVisible: isARVisible } = useCameraTilt();
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const poiDetailSheetRef = useRef<BottomSheet>(null);
 
-  // Keep track of the bottom sheet's true absolute Y position on screen (0 = top of screen)
-  // We initialize it to where the collapsed state roughly is so it doesn't jump
-  // Collapsed height = insets.bottom + 85. So position is SCREEN_HEIGHT - collapsedHeight
-  const sheetPosition = useSharedValue(SCREEN_HEIGHT - (insets.bottom + 85));
+  // Position for the main search sheet
+  const sheetPosition = useSharedValue(SCREEN_HEIGHT);
+  // Position for the POI detail sheet
+  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
-  // Auto-snap when POI selection changes
+  // Active sheet position for the location button to track
+  const activePosition = useMemo(() => {
+    return selectedPoiId ? poiSheetPosition : sheetPosition;
+  }, [selectedPoiId, poiSheetPosition, sheetPosition]);
+
+  // Handle POI selection changes
   React.useEffect(() => {
+    console.log('[Index] selectedPoiId changed to:', selectedPoiId);
     if (selectedPoiId) {
-      bottomSheetRef.current?.snapToIndex(1); // Halfway
+      console.log('[Index] Opening POI detail sheet');
+      // Show detail sheet, hide search sheet
+      poiDetailSheetRef.current?.snapToIndex(0);
+      bottomSheetRef.current?.close();
     } else {
-      bottomSheetRef.current?.snapToIndex(0); // Collapsed
+      console.log('[Index] Closing POI detail sheet, opening search sheet');
+      // Show search sheet, hide detail sheet
+      poiDetailSheetRef.current?.close();
+      bottomSheetRef.current?.snapToIndex(0);
     }
   }, [selectedPoiId]);
 
@@ -91,8 +106,8 @@ function MapIndex() {
     return {
       ...f.properties,
       geometry: f.geometry,
-      distance: '350m',
-      time: '5 min'
+      distance: '3,5 km',
+      time: '11 min'
     };
   }, [selectedPoiId, poisData]);
 
@@ -101,15 +116,9 @@ function MapIndex() {
     triggerRecenter();
   }, [requestPermission, triggerRecenter]);
 
-  // Sync Recenter Button with Bottom Sheet
-  // sheetPosition returns the exact Y pixel relative to the screen top where the sheet starts.
-  // By using translateY = sheetPosition.value - SCREEN_HEIGHT, we get the offset relative to the bottom edge.
-  // Add a -16 pixel padding so it sits just above the line of the bottom sheet.
   const rRecenterButtonStyle = useAnimatedStyle(() => {
-    // sheetPosition.value is absolute Y (decreases as it moves UP)
-    // We want the button to stay at (sheetPosition - offset)
     return {
-      transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 80 }],
+      transform: [{ translateY: activePosition.value - SCREEN_HEIGHT - 80 }],
     };
   });
 
@@ -135,7 +144,6 @@ function MapIndex() {
       </View>
 
       {/* Floating Recenter Button (Synced) */}
-      {/* Anchor at 0 (bottom of screen) - translateY will lift it above the sheet */}
       <Animated.View 
         pointerEvents="box-none" 
         style={[
@@ -154,40 +162,27 @@ function MapIndex() {
         </View>
       </Animated.View>
 
+      {/* Main Search Bottom Sheet */}
       <MapBottomSheet 
         ref={bottomSheetRef}
         translateY={sheetPosition}
       >
         <View className="px-4">
-          {/* SearchBar */}
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
-          
-          {!selectedPoi && (
-            <>
-              {/* Apple Maps Quick Actions (Sitios) */}
-              <QuickActions />
-              
-              {/* Apple Maps Guides (Tus guías) */}
-              <GuidesSection />
-
-              {/* Apple Maps Footer Actions */}
-              <SheetFooterActions />
-            </>
-          )}
-
-          {/* Details Card */}
-          {selectedPoi && (
-            <Animated.View entering={FadeInDown} className="mt-4">
-              <POICard poi={selectedPoi} onClose={deselect} onNavigate={() => {}} onSelect={selectPoi} noFloat />
-              {/* Extra spacing when showing a card */}
-              <View style={{ height: 100 }} />
-            </Animated.View>
-          )}
-
-          {/* Bottom padding to allow scrolling past everything */}
+          <QuickActions />
+          <GuidesSection />
+          <SheetFooterActions />
           <View style={{ height: 100 }} />
         </View>
       </MapBottomSheet>
+
+      {/* POI Detail Bottom Sheet */}
+      <PoiDetailSheet 
+        ref={poiDetailSheetRef}
+        poi={selectedPoi}
+        onClose={deselect}
+        translateY={poiSheetPosition}
+      />
     </View>
   );
 }
