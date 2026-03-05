@@ -40,11 +40,10 @@ export const MapContent = React.memo(({
   // Handle auto-centering when a POI is selected
   useEffect(() => {
     if (selectedCoords && camera.current) {
-      console.log('[MapContent] Centering to POI:', selectedCoords);
       camera.current.setCamera({
         centerCoordinate: selectedCoords,
         zoomLevel: 17,
-        animationDuration: 600,
+        animationDuration: 350, // Reduced from 600 for snappier feel
         animationMode: 'flyTo',
       });
     }
@@ -53,11 +52,10 @@ export const MapContent = React.memo(({
   const onMapPress = useCallback((e: any) => {
     const now = Date.now();
     // If we just clicked a pin, ignore the map press
-    if (now - lastSelectionTime.current < 500) {
+    if (now - lastSelectionTime.current < 200) { // Reduced from 500
       return;
     }
     
-    console.log('[MapContent] Map press detected, deselecting');
     if (onDeselect) {
       onDeselect();
     } else {

@@ -11,19 +11,20 @@ interface SearchBarProps {
 }
 
 export const SearchBar = React.memo(({
-  placeholder = 'Mapas de Apple',
+  placeholder = 'Find grandstands, food...',
   onSearch,
   onArPress,
 }: SearchBarProps) => {
   return (
-    <View className="flex-row items-center space-x-3" style={{ paddingBottom: 8 }}>
+    <View className="flex-row items-center px-4 pt-2 pb-4">
+      {/* Search Input Container */}
       <View
-        className="flex-1 flex-row items-center px-4 h-12 rounded-2xl"
+        className="flex-1 flex-row items-center px-4 h-12 rounded-full"
         style={styles.searchContainer}
       >
-        <Feather name="search" size={20} color="rgba(255, 255, 255, 0.4)" />
+        <Feather name="search" size={20} color="rgba(255, 255, 255, 0.5)" />
         <TextInput
-          className="flex-1 ml-3 text-white font-medium text-[17px] pt-0 pb-0"
+          className="flex-1 ml-3 text-white font-medium text-[16px] pt-0 pb-0"
           placeholder={placeholder}
           placeholderTextColor="rgba(255, 255, 255, 0.4)"
           onChangeText={onSearch}
@@ -31,17 +32,18 @@ export const SearchBar = React.memo(({
           style={{ height: 48 }}
         />
         <Pressable className="pl-2 active:opacity-70" accessibilityLabel="Voice search">
-          <Feather name="mic" size={20} color="rgba(255, 255, 255, 0.4)" />
+          <Feather name="mic" size={20} color="rgba(255, 255, 255, 0.6)" />
         </Pressable>
       </View>
 
+      {/* Profile Button */}
       <Pressable
         onPress={onArPress}
-        className="w-12 h-12 items-center justify-center rounded-full active:opacity-70"
+        className="w-12 h-12 ml-3 items-center justify-center rounded-full active:opacity-70 bg-[#1c1c1e] border border-white/5 shadow-lg"
         accessibilityLabel="Go to profile"
       >
-        <View className="w-full h-full rounded-full bg-[#FF3B30] items-center justify-center shadow-lg">
-          <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18 }}>ND</Text>
+        <View className="items-center justify-center">
+          <Feather name="user" size={24} color="white" />
         </View>
       </Pressable>
     </View>
@@ -50,11 +52,8 @@ export const SearchBar = React.memo(({
 
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: 'rgba(30, 30, 32, 0.95)', 
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    backgroundColor: '#1c1c1e', 
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
 });

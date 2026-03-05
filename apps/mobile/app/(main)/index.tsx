@@ -25,6 +25,7 @@ import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { QuickActions } from '../../src/components/map/QuickActions';
+import { SearchFilters } from '../../src/components/map/SearchFilters';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
@@ -79,14 +80,11 @@ function MapIndex() {
 
   // Handle POI selection changes
   React.useEffect(() => {
-    console.log('[Index] selectedPoiId changed to:', selectedPoiId);
     if (selectedPoiId) {
-      console.log('[Index] Opening POI detail sheet');
       // Show detail sheet, hide search sheet
       poiDetailSheetRef.current?.snapToIndex(0);
       bottomSheetRef.current?.close();
     } else {
-      console.log('[Index] Closing POI detail sheet, opening search sheet');
       // Show search sheet, hide detail sheet
       poiDetailSheetRef.current?.close();
       bottomSheetRef.current?.snapToIndex(0);
@@ -167,12 +165,15 @@ function MapIndex() {
         ref={bottomSheetRef}
         translateY={sheetPosition}
       >
-        <View className="px-4">
+        <View>
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
-          <QuickActions />
-          <GuidesSection />
-          <SheetFooterActions />
-          <View style={{ height: 100 }} />
+          <SearchFilters />
+          <View className="px-4">
+            <QuickActions />
+            <GuidesSection />
+            <SheetFooterActions />
+            <View style={{ height: 100 }} />
+          </View>
         </View>
       </MapBottomSheet>
 
