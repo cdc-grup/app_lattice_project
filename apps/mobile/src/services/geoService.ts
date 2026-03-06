@@ -10,6 +10,10 @@ export const geoService = {
     );
   },
 
+  getPOI: async (id: number): Promise<any> => {
+    return apiClient.get<any>(`${API_ENDPOINTS.GEO.POIS}/${id}`);
+  },
+
   getCategories: async (): Promise<string[]> => {
     return apiClient.get<string[]>(API_ENDPOINTS.GEO.CATEGORIES);
   },

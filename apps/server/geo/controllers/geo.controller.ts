@@ -88,3 +88,51 @@ export const getRoute = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal Server Error', details: String(error) });
   }
 };
+
+export const getPoi = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const poiId = parseInt(id, 10);
+
+    if (isNaN(poiId)) {
+      return res.status(400).json({ error: 'Invalid POI ID' });
+    }
+
+    const result = await db
+      .select({
+        id: pointsOfInterest.id,
+        name: pointsOfInterest.name,
+        type: pointsOfInterest.type,
+        description: pointsOfInterest.description,
+        crowdLevel: pointsOfInterest.crowdLevel,
+        isWheelchairAccessible: pointsOfInterest.isWheelchairAccessible,
+        hasPriorityLane: pointsOfInterest.hasPriorityLane,
+        geometry: sql<string>`ST_AsGeoJSON(${pointsOfInterest.location})`,
+      })
+      .from(pointsOfInterest)
+      .where(sql`${pointsOfInterest.id} = ${poiId}`)
+      .limit(1);
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'POI not found' });
+    }
+
+    const poi = result[0];
+    res.json({
+      type: 'Feature',
+      geometry: JSON.parse(poi.geometry as string),
+      properties: {
+        id: poi.id,
+        name: poi.name,
+        category: poi.type,
+        description: poi.description,
+        crowdLevel: poi.crowdLevel,
+        isWheelchairAccessible: poi.isWheelchairAccessible,
+        hasPriorityLane: poi.hasPriorityLane,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching POI:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: String(error) });
+  }
+};

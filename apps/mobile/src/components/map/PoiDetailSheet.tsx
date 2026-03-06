@@ -1,16 +1,38 @@
 import React, { useMemo, forwardRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react-native';
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather } from '@expo/vector-icons';
 import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
+import { RouteGeoJSON } from '../../types';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Hoist Intl for performance (js-hoist-intl)
+const durationFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'unit',
+  unit: 'minute',
+  unitDisplay: 'short',
+});
+
+const distanceFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'unit',
+  unit: 'meter',
+  unitDisplay: 'short',
+});
+
+const kmFormatter = new Intl.NumberFormat('es-ES', {
+  style: 'unit',
+  unit: 'kilometer',
+  unitDisplay: 'short',
+  maximumFractionDigits: 1,
+});
+
 interface PoiDetailSheetProps {
   poi: UIPOI | null;
+  route: RouteGeoJSON | null;
   onClose: () => void;
   translateY: SharedValue<number>;
 }
@@ -18,10 +40,10 @@ interface PoiDetailSheetProps {
 const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: `rgba(28, 28, 30, ${interpolate(
+      backgroundColor: `rgba(18, 18, 20, ${interpolate(
         animatedIndex.value,
-        [-1, 0, 1, 2],
-        [0.4, 0.7, 0.85, 0.95],
+        [-1, 0, 1],
+        [0.4, 0.92, 1],
         Extrapolate.CLAMP
       )})`,
     };
@@ -29,22 +51,38 @@ const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) 
 
   return (
     <Animated.View style={[style, styles.blurBackground, animatedStyle]}>
-      <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+      <SafeBlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+      <View style={styles.premiumBorder} />
     </Animated.View>
   );
 };
 
 export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
   poi, 
+  route,
   onClose,
   translateY 
 }, ref) => {
   const insets = useSafeAreaInsets();
 
   const snapPoints = useMemo(() => [
-    insets.bottom + 280, // Collapsed
+    insets.bottom + 260, // Collapsed
     SCREEN_HEIGHT - insets.top - 40 // Expanded
   ], [insets.bottom, insets.top]);
+
+  const formattedDuration = useMemo(() => {
+    if (!route?.properties.durationEstimate) return '--';
+    const mins = Math.round(route.properties.durationEstimate / 60);
+    return durationFormatter.format(mins || 1);
+  }, [route]);
+
+  const formattedDistance = useMemo(() => {
+    if (!route?.properties.distance) return '--';
+    const dist = route.properties.distance;
+    return dist >= 1000 
+      ? kmFormatter.format(dist / 1000)
+      : distanceFormatter.format(dist);
+  }, [route]);
 
   if (!poi) return null;
 
@@ -60,35 +98,65 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
       onClose={onClose}
     >
       <View style={styles.container}>
-        {/* Header */}
+        {/* Apple Maps Style Header */}
         <View style={styles.header}>
-          <Pressable style={styles.headerIcon}>
-            <Feather name="share" size={20} color="#FF3B30" />
-          </Pressable>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
             <Text style={styles.subtitle}>{poi.category}</Text>
           </View>
-          <Pressable onPress={onClose} style={[styles.headerIcon, styles.closeIcon]}>
-            <Feather name="x" size={20} color="white" />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable 
+              style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
+            >
+              <Feather name="share" size={20} color="#FF3B30" />
+            </Pressable>
+            <Pressable 
+              onPress={onClose} 
+              style={({ pressed }) => [styles.headerIcon, styles.closeIcon, pressed && { opacity: 0.7 }]}
+            >
+              <Feather name="x" size={20} color="white" />
+            </Pressable>
+          </View>
         </View>
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
           {/* Action Buttons */}
           <View style={styles.actionRow}>
-            <Pressable style={styles.driveButton}>
-              <Feather name="navigation" size={20} color="white" />
-              <Text style={styles.driveButtonText}>11 min</Text>
+            <Pressable 
+              style={({ pressed }) => [
+                styles.driveButton, 
+                pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }
+              ]}
+            >
+              <View style={styles.driveButtonContent}>
+                <Feather name="navigation" size={22} color="white" />
+                <View style={styles.driveButtonTextContainer}>
+                  <Text style={styles.driveButtonTitle}>INDICACIONES</Text>
+                  <Text style={styles.driveButtonSubtitle}>{formattedDuration}</Text>
+                </View>
+              </View>
             </Pressable>
-            <Pressable style={styles.circleButton}>
-              <Feather name="phone" size={20} color="#FF3B30" />
-              <Text style={styles.circleButtonText}>Llamar</Text>
-            </Pressable>
-            <Pressable style={styles.circleButton}>
-              <Feather name="globe" size={20} color="#FF3B30" />
-              <Text style={styles.circleButtonText}>Sitio web</Text>
-            </Pressable>
+            
+            <View style={styles.secondaryActions}>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.circleButton, 
+                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
+                    ]}
+                >
+                    <Feather name="phone" size={20} color="#FF3B30" />
+                    <Text style={styles.circleButtonText}>Llamar</Text>
+                </Pressable>
+                <Pressable 
+                    style={({ pressed }) => [
+                        styles.circleButton, 
+                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
+                    ]}
+                >
+                    <Feather name="globe" size={20} color="#FF3B30" />
+                    <Text style={styles.circleButtonText}>Sitio web</Text>
+                </Pressable>
+            </View>
           </View>
 
           {/* Info Grid */}
@@ -114,7 +182,7 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
               <Text style={styles.infoLabel}>Distancia</Text>
               <View style={styles.distRow}>
                 <Feather name="navigation-2" size={14} color="white" style={{ transform: [{ rotate: '45deg' }] }} />
-                <Text style={styles.infoValue}> 3,5 km</Text>
+                <Text style={styles.infoValue}> {formattedDistance}</Text>
               </View>
             </View>
           </View>
@@ -131,10 +199,10 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
 
         {/* Floating Toolbar */}
         <View style={[styles.toolbar, { bottom: insets.bottom + 20 }]}>
-          <Pressable style={styles.toolbarItem}><Feather name="plus" size={20} color="white" /></Pressable>
-          <Pressable style={styles.toolbarItem}><Feather name="star" size={20} color="white" /></Pressable>
-          <Pressable style={styles.toolbarItem}><Feather name="thumbs-up" size={20} color="white" /></Pressable>
-          <Pressable style={styles.toolbarItem}><Feather name="more-horizontal" size={20} color="white" /></Pressable>
+          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="plus" size={20} color="white" /></Pressable>
+          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="star" size={20} color="white" /></Pressable>
+          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="thumbs-up" size={20} color="white" /></Pressable>
+          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="more-horizontal" size={20} color="white" /></Pressable>
         </View>
       </View>
     </BottomSheet>
@@ -158,14 +226,31 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  title: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
   headerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -173,56 +258,58 @@ const styles = StyleSheet.create({
   closeIcon: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-  headerTitleContainer: {
-    flex: 1,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  actionRow: {
+    flexDirection: 'column',
+    gap: 16,
+    marginTop: 8,
+  },
+  driveButton: {
+    backgroundColor: '#FF3B30',
+    height: 64,
+    borderRadius: 14,
+    width: '100%',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  driveButtonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  title: {
+  driveButtonTextContainer: {
+    marginLeft: 16,
+  },
+  driveButtonTitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  driveButtonSubtitle: {
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
+    marginTop: 0,
   },
-  subtitle: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 100,
-  },
-  actionRow: {
+  secondaryActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  driveButton: {
-    flex: 1.5,
-    backgroundColor: '#FF3B30',
-    height: 60,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  driveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    marginTop: 4,
+    gap: 12,
   },
   circleButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 59, 48, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     height: 60,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 5,
   },
   circleButtonText: {
     color: '#FF3B30',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -271,18 +358,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 12,
   },
+  premiumBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderTopWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    pointerEvents: 'none',
+  },
   toolbar: {
     position: 'absolute',
     left: 20,
     right: 20,
-    height: 54,
-    backgroundColor: 'rgba(40, 40, 42, 0.9)',
-    borderRadius: 27,
+    height: 56,
+    backgroundColor: 'rgba(30, 30, 32, 0.95)',
+    borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
   },
   toolbarItem: {
     padding: 10,

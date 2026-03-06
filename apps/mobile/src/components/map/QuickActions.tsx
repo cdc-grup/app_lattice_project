@@ -10,50 +10,57 @@ interface QuickActionProps {
   isRed?: boolean;
 }
 
-const QuickAction = ({ icon, label, sublabel, onPress, isRed }: QuickActionProps) => (
-  <View className="items-center mr-6">
+const QuickAction = ({ icon, label, sublabel, onPress }: QuickActionProps) => (
+  <View style={styles.actionItem}>
     <Pressable 
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         styles.actionButton,
-        { backgroundColor: isRed ? 'rgba(255, 59, 48, 0.15)' : 'rgba(255, 255, 255, 0.08)' }
+        { 
+          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)',
+          transform: [{ scale: pressed ? 0.94 : 1 }],
+        }
       ]}
-      className="w-14 h-14 rounded-full items-center justify-center mb-2 active:opacity-70"
+      className="items-center justify-center mb-2"
     >
-      <Feather name={icon as any} size={24} color={isRed ? '#FF3B30' : '#94A3B8'} />
+      <Feather name={icon as any} size={22} color="rgba(255, 255, 255, 0.8)" />
     </Pressable>
-    <Text className="text-white text-xs font-medium">{label}</Text>
-    {sublabel && <Text className="text-[#FF3B30] text-[10px] mt-0.5">{sublabel}</Text>}
+    <Text style={styles.actionLabel} numberOfLines={1}>{label}</Text>
+    {sublabel ? (
+      <Text style={styles.actionSublabel} numberOfLines={1}>{sublabel}</Text>
+    ) : null}
   </View>
 );
 
 export const QuickActions = () => {
   return (
-    <View className="px-5 py-4">
+    <View style={styles.container}>
       <View className="flex-row items-center mb-4">
-        <Text className="text-white text-[19px] font-bold">Sitios</Text>
-        <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.3)" className="ml-1 mt-0.5" />
+        <Text style={styles.sectionTitle}>Favoritos</Text>
+        <Feather name="chevron-right" size={14} color="rgba(255, 255, 255, 0.2)" className="ml-1 mt-0.5" />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <QuickAction 
           icon="home" 
           label="Casa" 
           sublabel="Añadir" 
-          onPress={() => {}} 
-          isRed
+          onPress={() => console.log('Home pressed')} 
         />
         <QuickAction 
           icon="briefcase" 
           label="Trabajo" 
           sublabel="Añadir" 
-          onPress={() => {}} 
-          isRed
+          onPress={() => console.log('Work pressed')} 
         />
         <QuickAction 
           icon="plus" 
           label="Añadir" 
-          onPress={() => {}} 
-          isRed
+          onPress={() => console.log('Add pressed')} 
         />
       </ScrollView>
     </View>
@@ -61,10 +68,39 @@ export const QuickActions = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  sectionTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
+  scrollContent: {
+    paddingRight: 20,
+  },
+  actionItem: {
+    minWidth: 70,
+    alignItems: 'center',
+    marginRight: 12,
+  },
   actionButton: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  }
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  actionLabel: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  actionSublabel: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 10,
+    marginTop: 1,
+  },
 });

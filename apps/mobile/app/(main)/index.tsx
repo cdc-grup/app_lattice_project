@@ -15,6 +15,7 @@ import { SearchBar } from '../../src/components/SearchBar';
 import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
+import { useSinglePOI } from '../../src/hooks/queries/useSinglePOI';
 import { useCategories } from '../../src/hooks/queries/useCategories';
 import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
@@ -60,7 +61,13 @@ function MapIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
-  const { selectedPoiId, deselect, triggerRecenter, selectPoi } = useMapStore();
+  
+  // Selective selectors to minimize re-renders
+  const selectedPoiId = useMapStore(s => s.selectedPoiId);
+  const deselect = useMapStore(s => s.deselect);
+  const triggerRecenter = useMapStore(s => s.triggerRecenter);
+  const currentRoute = useMapStore(s => s.currentRoute);
+
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
@@ -92,22 +99,34 @@ function MapIndex() {
   }, [selectedPoiId]);
 
   const activeCategory = useMemo(() => {
+    if (!activeCategoryId) return undefined;
     return categories?.find(c => c.id === activeCategoryId)?.category;
   }, [activeCategoryId, categories]);
 
   const { data: poisData, isLoading } = usePOIs(activeCategory);
+  
+  // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
+  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(selectedPoiId);
 
   const selectedPoi = useMemo(() => {
-    if (!selectedPoiId || !poisData) return null;
-    const f = poisData.features.find((f: any) => f.properties.id === selectedPoiId);
-    if (!f) return null;
-    return {
-      ...f.properties,
-      geometry: f.geometry,
-      distance: '3,5 km',
-      time: '11 min'
-    };
-  }, [selectedPoiId, poisData]);
+    if (!selectedPoiId) return null;
+    
+    const idToMatch = Number(selectedPoiId);
+    console.log('[MapIndex] Looking for selected POI:', idToMatch);
+
+    // 1. Try to find it in the current filtered list (fastest)
+    if (poisData) {
+      const f = poisData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+      if (f) return { ...f.properties, geometry: f.geometry };
+    }
+    
+    // 2. Fallback to the single POI fetch results
+    if (soloPoiData && Number(soloPoiData.properties.id) === idToMatch) {
+      return { ...soloPoiData.properties, geometry: soloPoiData.geometry };
+    }
+
+    return null;
+  }, [selectedPoiId, poisData, soloPoiData]);
 
   const handleRecenter = useCallback(async () => {
     await requestPermission();
@@ -134,11 +153,11 @@ function MapIndex() {
           isVisible={isARVisible} 
           onExitAR={() => {}}
         />
-        {isLoading && (
+        {isLoading ? (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />
           </View>
-        )}
+        ) : null}
       </View>
 
       {/* Floating Recenter Button (Synced) */}
@@ -153,7 +172,10 @@ function MapIndex() {
         <View pointerEvents="auto" className="items-end px-4 mb-4">
           <Pressable 
             onPress={handleRecenter}
-            className="w-12 h-12 items-center justify-center rounded-full active:opacity-70 bg-black/60 border border-white/5 shadow-lg"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.7 : 1,
+            })}
+            className="w-12 h-12 items-center justify-center rounded-full bg-black/60 border border-white/5 shadow-lg"
           >
             <Feather name="navigation" size={24} color="white" />
           </Pressable>
@@ -169,7 +191,6 @@ function MapIndex() {
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
           <SearchFilters />
           <View className="px-4">
-            <QuickActions />
             <GuidesSection />
             <SheetFooterActions />
             <View style={{ height: 100 }} />
@@ -181,6 +202,7 @@ function MapIndex() {
       <PoiDetailSheet 
         ref={poiDetailSheetRef}
         poi={selectedPoi}
+        route={currentRoute}
         onClose={deselect}
         translateY={poiSheetPosition}
       />

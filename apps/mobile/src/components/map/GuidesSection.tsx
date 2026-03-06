@@ -1,65 +1,166 @@
 import React from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.45;
 
-const GuideCard = ({ title, sublabel, icon }: { title: string, sublabel: string, icon: any }) => (
-  <View style={[styles.card, { width: CARD_WIDTH }]} className="rounded-3xl overflow-hidden mr-4">
-    <LinearGradient
-      colors={['#333', '#1a1a1a']}
-      style={StyleSheet.absoluteFill}
-    />
-    <View className="flex-1 items-center justify-center pt-8 pb-4">
-      <View style={styles.iconContainer}>
-         <Feather name="star" size={50} color="#FFD60A" />
-      </View>
+const GuideItem = ({ title, sublabel, icon, color }: { title: string, sublabel: string, icon: string, color?: string }) => (
+  <Pressable 
+    style={({ pressed }) => [
+      styles.guideItem,
+      pressed && { opacity: 0.8, transform: [{ scale: 0.97 }] }
+    ]}
+  >
+    <View style={styles.guideIconWrapper}>
+      <View style={[styles.iconIndicator, { backgroundColor: color || '#FFFFFF' }]} />
+      <Feather name={icon as any} size={26} color="white" />
     </View>
-    <View className="px-4 pb-4">
-      <Text className="text-white text-base font-bold">{title}</Text>
-      <Text className="text-gray-400 text-xs">{sublabel}</Text>
+    <View style={styles.textContainer}>
+      <Text style={styles.guideTitle} numberOfLines={1}>{title}</Text>
+      <Text style={styles.guideSublabel}>{sublabel}</Text>
     </View>
-  </View>
+  </Pressable>
 );
 
 export const GuidesSection = () => {
   return (
-    <View className="mt-4 mb-7">
-      <View className="flex-row items-center mb-3 px-1">
-        <Text className="text-white text-[19px] font-bold">Tus guías</Text>
-        <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.3)" className="ml-1 mt-0.5" />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.sectionTitle}>Tus guías</Text>
+        <Pressable style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}>
+          <Text style={styles.seeAllText}>Ver todas</Text>
+          <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
+        </Pressable>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-1">
-        <GuideCard 
-          title="Favoritos" 
-          sublabel="0 sitios" 
-          icon="star" 
+      
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.scrollContent}
+        decelerationRate="fast"
+      >
+        <GuideItem 
+          title="Para visitar" 
+          sublabel="2 sitios" 
+          icon="map-pin" 
+          color="#30D158" 
         />
-        {/* Placeholder for more guides */}
-        <View 
-          style={[styles.card, { width: CARD_WIDTH, borderStyle: 'dashed', borderWidth: 1, borderColor: '#444' }]} 
-          className="rounded-3xl items-center justify-center mr-4"
+        <GuideItem 
+          title="Restaurantes" 
+          sublabel="5 sitios" 
+          icon="coffee" 
+          color="#5E5CE6" 
+        />
+        <GuideItem 
+          title="Viajes" 
+          sublabel="12 sitios" 
+          icon="briefcase" 
+          color="#FF9F0A" 
+        />
+        
+        <Pressable 
+          style={({ pressed }) => [
+            styles.newGuideButton,
+            pressed && { backgroundColor: 'rgba(255, 255, 255, 0.15)' }
+          ]}
         >
-          <Feather name="plus" size={30} color="#666" />
-          <Text className="text-gray-500 text-xs mt-2">Nueva guía</Text>
-        </View>
+          <Feather name="plus" size={24} color="rgba(255, 255, 255, 0.6)" />
+          <Text style={styles.newGuideText}>Nueva guía</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    height: 200,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  container: {
+    marginTop: 20,
+    marginBottom: 24,
   },
-  iconContainer: {
-    shadowColor: '#FFD60A',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  }
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.6,
+  },
+  seeAll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  seeAllText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 13,
+    fontWeight: '600',
+    marginRight: 2,
+  },
+  scrollContent: {
+    paddingRight: 20,
+  },
+  guideItem: {
+    width: 140,
+    marginRight: 12,
+  },
+  guideIconWrapper: {
+    width: '100%',
+    height: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  iconIndicator: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  textContainer: {
+    paddingLeft: 4,
+  },
+  guideTitle: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  guideSublabel: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  newGuideButton: {
+    width: 140,
+    height: 90,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderStyle: 'dashed',
+  },
+  newGuideText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 6,
+  },
 });

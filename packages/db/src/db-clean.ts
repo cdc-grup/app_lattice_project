@@ -9,6 +9,7 @@ async function clean() {
     'groups',
     'offline_packages',
     'path_segments',
+    'nodes',
     'tickets',
     'saved_locations',
     'points_of_interest',

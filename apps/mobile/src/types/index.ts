@@ -25,3 +25,16 @@ export interface POICollection {
 }
 
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined' | 'idle' | 'loading' | 'blocked';
+
+export interface RouteGeoJSON {
+  type: 'Feature';
+  geometry: {
+    type: 'LineString';
+    coordinates: [number, number][];
+  };
+  properties: {
+    distance: number;
+    durationEstimate: number;
+  };
+}
+

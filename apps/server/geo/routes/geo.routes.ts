@@ -6,6 +6,7 @@ const router = Router();
 router.get('/health', geoController.healthCheck);
 router.get('/pois', geoController.getPois);
 router.get('/pois/categories', geoController.getCategories);
+router.get('/pois/:id', geoController.getPoi);
 router.get('/locations', geoController.getLocations);
 router.post('/navigation/route', geoController.getRoute);
 

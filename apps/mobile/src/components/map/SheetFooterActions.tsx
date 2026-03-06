@@ -2,47 +2,51 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-interface FooterActionProps {
+interface ActionButtonProps {
   icon: string;
   label: string;
   onPress: () => void;
-  isLast?: boolean;
+  flex?: number;
 }
 
-const FooterAction = ({ icon, label, onPress, isLast }: FooterActionProps) => (
+const ActionButton = ({ icon, label, onPress, flex = 1 }: ActionButtonProps) => (
   <Pressable
     onPress={onPress}
-    className="flex-row items-center justify-center h-14 w-full bg-[#1c1c1e] mb-3 rounded-2xl active:opacity-70"
-    style={styles.actionButton}
+    style={({ pressed }) => [
+        styles.actionButton,
+        { flex },
+        pressed && { backgroundColor: 'rgba(255, 255, 255, 0.18)', transform: [{ scale: 0.98 }] }
+    ]}
   >
-    <Feather name={icon as any} size={20} color="#FF3B30" />
-    <Text className="text-[#FF3B30] text-base font-semibold ml-3">{label}</Text>
+    <View style={styles.buttonContent}>
+        <View style={styles.iconCircle}>
+            <Feather name={icon as any} size={20} color="#FF3B30" />
+        </View>
+        <Text style={styles.actionLabel}>{label}</Text>
+    </View>
   </Pressable>
 );
 
 export const SheetFooterActions = () => {
   return (
-    <View className="mt-4 mb-10">
-      <FooterAction 
-        icon="share" 
-        label="Compartir mi ubicación" 
-        onPress={() => {}} 
-      />
-      <FooterAction 
-        icon="map-pin" 
-        label="Marcar mi ubicación" 
-        onPress={() => {}} 
-      />
-      <FooterAction 
-        icon="message-square" 
-        label="Informar de un problema" 
-        onPress={() => {}} 
-      />
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <ActionButton 
+          icon="share" 
+          label="Enviar ubicación" 
+          onPress={() => console.log('Share location')} 
+        />
+        <ActionButton 
+          icon="map-pin" 
+          label="Fijar pin aquí" 
+          onPress={() => console.log('Mark position')} 
+        />
+      </View>
       
-      <View className="items-center mt-4">
-        <Pressable className="flex-row items-center">
-            <Text className="text-gray-500 text-xs">Términos y condiciones</Text>
-            <Feather name="chevron-right" size={12} color="#666" className="ml-0.5" />
+      <View style={styles.termsContainer}>
+        <Pressable style={({ pressed }) => [styles.termsButton, pressed && { opacity: 0.6 }]}>
+            <Text style={styles.termsText}>Términos y condiciones</Text>
+            <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
         </Pressable>
       </View>
     </View>
@@ -50,9 +54,57 @@ export const SheetFooterActions = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    marginTop: 12,
+    paddingBottom: 60,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
   actionButton: {
-    backgroundColor: 'rgba(28, 28, 30, 0.8)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 59, 48, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  actionLabel: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    flexShrink: 1,
+  },
+  termsContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  termsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  termsText: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 12,
+    marginRight: 4,
   }
 });

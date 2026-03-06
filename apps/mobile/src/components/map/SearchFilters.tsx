@@ -12,10 +12,17 @@ interface FilterChipProps {
 const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChipProps) => (
   <Pressable 
     onPress={onPress}
-    style={styles.chip}
-    className="flex-row items-center px-4 h-[38px] rounded-full mr-2.5 active:opacity-70"
+    style={({ pressed }) => [
+      styles.chip,
+      {
+        opacity: pressed ? 0.7 : 1,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
+        backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.1)'
+      }
+    ]}
+    className="flex-row items-center px-4 h-[36px] rounded-lg mr-2"
   >
-    <IconComponent name={icon} size={18} color="white" />
+    <IconComponent name={icon} size={16} color="rgba(255, 255, 255, 0.9)" />
     <Text style={styles.chipText}>{label}</Text>
   </Pressable>
 );
@@ -54,17 +61,19 @@ export const SearchFilters = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 4,
   },
   chip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   chipText: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 8,
+    fontWeight: '600',
+    marginLeft: 6,
+    letterSpacing: -0.2,
   },
 });
