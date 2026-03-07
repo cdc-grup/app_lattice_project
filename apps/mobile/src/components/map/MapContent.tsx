@@ -1,6 +1,16 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { 
+  useAnimatedStyle, 
+  withSpring, 
+  withTiming,
+  withRepeat,
+  useSharedValue,
+  FadeInDown,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 // State & Store
 import { useMapStore } from '../../store/useMapStore';
@@ -17,6 +27,7 @@ import {
 } from '../../constants/mapConstants';
 import { mapLayerStyles } from '../../styles/mapLayerStyles';
 import { theme } from '../../styles/theme';
+import { getCategoryMetadata } from '../../utils/poiUtils';
 
 interface MapContentProps {
   userCoords: number[] | null;
@@ -24,6 +35,96 @@ interface MapContentProps {
   poisGeoJSON: any;
   onDeselect?: () => void;
 }
+
+const PulsingUserLocation = React.memo(() => {
+  const pulse = useSharedValue(1);
+  
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withTiming(1.6, { duration: 1500 }),
+      -1,
+      true
+    );
+  }, []);
+
+  const rPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+    opacity: withTiming(0.4 / pulse.value),
+  }));
+
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View 
+        style={[
+          {
+            position: 'absolute',
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+          },
+          rPulseStyle
+        ]}
+      />
+      <View style={{
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: 'white',
+        borderWidth: 2,
+        borderColor: '#0A0A0A',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.5,
+        shadowRadius: 3,
+      }} />
+    </View>
+  );
+});
+
+const PoiMarker = React.memo(({ 
+  isSelected, 
+  metadata, 
+  onPress,
+  index
+}: { 
+  isSelected: boolean; 
+  metadata: any; 
+  onPress: () => void;
+  index: number;
+}) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: withSpring(isSelected ? 1.15 : 1, { damping: 15 }) }],
+      backgroundColor: withTiming(isSelected ? 'white' : metadata.color, { duration: 250 }),
+      borderColor: withTiming(isSelected ? metadata.color : 'white', { duration: 250 }),
+      width: isSelected ? 40 : 32,
+      height: isSelected ? 40 : 32,
+      borderRadius: isSelected ? 20 : 16,
+    };
+  }, [isSelected, metadata.color]);
+
+  return (
+    <Animated.View 
+      entering={FadeInDown.delay(Math.min(index * 30, 800)).springify()}
+      style={styles.markerContainer}
+    >
+      <Animated.View 
+        onTouchStart={onPress}
+        style={[
+          styles.markerBase,
+          animatedStyle
+        ]}
+      >
+        <MaterialCommunityIcons
+          name={metadata.icon as any}
+          size={isSelected ? 20 : 16}
+          color={isSelected ? metadata.color : 'white'}
+        />
+      </Animated.View>
+    </Animated.View>
+  );
+});
 
 export const MapContent = React.memo(({ 
   userCoords, 
@@ -87,6 +188,8 @@ export const MapContent = React.memo(({
     if (now - lastSelectionTime.current < 400) return;
     
     console.log('[MapContent] Interaction: Map deselection');
+    Haptics.selectionAsync();
+    
     if (onDeselect) {
       onDeselect();
     } else {
@@ -94,15 +197,41 @@ export const MapContent = React.memo(({
     }
   }, [onDeselect, storeDeselect]);
 
-  const onSourcePress = useCallback((event: any) => {
-    const feature = event.features[0];
-    if (feature?.properties && feature.geometry.type === 'Point') {
-      const poiId = Number(feature.properties.id);
-      console.log('[MapContent] Interaction: POI selected:', poiId);
-      lastSelectionTime.current = Date.now();
-      selectPoi(poiId, feature.geometry.coordinates);
-    }
+  const onPoiPress = useCallback((id: number, coords: number[]) => {
+    console.log('[MapContent] Interaction: POI selected:', id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    lastSelectionTime.current = Date.now();
+    selectPoi(id, coords);
   }, [selectPoi]);
+
+  // Render Helpers
+  const renderPOIs = useMemo(() => {
+    if (!poisGeoJSON?.features) return null;
+
+    return poisGeoJSON.features.map((feature: any, index: number) => {
+      const id = feature.properties.id;
+      const isSelected = id === selectedPoiId;
+      const coords = feature.geometry.coordinates;
+      const category = feature.properties.category;
+      const metadata = getCategoryMetadata(category);
+
+      return (
+        <MapLibreGL.MarkerView
+          key={`poi-${id}`}
+          id={`poi-marker-${id}`}
+          coordinate={coords}
+          anchor={{ x: 0.5, y: 0.5 }}
+        >
+          <PoiMarker 
+            isSelected={isSelected}
+            metadata={metadata}
+            onPress={() => onPoiPress(id, coords)}
+            index={index}
+          />
+        </MapLibreGL.MarkerView>
+      );
+    });
+  }, [poisGeoJSON, selectedPoiId, onPoiPress]);
 
   return (
     <MapLibreGL.MapView
@@ -125,9 +254,27 @@ export const MapContent = React.memo(({
       <MapLibreGL.UserLocation 
         visible={locationStatus === 'granted'} 
         renderMode="normal" 
-      />
+      >
+        <MapLibreGL.SymbolLayer
+          id="userHeadingIndicator"
+          style={{
+            iconImage: 'arrow', 
+            iconSize: 0.5,
+            iconRotate: ['get', 'heading'],
+            iconAllowOverlap: true,
+            iconIgnorePlacement: true,
+          }}
+        />
+      </MapLibreGL.UserLocation>
 
-      {/* Network Background (Always mounted) */}
+      {/* Separate MarkerView for Pulsing User Location to avoid crash */}
+      {locationStatus === 'granted' && userCoords && (
+        <MapLibreGL.MarkerView coordinate={userCoords}>
+          <PulsingUserLocation />
+        </MapLibreGL.MarkerView>
+      )}
+
+      {/* Network Background */}
       <MapLibreGL.ShapeSource 
         id="networkSource" 
         shape={pathNetwork || EMPTY_GEOJSON}
@@ -141,7 +288,7 @@ export const MapContent = React.memo(({
         />
       </MapLibreGL.ShapeSource>
 
-      {/* Active Route (Always mounted) */}
+      {/* Active Route */}
       <MapLibreGL.ShapeSource 
         id="routeSource" 
         shape={currentRoute || EMPTY_GEOJSON}
@@ -157,43 +304,14 @@ export const MapContent = React.memo(({
           id="routeGlow"
           style={{
             ...mapLayerStyles.routeGlow,
-            lineOpacity: currentRoute ? 0.2 : 0,
+            lineOpacity: currentRoute ? 0.3 : 0,
+            lineBlur: 4,
           }}
         />
       </MapLibreGL.ShapeSource>
 
-      {/* Points of Interest (Always mounted) */}
-      <MapLibreGL.ShapeSource
-        id="poisSource"
-        shape={poisGeoJSON || EMPTY_GEOJSON}
-        onPress={onSourcePress}
-        hitbox={{ width: 44, height: 44 }}
-      >
-        <MapLibreGL.CircleLayer
-          id="poiSelectionOuter"
-          filter={['==', ['get', 'id'], selectedPoiId || -1]}
-          style={{
-            ...mapLayerStyles.poiSelectionOuter,
-            circleOpacity: selectedPoiId ? 1 : 0,
-          }}
-        />
-
-        <MapLibreGL.CircleLayer
-          id="poiCircles"
-          style={{
-            ...mapLayerStyles.poiCircles,
-            circleOpacity: poisGeoJSON ? 0.9 : 0,
-          }}
-        />
-        
-        <MapLibreGL.SymbolLayer
-          id="poiLabels"
-          style={{
-            ...mapLayerStyles.poiLabels,
-            textOpacity: poisGeoJSON ? 0.9 : 0,
-          }}
-        />
-      </MapLibreGL.ShapeSource>
+      {/* Points of Interest (Animated Markers) */}
+      {renderPOIs}
     </MapLibreGL.MapView>
   );
 });
@@ -203,4 +321,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  markerContainer: {
+    // This wrapper handles the entering animation separately from the transform style
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerBase: {
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 2, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  }
 });

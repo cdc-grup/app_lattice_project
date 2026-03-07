@@ -22,6 +22,7 @@ import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
@@ -129,6 +130,7 @@ function MapIndex() {
   }, [selectedPoiId, poisData, soloPoiData]);
 
   const handleRecenter = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await requestPermission();
     triggerRecenter();
   }, [requestPermission, triggerRecenter]);
@@ -174,6 +176,7 @@ function MapIndex() {
             onPress={handleRecenter}
             style={({ pressed }) => ({
               opacity: pressed ? 0.7 : 1,
+              transform: [{ scale: pressed ? 0.92 : 1 }],
             })}
             className="w-12 h-12 items-center justify-center rounded-full bg-black/60 border border-white/5 shadow-lg"
           >

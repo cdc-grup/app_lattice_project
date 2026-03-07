@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather } from '@expo/vector-icons';
-import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
+import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, FadeInUp } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
 import { RouteGeoJSON } from '../../types';
@@ -100,18 +101,25 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
       <View style={styles.container}>
         {/* Apple Maps Style Header */}
         <View style={styles.header}>
-          <View style={styles.headerTitleContainer}>
+          <Animated.View 
+            entering={FadeInUp.delay(100).springify()}
+            style={styles.headerTitleContainer}
+          >
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
             <Text style={styles.subtitle}>{poi.category}</Text>
-          </View>
+          </Animated.View>
           <View style={styles.headerActions}>
             <Pressable 
+              onPress={() => Haptics.selectionAsync()}
               style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
             >
               <Feather name="share" size={20} color="#FF3B30" />
             </Pressable>
             <Pressable 
-              onPress={onClose} 
+              onPress={() => {
+                Haptics.selectionAsync();
+                onClose();
+              }} 
               style={({ pressed }) => [styles.headerIcon, styles.closeIcon, pressed && { opacity: 0.7 }]}
             >
               <Feather name="x" size={20} color="white" />
@@ -121,8 +129,12 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
           {/* Action Buttons */}
-          <View style={styles.actionRow}>
+          <Animated.View 
+            entering={FadeInUp.delay(200).springify()}
+            style={styles.actionRow}
+          >
             <Pressable 
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
               style={({ pressed }) => [
                 styles.driveButton, 
                 pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }
@@ -139,25 +151,29 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
             
             <View style={styles.secondaryActions}>
                 <Pressable 
+                    onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                     style={({ pressed }) => [
                         styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
+                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' },
+                        pressed && { transform: [{ scale: 0.98 }] }
                     ]}
                 >
                     <Feather name="phone" size={20} color="#FF3B30" />
                     <Text style={styles.circleButtonText}>Llamar</Text>
                 </Pressable>
                 <Pressable 
+                    onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                     style={({ pressed }) => [
                         styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
+                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' },
+                        pressed && { transform: [{ scale: 0.98 }] }
                     ]}
                 >
                     <Feather name="globe" size={20} color="#FF3B30" />
                     <Text style={styles.circleButtonText}>Sitio web</Text>
                 </Pressable>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Info Grid */}
           <View style={styles.infoGrid}>

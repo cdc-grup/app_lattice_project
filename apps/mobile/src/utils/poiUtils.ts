@@ -8,17 +8,21 @@ export const NEUTRAL_MARKER_COLOR = 'rgba(255, 255, 255, 0.15)'; // Neutral glas
 export const NEUTRAL_MARKER_BORDER = 'rgba(255, 255, 255, 0.3)';
 
 const CATEGORY_MAP: Record<string, CategoryMetadata> = {
-  restaurant: { icon: 'coffee', color: '#FF9500', label: 'Food & Drinks' }, // Apple Orange
-  food: { icon: 'coffee', color: '#FF9500', label: 'Food & Drinks' },
-  parking: { icon: 'map-pin', color: '#8E8E93', label: 'Parking Area' }, // Apple Gray
-  shop: { icon: 'shopping-bag', color: '#FF2D55', label: 'Official Store' }, // Apple Pink
-  shopping: { icon: 'shopping-bag', color: '#FF2D55', label: 'Official Store' },
-  wc: { icon: 'user', color: '#007AFF', label: 'Restrooms' }, // Apple Blue
-  toilet: { icon: 'user', color: '#007AFF', label: 'Restrooms' },
-  grandstand: { icon: 'map', color: '#FF3B30', label: 'Grandstand' }, // Apple Red
-  medical: { icon: 'plus-square', color: '#AF52DE', label: 'Medical Point' }, // Apple Purple
-  gate: { icon: 'log-in', color: '#5856D6', label: 'Entrance Gate' }, // Apple Indigo
-  meetup_point: { icon: 'users', color: '#5AC8FA', label: 'Meetup Point' }, // Apple Sky Blue
+  restaurant: { icon: 'food-fork-drink', color: '#D48806', label: 'Food & Drinks' }, // Deep Amber
+  food: { icon: 'food-fork-drink', color: '#D48806', label: 'Food & Drinks' },
+  parking: { icon: 'parking', color: '#2F3E46', label: 'Parking Area' }, // Dark Slate
+  shop: { icon: 'shopping', color: '#7209B7', label: 'Official Store' }, // Deep Purple
+  shopping: { icon: 'shopping', color: '#7209B7', label: 'Official Store' },
+  wc: { icon: 'toilet', color: '#1D3557', label: 'Restrooms' }, // Midnight Blue
+  toilet: { icon: 'toilet', color: '#1D3557', label: 'Restrooms' },
+  restroom: { icon: 'toilet', color: '#1D3557', label: 'Restrooms' },
+  grandstand: { icon: 'stadium-variant', color: '#1B4332', label: 'Grandstand' }, // Forest Green
+  medical: { icon: 'medical-bag', color: '#480CA8', label: 'Medical Point' }, // Dark Grape
+  hospital: { icon: 'hospital-building', color: '#480CA8', label: 'Hospital' },
+  gate: { icon: 'door-open', color: '#2B2D42', label: 'Entrance Gate' }, // Space Cadet Blue
+  entrance: { icon: 'door-open', color: '#2B2D42', label: 'Entrance Gate' },
+  meetup_point: { icon: 'account-group', color: '#386641', label: 'Meetup Point' }, // Evergreen
+  info: { icon: 'information', color: '#006466', label: 'Information' }, // Deep Teal
 };
 
 export const DIRECT_ACCESS_CATEGORIES = ['gate', 'grandstand', 'parking'];
