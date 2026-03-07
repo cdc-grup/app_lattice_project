@@ -27,12 +27,10 @@ jobs:
 
       - name: Build and Deploy Containers
         run: |
+          npm install --legacy-peer-deps
+          npm run db:migrate
           docker compose -f docker-compose.prod.yml down --remove-orphans
           docker compose -f docker-compose.prod.yml up -d --build
-
-      - name: Run Database Migrations
-        run: |
-          docker compose -f docker-compose.prod.yml exec -T auth npm run db:migrate
 
       - name: Cleanup Unused Docker Resources
         run: docker system prune -f
