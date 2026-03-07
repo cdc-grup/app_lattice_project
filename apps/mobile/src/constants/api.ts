@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   GEO: {
     POIS: '/pois',
     CATEGORIES: '/categories',
+    NETWORK: '/navigation/network',
     NAVIGATION: '/navigation/route',
   },
   SOCIAL: {

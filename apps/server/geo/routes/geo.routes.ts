@@ -8,6 +8,7 @@ router.get('/pois', geoController.getPois);
 router.get('/pois/categories', geoController.getCategories);
 router.get('/pois/:id', geoController.getPoi);
 router.get('/locations', geoController.getLocations);
+router.get('/navigation/network', geoController.getPathNetwork);
 router.post('/navigation/route', geoController.getRoute);
 
 export default router;

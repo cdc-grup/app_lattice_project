@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
@@ -7,7 +7,7 @@ import { theme } from '../../styles/theme';
 import { getCategoryIcon, getCategoryMetadata } from '../../utils/poiUtils';
 import { useMapStore } from '../../store/useMapStore';
 import { useRoute } from '../../hooks/queries/useRoute';
-import { MapRoute } from './MapRoute';
+import { usePathNetwork } from '../../hooks/queries/usePathNetwork';
 
 interface MapContentProps {
   userCoords: number[] | null;
@@ -23,7 +23,8 @@ export const MapContent = React.memo(({
   onDeselect
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
-  // Selective selectors to minimize re-renders
+  
+  // State from Store
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedCoords = useMapStore(s => s.selectedCoords);
   const recenterCount = useMapStore(s => s.recenterCount);
@@ -33,7 +34,9 @@ export const MapContent = React.memo(({
 
   const lastSelectionTime = useRef(0);
 
-  // Auto-fetch route when a POI is selected
+  // Queries
+  const { data: pathNetwork } = usePathNetwork();
+  
   const routeRequest = useMemo(() => {
     if (selectedPoiId && userCoords) {
       return {
@@ -46,10 +49,9 @@ export const MapContent = React.memo(({
 
   useRoute(routeRequest);
 
-  // Handle recenter trigger from store
+  // Handle camera movements
   useEffect(() => {
     if (recenterCount > 0 && userCoords && camera.current) {
-      console.log('[MapContent] Recentering to user:', userCoords);
       camera.current.setCamera({
         centerCoordinate: userCoords,
         zoomLevel: 17,
@@ -59,26 +61,22 @@ export const MapContent = React.memo(({
     }
   }, [recenterCount, userCoords]);
 
-  // Handle auto-centering when a POI is selected
   useEffect(() => {
     if (selectedCoords && camera.current) {
       camera.current.setCamera({
         centerCoordinate: selectedCoords,
         zoomLevel: 17,
-        animationDuration: 350, // Reduced from 600 for snappier feel
+        animationDuration: 350,
         animationMode: 'flyTo',
       });
     }
   }, [selectedCoords]);
 
-  const onMapPress = useCallback((e: any) => {
+  const onMapPress = useCallback(() => {
     const now = Date.now();
-    // If we just clicked a pin, ignore the map press
-    if (now - lastSelectionTime.current < 400) { 
-      return;
-    }
+    if (now - lastSelectionTime.current < 400) return;
     
-    console.log('[MapContent] Map press detected (deselecting)');
+    console.log('[MapContent] V2: Map press detected (deselecting)');
     if (onDeselect) {
       onDeselect();
     } else {
@@ -90,25 +88,11 @@ export const MapContent = React.memo(({
     const feature = event.features[0];
     if (feature?.properties && feature.geometry.type === 'Point') {
       const poiId = Number(feature.properties.id);
-      console.log('[MapContent] Source press detected for ID:', poiId);
+      console.log('[MapContent] ULTRA-STABLE-V2: Source press detected for ID:', poiId);
       lastSelectionTime.current = Date.now();
       selectPoi(poiId, feature.geometry.coordinates);
     }
   }, [selectPoi]);
-
-  // Filter out the selected POI from the background layer
-  const backgroundPois = useMemo(() => {
-    if (!poisGeoJSON) return null;
-    return {
-      ...poisGeoJSON,
-      features: poisGeoJSON.features.filter((f: any) => f.properties.id !== selectedPoiId)
-    };
-  }, [poisGeoJSON, selectedPoiId]);
-
-  const selectedFeature = useMemo(() => {
-    if (!selectedPoiId || !poisGeoJSON) return null;
-    return poisGeoJSON.features.find((f: any) => f.properties.id === selectedPoiId);
-  }, [selectedPoiId, poisGeoJSON]);
 
   return (
     <MapLibreGL.MapView
@@ -128,132 +112,104 @@ export const MapContent = React.memo(({
         }}
       />
 
-      {locationStatus === 'granted' ? (
+      {locationStatus === 'granted' && (
         <MapLibreGL.UserLocation visible={true} renderMode="normal" />
-      ) : null}
+      )}
 
-      <MapRoute route={currentRoute} />
+      {/* 🟢 Background Network (Grey) */}
+      {pathNetwork && (
+        <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork}>
+          <MapLibreGL.LineLayer
+            id="networkLines"
+            style={{
+              lineColor: '#606060',
+              lineWidth: 3,
+              lineOpacity: 0.3,
+            }}
+          />
+        </MapLibreGL.ShapeSource>
+      )}
 
-      {/* Background Pins Layer (Visual only, interactions handled by MarkerView below) */}
-      {backgroundPois ? (
+      {/* 🔴 Active Route (Red) */}
+      {currentRoute && (
+        <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute}>
+          <MapLibreGL.LineLayer
+            id="routeFill"
+            style={{
+              lineColor: '#FF3B30',
+              lineWidth: 6,
+              lineJoin: 'round',
+              lineCap: 'round',
+              lineOpacity: 0.95,
+            }}
+          />
+          <MapLibreGL.LineLayer
+            id="routeGlow"
+            style={{
+              lineColor: '#FF3B30',
+              lineWidth: 12,
+              lineJoin: 'round',
+              lineCap: 'round',
+              lineOpacity: 0.2,
+              lineBlur: 6,
+            }}
+          />
+        </MapLibreGL.ShapeSource>
+      )}
+
+      {/* 📍 POIs Layer - Ultra Stable Data Driven */}
+      {poisGeoJSON && (
         <MapLibreGL.ShapeSource
           id="poisSource"
-          shape={backgroundPois}
+          shape={poisGeoJSON}
+          onPress={onSourcePress}
+          hitbox={{ width: 44, height: 44 }}
         >
+          {/* Selection Highlight */}
+          <MapLibreGL.CircleLayer
+            id="poiSelectionOuter"
+            filter={['==', ['get', 'id'], selectedPoiId || -1]}
+            style={{
+              circleRadius: 22,
+              circleColor: '#FF3B30',
+              circleOpacity: 1,
+              circleStrokeWidth: 3,
+              circleStrokeColor: 'white',
+              circlePitchAlignment: 'map',
+            }}
+          />
+
+          {/* POI circles */}
           <MapLibreGL.CircleLayer
             id="poiCircles"
             style={{
               circleRadius: 15,
-              circleColor: 'rgba(255, 59, 48, 0.15)',
-              circleStrokeWidth: 1,
-              circleStrokeColor: 'rgba(255, 59, 48, 0.3)',
+              circleColor: 'rgba(255, 59, 48, 0.4)',
+              circleStrokeWidth: 1.5,
+              circleStrokeColor: 'white',
+              circleOpacity: 0.9,
+            }}
+          />
+          
+          {/* Labels */}
+          <MapLibreGL.SymbolLayer
+            id="poiLabels"
+            style={{
+              textField: ['get', 'name'],
+              textSize: 11,
+              textColor: 'white',
+              textOffset: [0, 2],
+              textOpacity: 0.9,
+              textHaloColor: 'rgba(0,0,0,0.8)',
+              textHaloWidth: 2,
+              textIgnorePlacement: false,
+              textAllowOverlap: false,
             }}
           />
         </MapLibreGL.ShapeSource>
-      ) : null}
-
-      {/* Interactive POI Markers */}
-      {poisGeoJSON?.features ? poisGeoJSON.features.map((feature: any) => {
-        const poiId = Number(feature.properties.id);
-        if (poiId === Number(selectedPoiId)) return null;
-        
-        const metadata = getCategoryMetadata(feature.properties.category);
-
-        return (
-          <MapLibreGL.MarkerView 
-            key={feature.properties.id} 
-            coordinate={feature.geometry.coordinates}
-          >
-            <Pressable 
-              onPress={() => {
-                console.log('[MapContent] MarkerView pressed for ID:', poiId);
-                lastSelectionTime.current = Date.now();
-                selectPoi(poiId, feature.geometry.coordinates);
-              }}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.6 : 1,
-                backgroundColor: 'rgba(255, 59, 48, 0.2)',
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1.5,
-                borderColor: 'white',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
-                shadowRadius: 3.84,
-                elevation: 5,
-              })}
-            >
-              <Feather 
-                name={metadata.icon as any} 
-                size={16} 
-                color="white" 
-              />
-            </Pressable>
-          </MapLibreGL.MarkerView>
-        );
-      }) : null}
-
-      {/* Selected Pin (Custom View) */}
-      {selectedFeature ? (
-        <MapLibreGL.MarkerView 
-          id="selectedPin"
-          coordinate={selectedFeature.geometry.coordinates} 
-          anchor={{ x: 0.5, y: 1 }}
-        >
-          <Pressable 
-            onPress={() => {
-              console.log('[MapContent] Selected pin pressed again');
-              selectPoi(Number(selectedFeature.properties.id), selectedFeature.geometry.coordinates);
-            }}
-            className="items-center" 
-            style={{ width: 40, height: 50 }}
-          >
-            <View 
-              style={{ 
-                backgroundColor: '#FF3B30', 
-                width: 36, 
-                height: 36, 
-                borderRadius: 18, 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderWidth: 2,
-                borderColor: 'white',
-                elevation: 10,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 5,
-                zIndex: 10,
-              }}
-            >
-              <Feather 
-                name={getCategoryMetadata(selectedFeature.properties.category).icon as any} 
-                size={20} 
-                color="white" 
-              />
-            </View>
-            <View 
-              style={{ 
-                width: 0, 
-                height: 0,
-                borderStyle: 'solid',
-                borderLeftWidth: 6,
-                borderRightWidth: 6,
-                borderTopWidth: 10,
-                borderLeftColor: 'transparent',
-                borderRightColor: 'transparent',
-                borderTopColor: 'white',
-                marginTop: -2,
-                zIndex: 9,
-              }} 
-            />
-          </Pressable>
-        </MapLibreGL.MarkerView>
-      ) : null}
+      )}
     </MapLibreGL.MapView>
   );
 });
+
+const styles = StyleSheet.create({});

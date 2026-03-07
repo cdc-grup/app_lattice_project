@@ -92,7 +92,7 @@ export const getRoute = async (req: Request, res: Response) => {
 export const getPoi = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const poiId = parseInt(id, 10);
+    const poiId = parseInt(id as string, 10);
 
     if (isNaN(poiId)) {
       return res.status(400).json({ error: 'Invalid POI ID' });
@@ -133,6 +133,47 @@ export const getPoi = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error fetching POI:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: String(error) });
+  }
+};
+
+export const getPathNetwork = async (req: Request, res: Response) => {
+  try {
+    // This query selects all path segments and converts them to GeoJSON LineStrings
+    // based on the source and target node locations
+    const result = await db.execute(sql`
+      SELECT 
+        ps.source_node_id,
+        ps.target_node_id,
+        ps.distance,
+        ps.surface,
+        ps.has_stairs,
+        ST_AsGeoJSON(
+          ST_MakeLine(s.location, t.location)
+        ) as geometry
+      FROM path_segments ps
+      JOIN nodes s ON ps.source_node_id = s.id
+      JOIN nodes t ON ps.target_node_id = t.id
+    `);
+
+    const features = result.rows.map((row: any) => ({
+      type: 'Feature',
+      geometry: JSON.parse(row.geometry),
+      properties: {
+        sourceNodeId: row.source_node_id,
+        targetNodeId: row.target_node_id,
+        distance: row.distance,
+        surface: row.surface,
+        hasStairs: row.has_stairs,
+      },
+    }));
+
+    res.json({
+      type: 'FeatureCollection',
+      features,
+    });
+  } catch (error) {
+    console.error('Error fetching path network:', error);
     res.status(500).json({ error: 'Internal Server Error', details: String(error) });
   }
 };

@@ -17,4 +17,8 @@ export const geoService = {
   getCategories: async (): Promise<string[]> => {
     return apiClient.get<string[]>(API_ENDPOINTS.GEO.CATEGORIES);
   },
+  
+  getPathNetwork: async (): Promise<any> => {
+    return apiClient.get<any>(API_ENDPOINTS.GEO.NETWORK);
+  },
 };
