@@ -147,6 +147,13 @@ export default function ProfileScreen() {
             />
 
             <SettingItem 
+              label="Tema"
+              icon="package"
+              iconBgColor="rgba(255, 255, 255, 0.1)"
+              onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
+            />
+
+            <SettingItem 
               label="Cerrar sesión"
               icon="log-out"
               destructive
