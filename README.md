@@ -62,7 +62,7 @@ More details in the **[Testing Guide](docs/guides/testing.md)**.
 
 ## 🏗️ Refactoring and Code Status
 
-We have recently improved the maintainability of the mobile application:
+We have recently improved the maintainability of the mobile application;
 
 - **Logic Extraction:** Map controls and location services have been decoupled from the main view (`MapScreen`) using custom hooks (`useLocationService`, `useMapControls`).
 - **Design SSOT:** A Single Source of Truth system for colors and typography is being implemented according to the **[Design System](docs/guides/design-system.md)**.
