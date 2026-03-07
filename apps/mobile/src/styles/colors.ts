@@ -1,17 +1,17 @@
 export const colors = {
-  primary: '#FF3B30',
-  background: '#170D0E',
+  primary: '#E10600',
+  background: '#000000',
   navbar: '#0F0F10',
   border: '#1A1A1B',
   surface: '#18181B',
   muted: '#9CA3AF',
-  accent: '#FF3B30',
+  accent: '#E10600',
   glass: 'rgba(255, 255, 255, 0.1)',
   white: '#FFFFFF',
   black: '#000000',
   red: {
-    500: '#FF3B30',
-    600: '#E03028',
+    500: '#E10600',
+    600: '#C40500',
     900: '#7F1D1D',
   },
   slate: {

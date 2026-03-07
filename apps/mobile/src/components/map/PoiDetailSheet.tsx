@@ -157,7 +157,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
               onPress={() => Haptics.selectionAsync()}
               style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
             >
-              <Feather name="share" size={20} color="#FF3B30" />
+              <Feather name="share" size={20} color="#E10600" />
             </Pressable>
             <Pressable 
               onPress={() => {
@@ -205,7 +205,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                         pressed && { transform: [{ scale: 0.98 }] }
                     ]}
                 >
-                    <Feather name="phone" size={20} color="#FF3B30" />
+                    <Feather name="phone" size={20} color="#E10600" />
                     <Text style={styles.circleButtonText}>Llamar</Text>
                 </Pressable>
                 <Pressable 
@@ -216,7 +216,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                         pressed && { transform: [{ scale: 0.98 }] }
                     ]}
                 >
-                    <Feather name="globe" size={20} color="#FF3B30" />
+                    <Feather name="globe" size={20} color="#E10600" />
                     <Text style={styles.circleButtonText}>Sitio web</Text>
                 </Pressable>
             </View>
@@ -228,7 +228,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
               <Text style={styles.infoLabel}>Ocupación</Text>
               <Text style={[
                 styles.infoValue, 
-                { color: poi.crowdLevel === 'high' || poi.crowdLevel === 'blocked' ? '#FF3B30' : 
+                { color: poi.crowdLevel === 'high' || poi.crowdLevel === 'blocked' ? '#E10600' : 
                          poi.crowdLevel === 'moderate' ? '#FF9500' : '#30D158' }
               ]}>
                 {poi.crowdLevel === 'low' ? 'Baja' : 
@@ -243,7 +243,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                 <Feather 
                   name={poi.isWheelchairAccessible ? "check-circle" : "x-circle"} 
                   size={14} 
-                  color={poi.isWheelchairAccessible ? "#30D158" : "#FF3B30"} 
+                  color={poi.isWheelchairAccessible ? "#30D158" : "#E10600"} 
                 />
                 <Text style={styles.infoValue}> {poi.isWheelchairAccessible ? 'Sí' : 'No'}</Text>
               </View>
@@ -287,9 +287,9 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 
           {/* User Specific Note if applicable */}
           {user?.avoidStairs && !poi.isWheelchairAccessible && (
-            <View className="mt-6 flex-row items-center p-4 bg-[#FF3B30]/10 rounded-2xl border border-[#FF3B30]/20">
-              <Feather name="alert-circle" size={20} color="#FF3B30" />
-              <Text className="ml-3 text-[#FF3B30] font-semibold flex-1">
+            <View className="mt-6 flex-row items-center p-4 bg-[#E10600]/10 rounded-2xl border border-[#E10600]/20">
+              <Feather name="alert-circle" size={20} color="#E10600" />
+              <Text className="ml-3 text-[#E10600] font-semibold flex-1">
                 Atención: Este sitio puede no ser accesible según tus preferencias de movilidad.
               </Text>
             </View>
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   driveButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#E10600',
     height: 64,
     borderRadius: 14,
     width: '100%',
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   circleButtonText: {
-    color: '#FF3B30',
+    color: '#E10600',
     fontSize: 12,
     fontWeight: '600',
   },

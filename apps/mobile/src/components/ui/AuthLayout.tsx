@@ -41,7 +41,7 @@ export const AuthLayout = ({
           {Array.from({ length: totalSteps }).map((_, i) => (
             <View 
               key={i} 
-              className={`h-1.5 rounded-full flex-1 ${step >= i + 1 ? 'bg-[#FF3B30]' : 'bg-white/10'}`} 
+              className={`h-1.5 rounded-full flex-1 ${step >= i + 1 ? 'bg-[#E10600]' : 'bg-white/10'}`} 
             />
           ))}
         </View>

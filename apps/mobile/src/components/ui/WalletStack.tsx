@@ -186,7 +186,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>ESTAT</Text>
                 <View style={styles.statusBadge}>
-                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? '#4CD964' : '#FF3B30' }]} />
+                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? '#4CD964' : '#E10600' }]} />
                   <Text style={styles.statusText}>{selectedTicket.isActive ? 'ACTIVA' : 'INACTIVA'}</Text>
                 </View>
               </View>
@@ -216,7 +216,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               style={styles.deleteOptionButton} 
               onPress={() => handleDelete(selectedTicket)}
             >
-              <Feather name="trash-2" size={18} color="#FF3B30" />
+              <Feather name="trash-2" size={18} color="#E10600" />
               <Text style={styles.deleteOptionText}>Eliminar Entrada</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   deleteOptionText: {
-    color: '#FF3B30',
+    color: '#E10600',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

@@ -349,6 +349,7 @@ export const MapContent = React.memo(({
           }}
         />
       </MapLibreGL.ShapeSource>
+
       {/* Points of Interest & Saved Locations (Animated Markers) */}
       {renderMarkers}
     </MapLibreGL.MapView>

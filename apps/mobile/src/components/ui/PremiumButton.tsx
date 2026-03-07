@@ -45,13 +45,13 @@ export const PremiumButton = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'primary':
-        return 'bg-[#FF3B30] shadow-[#FF3B30]/20';
+        return 'bg-[#E10600] shadow-[#E10600]/20';
       case 'secondary':
         return 'bg-white shadow-white/10';
       case 'outline':
         return 'bg-white/5 border border-white/10';
       default:
-        return 'bg-[#FF3B30]';
+        return 'bg-[#E10600]';
     }
   };
 

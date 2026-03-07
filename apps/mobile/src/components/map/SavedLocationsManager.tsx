@@ -294,11 +294,11 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     height: 56,
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#E10600',
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF3B30',
+    shadowColor: '#E10600',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

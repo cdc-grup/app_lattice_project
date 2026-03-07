@@ -22,7 +22,7 @@ const ActionButton = ({ icon, label, onPress, flex = 1 }: { icon: string, label:
   >
     <View style={styles.buttonContent}>
         <View style={styles.iconCircle}>
-            <Feather name={icon as any} size={24} color="#FF3B30" />
+            <Feather name={icon as any} size={24} color="#E10600" />
         </View>
         <Text style={styles.actionLabel}>{label}</Text>
     </View>

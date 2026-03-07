@@ -62,7 +62,7 @@ export const SaveLocationModal = ({
         >
           <View style={styles.iconContainer}>
             <View style={styles.iconCircle}>
-              <Feather name="map-pin" size={32} color="#FF3B30" />
+              <Feather name="map-pin" size={32} color="#E10600" />
             </View>
           </View>
 
@@ -76,7 +76,7 @@ export const SaveLocationModal = ({
             value={name}
             onChangeText={setName}
             autoFocus
-            selectionColor="#FF3B30"
+            selectionColor="#E10600"
           />
 
           <View style={styles.buttonRow}>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   buttonSave: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#E10600',
   },
   buttonDisabled: {
     opacity: 0.5,

@@ -21,7 +21,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0, onCar
   // Select a color scheme based on the zone
   const isTribuna = ticket.zoneName?.toLowerCase().includes('tribuna');
   const gradientColors = isTribuna 
-    ? ['#FF3B30', '#8E1D18'] // Red for Tribuna
+    ? ['#E10600', '#8E1D18'] // Red for Tribuna
     : ['#5856D6', '#2D2B8A']; // Purple/Blue for others
 
   return (
