@@ -122,6 +122,8 @@ async function seedPedralbes() {
     { id: 9, name: 'Far West Gate', location: sql`ST_GeomFromText('POINT(2.1052 41.3860)', 4326)` },
     { id: 10, name: 'North Hill Climb Start', location: sql`ST_GeomFromText('POINT(2.1058 41.3870)', 4326)` },
     { id: 11, name: 'North Hill Top', location: sql`ST_GeomFromText('POINT(2.1055 41.3872)', 4326)` },
+    { id: 12, name: 'South Garden Path', location: sql`ST_GeomFromText('POINT(2.1064 41.3858)', 4326)` },
+    { id: 13, name: 'West Parking Access', location: sql`ST_GeomFromText('POINT(2.1055 41.3856)', 4326)` },
   ];
 
   for (const node of nodesData) {
@@ -140,7 +142,10 @@ async function seedPedralbes() {
     
     // Services access
     { sourceNodeId: 5, targetNodeId: 7, distance: 35.0, surface: 'gravel', hasStairs: false },
+    { sourceNodeId: 6, targetNodeId: 12, distance: 30.0, surface: 'asphalt', hasStairs: false },
+    { sourceNodeId: 12, targetNodeId: 7, distance: 35.0, surface: 'asphalt', hasStairs: false },
     { sourceNodeId: 6, targetNodeId: 8, distance: 42.0, surface: 'asphalt', hasStairs: false },
+    { sourceNodeId: 8, targetNodeId: 13, distance: 30.0, surface: 'asphalt', hasStairs: false },
     { sourceNodeId: 8, targetNodeId: 9, distance: 68.0, surface: 'asphalt', hasStairs: false },
     
     // The "Stair Challenge" (Shortcut vs Long way)
@@ -150,6 +155,7 @@ async function seedPedralbes() {
     
     // Loops
     { sourceNodeId: 1, targetNodeId: 8, distance: 58.0, surface: 'asphalt', hasStairs: false },
+    { sourceNodeId: 4, targetNodeId: 7, distance: 80.0, surface: 'gravel', hasStairs: false },
   ] as const;
 
   for (const segment of segmentsData) {

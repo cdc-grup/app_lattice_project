@@ -16,10 +16,10 @@ export const useRoute = (request: RouteRequest | null) => {
   useEffect(() => {
     if (query.data) {
       setRoute(query.data);
-    } else if (!request) {
+    } else if (!request || query.isError) {
       setRoute(null);
     }
-  }, [query.data, request, setRoute]);
+  }, [query.data, query.isError, request, setRoute]);
 
   return query;
 };

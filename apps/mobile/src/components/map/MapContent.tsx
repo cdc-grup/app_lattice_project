@@ -1,13 +1,22 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { Feather } from '@expo/vector-icons';
-import { colors } from '../../styles/colors';
-import { theme } from '../../styles/theme';
-import { getCategoryIcon, getCategoryMetadata } from '../../utils/poiUtils';
+
+// State & Store
 import { useMapStore } from '../../store/useMapStore';
 import { useRoute } from '../../hooks/queries/useRoute';
 import { usePathNetwork } from '../../hooks/queries/usePathNetwork';
+
+// Constants & Utilities
+import { 
+  EMPTY_GEOJSON, 
+  MAP_CENTER, 
+  DEFAULT_ZOOM,
+  SELECT_ANIMATION_DURATION,
+  FLY_ANIMATION_DURATION
+} from '../../constants/mapConstants';
+import { mapLayerStyles } from '../../styles/mapLayerStyles';
+import { theme } from '../../styles/theme';
 
 interface MapContentProps {
   userCoords: number[] | null;
@@ -49,13 +58,13 @@ export const MapContent = React.memo(({
 
   useRoute(routeRequest);
 
-  // Handle camera movements
+  // Camera Management
   useEffect(() => {
     if (recenterCount > 0 && userCoords && camera.current) {
       camera.current.setCamera({
         centerCoordinate: userCoords,
-        zoomLevel: 17,
-        animationDuration: 1000,
+        zoomLevel: DEFAULT_ZOOM,
+        animationDuration: FLY_ANIMATION_DURATION,
         animationMode: 'flyTo',
       });
     }
@@ -65,18 +74,19 @@ export const MapContent = React.memo(({
     if (selectedCoords && camera.current) {
       camera.current.setCamera({
         centerCoordinate: selectedCoords,
-        zoomLevel: 17,
-        animationDuration: 350,
+        zoomLevel: DEFAULT_ZOOM,
+        animationDuration: SELECT_ANIMATION_DURATION,
         animationMode: 'flyTo',
       });
     }
   }, [selectedCoords]);
 
+  // Event Handlers
   const onMapPress = useCallback(() => {
     const now = Date.now();
     if (now - lastSelectionTime.current < 400) return;
     
-    console.log('[MapContent] V2: Map press detected (deselecting)');
+    console.log('[MapContent] Interaction: Map deselection');
     if (onDeselect) {
       onDeselect();
     } else {
@@ -88,7 +98,7 @@ export const MapContent = React.memo(({
     const feature = event.features[0];
     if (feature?.properties && feature.geometry.type === 'Point') {
       const poiId = Number(feature.properties.id);
-      console.log('[MapContent] ULTRA-STABLE-V2: Source press detected for ID:', poiId);
+      console.log('[MapContent] Interaction: POI selected:', poiId);
       lastSelectionTime.current = Date.now();
       selectPoi(poiId, feature.geometry.coordinates);
     }
@@ -96,7 +106,7 @@ export const MapContent = React.memo(({
 
   return (
     <MapLibreGL.MapView
-      style={[{ flex: 1, backgroundColor: theme.colors.background }]}
+      style={styles.map}
       mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
       logoEnabled={false}
       attributionEnabled={false}
@@ -107,109 +117,90 @@ export const MapContent = React.memo(({
         ref={camera}
         minZoomLevel={12}
         defaultSettings={{
-          centerCoordinate: [2.1060698, 41.3863034],
-          zoomLevel: 17,
+          centerCoordinate: MAP_CENTER,
+          zoomLevel: DEFAULT_ZOOM,
         }}
       />
 
-      {locationStatus === 'granted' && (
-        <MapLibreGL.UserLocation visible={true} renderMode="normal" />
-      )}
+      <MapLibreGL.UserLocation 
+        visible={locationStatus === 'granted'} 
+        renderMode="normal" 
+      />
 
-      {/* 🟢 Background Network (Grey) */}
-      {pathNetwork && (
-        <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork}>
-          <MapLibreGL.LineLayer
-            id="networkLines"
-            style={{
-              lineColor: '#606060',
-              lineWidth: 3,
-              lineOpacity: 0.3,
-            }}
-          />
-        </MapLibreGL.ShapeSource>
-      )}
+      {/* Network Background (Always mounted) */}
+      <MapLibreGL.ShapeSource 
+        id="networkSource" 
+        shape={pathNetwork || EMPTY_GEOJSON}
+      >
+        <MapLibreGL.LineLayer
+          id="networkLines"
+          style={{
+            ...mapLayerStyles.networkLines,
+            lineOpacity: pathNetwork ? 0.3 : 0,
+          }}
+        />
+      </MapLibreGL.ShapeSource>
 
-      {/* 🔴 Active Route (Red) */}
-      {currentRoute && (
-        <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute}>
-          <MapLibreGL.LineLayer
-            id="routeFill"
-            style={{
-              lineColor: '#FF3B30',
-              lineWidth: 6,
-              lineJoin: 'round',
-              lineCap: 'round',
-              lineOpacity: 0.95,
-            }}
-          />
-          <MapLibreGL.LineLayer
-            id="routeGlow"
-            style={{
-              lineColor: '#FF3B30',
-              lineWidth: 12,
-              lineJoin: 'round',
-              lineCap: 'round',
-              lineOpacity: 0.2,
-              lineBlur: 6,
-            }}
-          />
-        </MapLibreGL.ShapeSource>
-      )}
+      {/* Active Route (Always mounted) */}
+      <MapLibreGL.ShapeSource 
+        id="routeSource" 
+        shape={currentRoute || EMPTY_GEOJSON}
+      >
+        <MapLibreGL.LineLayer
+          id="routeFill"
+          style={{
+            ...mapLayerStyles.routeFill,
+            lineOpacity: currentRoute ? 0.95 : 0,
+          }}
+        />
+        <MapLibreGL.LineLayer
+          id="routeGlow"
+          style={{
+            ...mapLayerStyles.routeGlow,
+            lineOpacity: currentRoute ? 0.2 : 0,
+          }}
+        />
+      </MapLibreGL.ShapeSource>
 
-      {/* 📍 POIs Layer - Ultra Stable Data Driven */}
-      {poisGeoJSON && (
-        <MapLibreGL.ShapeSource
-          id="poisSource"
-          shape={poisGeoJSON}
-          onPress={onSourcePress}
-          hitbox={{ width: 44, height: 44 }}
-        >
-          {/* Selection Highlight */}
-          <MapLibreGL.CircleLayer
-            id="poiSelectionOuter"
-            filter={['==', ['get', 'id'], selectedPoiId || -1]}
-            style={{
-              circleRadius: 22,
-              circleColor: '#FF3B30',
-              circleOpacity: 1,
-              circleStrokeWidth: 3,
-              circleStrokeColor: 'white',
-              circlePitchAlignment: 'map',
-            }}
-          />
+      {/* Points of Interest (Always mounted) */}
+      <MapLibreGL.ShapeSource
+        id="poisSource"
+        shape={poisGeoJSON || EMPTY_GEOJSON}
+        onPress={onSourcePress}
+        hitbox={{ width: 44, height: 44 }}
+      >
+        <MapLibreGL.CircleLayer
+          id="poiSelectionOuter"
+          filter={['==', ['get', 'id'], selectedPoiId || -1]}
+          style={{
+            ...mapLayerStyles.poiSelectionOuter,
+            circleOpacity: selectedPoiId ? 1 : 0,
+          }}
+        />
 
-          {/* POI circles */}
-          <MapLibreGL.CircleLayer
-            id="poiCircles"
-            style={{
-              circleRadius: 15,
-              circleColor: 'rgba(255, 59, 48, 0.4)',
-              circleStrokeWidth: 1.5,
-              circleStrokeColor: 'white',
-              circleOpacity: 0.9,
-            }}
-          />
-          
-          {/* Labels */}
-          <MapLibreGL.SymbolLayer
-            id="poiLabels"
-            style={{
-              textField: ['get', 'name'],
-              textSize: 11,
-              textColor: 'white',
-              textOffset: [0, 2],
-              textOpacity: 0.9,
-              textHaloColor: 'rgba(0,0,0,0.8)',
-              textHaloWidth: 2,
-              textIgnorePlacement: false,
-              textAllowOverlap: false,
-            }}
-          />
-        </MapLibreGL.ShapeSource>
-      )}
+        <MapLibreGL.CircleLayer
+          id="poiCircles"
+          style={{
+            ...mapLayerStyles.poiCircles,
+            circleOpacity: poisGeoJSON ? 0.9 : 0,
+          }}
+        />
+        
+        <MapLibreGL.SymbolLayer
+          id="poiLabels"
+          style={{
+            ...mapLayerStyles.poiLabels,
+            textOpacity: poisGeoJSON ? 0.9 : 0,
+          }}
+        />
+      </MapLibreGL.ShapeSource>
     </MapLibreGL.MapView>
   );
 });
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  map: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+});
