@@ -66,4 +66,16 @@ export const apiClient = {
 
     return handleResponse<T>(response);
   },
+
+  delete: async <T>(endpoint: string, token?: string): Promise<T> => {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+    });
+
+    return handleResponse<T>(response);
+  },
 };

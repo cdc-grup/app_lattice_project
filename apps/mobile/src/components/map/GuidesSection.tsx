@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSavedLocations } from '../../hooks/queries/useSavedLocations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,6 +24,35 @@ const GuideItem = ({ title, sublabel, icon, color }: { title: string, sublabel: 
 );
 
 export const GuidesSection = () => {
+  const { data: savedData, isLoading } = useSavedLocations();
+
+  const guides = useMemo(() => {
+    if (!savedData?.features) return [];
+    
+    // Group by label to simulate "guides"
+    const groups: Record<string, any[]> = {};
+    savedData.features.forEach((f: any) => {
+      const label = f.properties.label || 'Otros';
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(f);
+    });
+
+    return Object.entries(groups).map(([label, items]) => ({
+      title: label,
+      count: items.length,
+      icon: label.toLowerCase().includes('comida') ? 'coffee' : 'map-pin',
+      color: label.toLowerCase().includes('favoritos') ? '#FF3B30' : '#30D158'
+    }));
+  }, [savedData]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator color="#FF3B30" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -39,24 +69,21 @@ export const GuidesSection = () => {
         contentContainerStyle={styles.scrollContent}
         decelerationRate="fast"
       >
-        <GuideItem 
-          title="Para visitar" 
-          sublabel="2 sitios" 
-          icon="map-pin" 
-          color="#30D158" 
-        />
-        <GuideItem 
-          title="Restaurantes" 
-          sublabel="5 sitios" 
-          icon="coffee" 
-          color="#5E5CE6" 
-        />
-        <GuideItem 
-          title="Viajes" 
-          sublabel="12 sitios" 
-          icon="briefcase" 
-          color="#FF9F0A" 
-        />
+        {guides.length > 0 ? (
+          guides.map((guide, idx) => (
+            <GuideItem 
+              key={idx}
+              title={guide.title} 
+              sublabel={`${guide.count} sitio${guide.count > 1 ? 's' : ''}`} 
+              icon={guide.icon} 
+              color={guide.color} 
+            />
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No tienes guías guardadas</Text>
+          </View>
+        )}
         
         <Pressable 
           style={({ pressed }) => [
@@ -162,5 +189,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 6,
+  },
+  emptyContainer: {
+    width: 200,
+    justifyContent: 'center',
+    paddingLeft: 4,
+  },
+  emptyText: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });

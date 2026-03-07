@@ -1,5 +1,5 @@
-import React, { useMemo, forwardRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react-native';
+import * as React from 'react';
+import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Alert } from 'react-native';
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
 import { RouteGeoJSON } from '../../types';
+import { useAuthStore } from '../../hooks/useAuthStore';
+import { useSavedLocations, useSaveLocation, useDeleteSavedLocation } from '../../hooks/queries/useSavedLocations';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -57,32 +59,66 @@ const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) 
   );
 };
 
-export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
+export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
   poi, 
   route,
   onClose,
   translateY 
 }, ref) => {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
+  const { data: savedData } = useSavedLocations();
+  const saveLocation = useSaveLocation();
+  const deleteLocation = useDeleteSavedLocation();
 
-  const snapPoints = useMemo(() => [
+  const isSaved = React.useMemo(() => {
+    if (!savedData?.features || !poi) return false;
+    // Basic check for coordinates (or ID if we had a mapping)
+    // For now we'll match by name or approximate location for simplicity in MVP
+    return savedData.features.some((f: any) => 
+      f.properties.label === poi.name || 
+      (Math.abs(f.geometry.coordinates[0] - poi.geometry.coordinates[0]) < 0.0001 &&
+       Math.abs(f.geometry.coordinates[1] - poi.geometry.coordinates[1]) < 0.0001)
+    );
+  }, [savedData, poi]);
+
+  const snapPoints = React.useMemo(() => [
     insets.bottom + 260, // Collapsed
     SCREEN_HEIGHT - insets.top - 40 // Expanded
   ], [insets.bottom, insets.top]);
 
-  const formattedDuration = useMemo(() => {
+  const formattedDuration = React.useMemo(() => {
     if (!route?.properties.durationEstimate) return '--';
     const mins = Math.round(route.properties.durationEstimate / 60);
     return durationFormatter.format(mins || 1);
   }, [route]);
 
-  const formattedDistance = useMemo(() => {
+  const formattedDistance = React.useMemo(() => {
     if (!route?.properties.distance) return '--';
     const dist = route.properties.distance;
     return dist >= 1000 
       ? kmFormatter.format(dist / 1000)
       : distanceFormatter.format(dist);
   }, [route]);
+
+  const handleToggleSave = () => {
+    console.log('[PoiDetailSheet] Toggle save pressed for:', poi?.name);
+    if (!poi) return;
+    if (isSaved) {
+      const savedItem = savedData.features.find((f: any) => f.properties.label === poi.name);
+      if (savedItem) {
+        console.log('[PoiDetailSheet] Deleting saved location:', savedItem.properties.id);
+        deleteLocation.mutate(savedItem.properties.id);
+      }
+    } else {
+      console.log('[PoiDetailSheet] Saving new location:', poi.name);
+      saveLocation.mutate({
+        label: poi.name,
+        latitude: poi.geometry.coordinates[1],
+        longitude: poi.geometry.coordinates[0],
+      });
+    }
+  };
 
   if (!poi) return null;
 
@@ -195,12 +231,27 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
               ))}
             </ScrollView>
           </View>
+
+          {/* User Specific Note if applicable */}
+          {user?.avoidStairs && !poi.isWheelchairAccessible && (
+            <View className="mt-6 flex-row items-center p-4 bg-[#FF3B30]/10 rounded-2xl border border-[#FF3B30]/20">
+              <Feather name="alert-circle" size={20} color="#FF3B30" />
+              <Text className="ml-3 text-[#FF3B30] font-semibold flex-1">
+                Atención: Este sitio puede no ser accesible según tus preferencias.
+              </Text>
+            </View>
+          )}
         </BottomSheetScrollView>
 
         {/* Floating Toolbar */}
         <View style={[styles.toolbar, { bottom: insets.bottom + 20 }]}>
           <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="plus" size={20} color="white" /></Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="star" size={20} color="white" /></Pressable>
+          <Pressable 
+            onPress={handleToggleSave}
+            style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}
+          >
+            <Feather name="star" size={20} color={isSaved ? "#FF3B30" : "white"} fill={isSaved ? "#FF3B30" : "transparent"} />
+          </Pressable>
           <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="thumbs-up" size={20} color="white" /></Pressable>
           <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="more-horizontal" size={20} color="white" /></Pressable>
         </View>

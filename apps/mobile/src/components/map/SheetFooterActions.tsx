@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSaveLocation } from '../../hooks/queries/useSavedLocations';
+import { Alert } from 'react-native';
 
 interface ActionButtonProps {
   icon: string;
@@ -28,6 +30,31 @@ const ActionButton = ({ icon, label, onPress, flex = 1 }: ActionButtonProps) => 
 );
 
 export const SheetFooterActions = () => {
+  const saveLocation = useSaveLocation();
+
+  const handleFixPin = () => {
+    console.log('[SheetFooterActions] Fix pin pressed');
+    // Alert.prompt is iOS only. For cross-platform we use Alert.alert or a custom modal.
+    Alert.alert(
+      "Guardar ubicación",
+      "¿Quieres guardar esta ubicación en tus guías?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Guardar", 
+          onPress: () => {
+            console.log('[SheetFooterActions] Saving pinned location...');
+            saveLocation.mutate({
+              label: "Mi marcador",
+              latitude: 41.570,
+              longitude: 2.261,
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
@@ -39,7 +66,7 @@ export const SheetFooterActions = () => {
         <ActionButton 
           icon="map-pin" 
           label="Fijar pin aquí" 
-          onPress={() => console.log('Mark position')} 
+          onPress={handleFixPin} 
         />
       </View>
       

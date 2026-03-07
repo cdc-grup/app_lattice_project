@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { View, Text, Pressable, Alert, Modal, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import * as SafeAreaContext from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { authService } from '../../src/services/authService';
@@ -18,16 +18,16 @@ export default function ProfileScreen() {
   const router = useRouter();
   
   // Local state for toggles and wizard
-  const [avoidStairs, setAvoidStairs] = useState(user?.avoidStairs ?? false);
-  const [avoidGrandstands, setAvoidGrandstands] = useState(user?.avoidGrandstands ?? false);
-  const [avoidSlopes, setAvoidSlopes] = useState(user?.avoidSlopes ?? false);
+  const [avoidStairs, setAvoidStairs] = React.useState(user?.avoidStairs ?? false);
+  const [avoidGrandstands, setAvoidGrandstands] = React.useState(user?.avoidGrandstands ?? false);
+  const [avoidSlopes, setAvoidSlopes] = React.useState(user?.avoidSlopes ?? false);
   
-  const [showWizard, setShowWizard] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [wizardStep, setWizardStep] = useState(1);
-  const [isSaving, setIsSaving] = useState(false);
+  const [showWizard, setShowWizard] = React.useState(false);
+  const [showWallet, setShowWallet] = React.useState(false);
+  const [wizardStep, setWizardStep] = React.useState(1);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
       setAvoidStairs(user.avoidStairs ?? false);
       setAvoidGrandstands(user.avoidGrandstands ?? false);
@@ -170,7 +170,7 @@ export default function ProfileScreen() {
         transparent={false}
         onRequestClose={() => setShowWallet(false)}
       >
-        <SafeAreaView className="flex-1 bg-background">
+        <SafeAreaContext.SafeAreaView className="flex-1 bg-background">
           <View className="flex-row items-center justify-between px-6 py-4">
             <Text className="text-white text-3xl font-black">Mis Entradas</Text>
             <View className="flex-row gap-x-3">
@@ -195,7 +195,7 @@ export default function ProfileScreen() {
           <View className="flex-1 px-6">
             <WalletStack tickets={tickets} />
           </View>
-        </SafeAreaView>
+        </SafeAreaContext.SafeAreaView>
       </Modal>
 
       {/* Preferences Wizard Modal */}

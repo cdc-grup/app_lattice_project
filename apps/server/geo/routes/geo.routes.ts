@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import * as geoController from '../controllers/geo.controller';
+import savedRoutes from './saved.routes';
+import { authenticate } from '@app/core';
 
 const router = Router();
 
@@ -10,5 +12,8 @@ router.get('/pois/:id', geoController.getPoi);
 router.get('/locations', geoController.getLocations);
 router.get('/navigation/network', geoController.getPathNetwork);
 router.post('/navigation/route', geoController.getRoute);
+
+// Saved locations routes - Protected
+router.use('/saved', authenticate, savedRoutes);
 
 export default router;
