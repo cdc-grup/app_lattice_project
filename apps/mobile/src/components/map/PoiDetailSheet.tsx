@@ -73,13 +73,19 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 
   const isSaved = React.useMemo(() => {
     if (!savedData?.features || !poi) return false;
-    // Basic check for coordinates (or ID if we had a mapping)
-    // For now we'll match by name or approximate location for simplicity in MVP
     return savedData.features.some((f: any) => 
       f.properties.label === poi.name || 
       (Math.abs(f.geometry.coordinates[0] - poi.geometry.coordinates[0]) < 0.0001 &&
        Math.abs(f.geometry.coordinates[1] - poi.geometry.coordinates[1]) < 0.0001)
     );
+  }, [savedData, poi]);
+
+  // Check if the current POI *is* a saved marker (different from just being "in favorites")
+  const isSelectedSaved = React.useMemo(() => {
+    if (!savedData?.features || !poi) return false;
+    // If it comes from savedData, it will match by ID (saved marker ID != POI ID usually)
+    // But in MapIndex we pass the marker as a POI object
+    return savedData.features.some((f: any) => Number(f.properties.id) === Number(poi.id));
   }, [savedData, poi]);
 
   const snapPoints = React.useMemo(() => [
@@ -138,7 +144,9 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
         <View style={styles.header}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
-            <Text style={styles.subtitle}>{poi.category}</Text>
+            <Text style={styles.subtitle}>
+              {isSelectedSaved ? 'Lugar Guardado' : (poi.category || 'Punto de interés')}
+            </Text>
           </View>
           <View style={styles.headerActions}>
             <Pressable 
@@ -156,6 +164,10 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
         </View>
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
+          {poi.description && (
+            <Text style={styles.descriptionText}>{poi.description}</Text>
+          )}
+
           {/* Action Buttons */}
           <View style={styles.actionRow}>
             <Pressable 
@@ -198,20 +210,40 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
           {/* Info Grid */}
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Horario</Text>
-              <Text style={[styles.infoValue, { color: '#FF3B30' }]}>Abre pronto</Text>
+              <Text style={styles.infoLabel}>Ocupación</Text>
+              <Text style={[
+                styles.infoValue, 
+                { color: poi.crowdLevel === 'high' || poi.crowdLevel === 'blocked' ? '#FF3B30' : 
+                         poi.crowdLevel === 'moderate' ? '#FF9500' : '#30D158' }
+              ]}>
+                {poi.crowdLevel === 'low' ? 'Baja' : 
+                 poi.crowdLevel === 'moderate' ? 'Media' : 
+                 poi.crowdLevel === 'high' ? 'Alta' :
+                 poi.crowdLevel === 'blocked' ? 'Cerrado' : '--'}
+              </Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>15 valoraciones</Text>
+              <Text style={styles.infoLabel}>Accesible</Text>
               <View style={styles.ratingRow}>
-                <Feather name="thumbs-up" size={14} color="white" />
-                <Text style={styles.infoValue}> 67 %</Text>
+                <Feather 
+                  name={poi.isWheelchairAccessible ? "check-circle" : "x-circle"} 
+                  size={14} 
+                  color={poi.isWheelchairAccessible ? "#30D158" : "#FF3B30"} 
+                />
+                <Text style={styles.infoValue}> {poi.isWheelchairAccessible ? 'Sí' : 'No'}</Text>
               </View>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Acepta</Text>
+              <Text style={styles.infoLabel}>Prioridad</Text>
               <View style={styles.paymentRow}>
-                <Feather name="credit-card" size={14} color="white" />
+                <Feather 
+                  name="user-check" 
+                  size={14} 
+                  color={poi.hasPriorityLane ? "#30D158" : "rgba(255,255,255,0.4)"} 
+                />
+                <Text style={[styles.infoValue, { color: poi.hasPriorityLane ? '#30D158' : 'white' }]}>
+                  {poi.hasPriorityLane ? ' Carril' : ' No'}
+                </Text>
               </View>
             </View>
             <View style={styles.infoItem}>
@@ -226,9 +258,15 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
           {/* Photos */}
           <View style={styles.photosSection}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {[1, 2, 3].map((i) => (
-                <View key={i} style={styles.photoPlaceholder} />
-              ))}
+              {poi.images && poi.images.length > 0 ? (
+                poi.images.map((img, i) => (
+                  <View key={i} style={styles.photoPlaceholder} /> // In a real app we'd use <Image source={{uri: img}} />
+                ))
+              ) : (
+                [1, 2, 3].map((i) => (
+                  <View key={i} style={styles.photoPlaceholder} />
+                ))
+              )}
             </ScrollView>
           </View>
 
@@ -237,7 +275,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             <View className="mt-6 flex-row items-center p-4 bg-[#FF3B30]/10 rounded-2xl border border-[#FF3B30]/20">
               <Feather name="alert-circle" size={20} color="#FF3B30" />
               <Text className="ml-3 text-[#FF3B30] font-semibold flex-1">
-                Atención: Este sitio puede no ser accesible según tus preferencias.
+                Atención: Este sitio puede no ser accesible según tus preferencias de movilidad.
               </Text>
             </View>
           )}
@@ -312,6 +350,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 120,
+  },
+  descriptionText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 20,
   },
   actionRow: {
     flexDirection: 'column',

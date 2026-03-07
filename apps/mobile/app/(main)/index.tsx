@@ -117,49 +117,46 @@ function MapIndex() {
   const { data: poisData, isLoading } = usePOIs(activeCategory);
   
   // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
-  // Fix: Don't call this if the selected ID belongs to a saved location (managed locally or via prefix)
+  // Fix: Don't call this if the selected ID belongs to a saved location OR if we already have it in poisData
   const isSelectedSaved = useMemo(() => {
-    return selectedPoiId?.startsWith('saved_') || false;
-  }, [selectedPoiId]);
+    if (!selectedPoiId || !savedData?.features) return false;
+    return savedData.features.some((f: any) => Number(f.properties.id) === Number(selectedPoiId));
+  }, [selectedPoiId, savedData]);
 
-  const numericPoiId = useMemo(() => {
-    if (!selectedPoiId) return null;
-    if (selectedPoiId.startsWith('saved_')) {
-      return Number(selectedPoiId.replace('saved_', ''));
-    }
-    return Number(selectedPoiId);
-  }, [selectedPoiId]);
+  const isAlreadyLoaded = useMemo(() => {
+    if (!selectedPoiId || !poisData?.features) return false;
+    return poisData.features.some((f: any) => Number(f.properties.id) === Number(selectedPoiId));
+  }, [selectedPoiId, poisData]);
 
-  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(isSelectedSaved ? null : numericPoiId);
+  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(
+    (isSelectedSaved || isAlreadyLoaded) ? null : Number(selectedPoiId)
+  );
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId) return null;
     
-    console.log('[MapIndex] Looking for selected POI:', selectedPoiId);
+    const idToMatch = Number(selectedPoiId);
+    console.log('[MapIndex] Resolving selection for ID:', idToMatch);
 
-    // 1. If it's a saved location, look it up in savedData first
-    if (isSelectedSaved) {
-      if (savedData) {
-        const idToMatch = numericPoiId;
-        const f = savedData.features.find((f: any) => Number(f.properties.id) === idToMatch);
-        if (f) return { ...f.properties, name: f.properties.label, geometry: f.geometry };
-      }
-      return null;
-    }
-
-    // 2. Otherwise it's a system POI. Try to find it in the current filtered list (fastest)
+    // 1. Try to find it in the current filtered list (fastest)
     if (poisData) {
-      const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
+      const f = poisData.features.find((f: any) => Number(f.properties.id) === idToMatch);
       if (f) return { ...f.properties, geometry: f.geometry };
     }
     
+    // 2. Check in saved locations (Prioritize local saved data)
+    if (savedData) {
+      const f = savedData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+      if (f) return { ...f.properties, name: f.properties.label, geometry: f.geometry, isSaved: true };
+    }
+
     // 3. Fallback to the single POI fetch results
-    if (soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
+    if (soloPoiData && Number(soloPoiData.properties.id) === idToMatch) {
       return { ...soloPoiData.properties, geometry: soloPoiData.geometry };
     }
 
     return null;
-  }, [selectedPoiId, isSelectedSaved, numericPoiId, poisData, soloPoiData, savedData]);
+  }, [selectedPoiId, poisData, soloPoiData, savedData]);
 
   const handleRecenter = useCallback(async () => {
     await requestPermission();
