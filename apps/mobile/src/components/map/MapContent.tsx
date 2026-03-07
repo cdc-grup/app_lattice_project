@@ -33,6 +33,7 @@ interface MapContentProps {
   userCoords: number[] | null;
   locationStatus: string;
   poisGeoJSON: any;
+  savedLocations?: any;
   onDeselect?: () => void;
 }
 
@@ -130,6 +131,7 @@ export const MapContent = React.memo(({
   userCoords, 
   locationStatus, 
   poisGeoJSON,
+  savedLocations,
   onDeselect
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
@@ -148,11 +150,12 @@ export const MapContent = React.memo(({
   const { data: pathNetwork } = usePathNetwork();
   
   const routeRequest = useMemo(() => {
-    if (selectedPoiId && userCoords) {
+    // Only request routes for database POIs (number IDs)
+    if (selectedPoiId && userCoords && typeof selectedPoiId === 'number') {
       return {
         origin: { lat: userCoords[1], lng: userCoords[0] },
         destination: { poiId: selectedPoiId },
-      };
+      } as any;
     }
     return null;
   }, [selectedPoiId, userCoords]);
@@ -197,41 +200,78 @@ export const MapContent = React.memo(({
     }
   }, [onDeselect, storeDeselect]);
 
-  const onPoiPress = useCallback((id: number, coords: number[]) => {
-    console.log('[MapContent] Interaction: POI selected:', id);
+  const onPoiPress = useCallback((id: string | number, coords: number[]) => {
+    console.log('[MapContent] Interaction: Marker selected:', id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     lastSelectionTime.current = Date.now();
     selectPoi(id, coords);
   }, [selectPoi]);
 
   // Render Helpers
-  const renderPOIs = useMemo(() => {
-    if (!poisGeoJSON?.features) return null;
+  const renderMarkers = useMemo(() => {
+    const markers: React.ReactNode[] = [];
 
-    return poisGeoJSON.features.map((feature: any, index: number) => {
-      const id = feature.properties.id;
-      const isSelected = id === selectedPoiId;
-      const coords = feature.geometry.coordinates;
-      const category = feature.properties.category;
-      const metadata = getCategoryMetadata(category);
+    // 1. Standard POIs
+    if (poisGeoJSON?.features) {
+      poisGeoJSON.features.forEach((feature: any, index: number) => {
+        const id = feature.properties.id;
+        const isSelected = String(id) === String(selectedPoiId);
+        const coords = feature.geometry.coordinates;
+        const metadata = getCategoryMetadata(feature.properties.category);
 
-      return (
-        <MapLibreGL.MarkerView
-          key={`poi-${id}`}
-          id={`poi-marker-${id}`}
-          coordinate={coords}
-          anchor={{ x: 0.5, y: 0.5 }}
-        >
-          <PoiMarker 
-            isSelected={isSelected}
-            metadata={metadata}
-            onPress={() => onPoiPress(id, coords)}
-            index={index}
-          />
-        </MapLibreGL.MarkerView>
-      );
-    });
-  }, [poisGeoJSON, selectedPoiId, onPoiPress]);
+        markers.push(
+          <MapLibreGL.MarkerView
+            key={`poi-${id}`}
+            id={`poi-marker-${id}`}
+            coordinate={coords}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <PoiMarker 
+              isSelected={isSelected}
+              metadata={metadata}
+              onPress={() => onPoiPress(id, coords)}
+              index={index}
+            />
+          </MapLibreGL.MarkerView>
+        );
+      });
+    }
+
+    // 2. Saved Locations (Green)
+    if (savedLocations?.features) {
+      savedLocations.features.forEach((feature: any, index: number) => {
+        const id = feature.properties.id;
+        const finalId = `saved_${id}`;
+        const isSelected = finalId === String(selectedPoiId);
+        const coords = feature.geometry.coordinates;
+        
+        // Custom metadata for saved markers (themed green)
+        const savedMetadata = {
+          icon: 'star',
+          color: '#30D158', // Green
+          label: feature.properties.label
+        };
+
+        markers.push(
+          <MapLibreGL.MarkerView
+            key={finalId}
+            id={`saved-marker-${id}`}
+            coordinate={coords}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <PoiMarker 
+              isSelected={isSelected}
+              metadata={savedMetadata}
+              onPress={() => onPoiPress(finalId, coords)}
+              index={poisGeoJSON?.features?.length || 0 + index} // Offset delay
+            />
+          </MapLibreGL.MarkerView>
+        );
+      });
+    }
+
+    return markers;
+  }, [poisGeoJSON, savedLocations, selectedPoiId, onPoiPress]);
 
   return (
     <MapLibreGL.MapView
@@ -309,9 +349,8 @@ export const MapContent = React.memo(({
           }}
         />
       </MapLibreGL.ShapeSource>
-
-      {/* Points of Interest (Animated Markers) */}
-      {renderPOIs}
+      {/* Points of Interest & Saved Locations (Animated Markers) */}
+      {renderMarkers}
     </MapLibreGL.MapView>
   );
 });

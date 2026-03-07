@@ -1,5 +1,5 @@
-import React, { useMemo, forwardRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react-native';
+import * as React from 'react';
+import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Alert } from 'react-native';
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
 import { RouteGeoJSON } from '../../types';
+import { useAuthStore } from '../../hooks/useAuthStore';
+import { useSavedLocations, useSaveLocation, useDeleteSavedLocation } from '../../hooks/queries/useSavedLocations';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -58,32 +60,72 @@ const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) 
   );
 };
 
-export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
+export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
   poi, 
   route,
   onClose,
   translateY 
 }, ref) => {
   const insets = useSafeAreaInsets();
+  const { user } = useAuthStore();
+  const { data: savedData } = useSavedLocations();
+  const saveLocation = useSaveLocation();
+  const deleteLocation = useDeleteSavedLocation();
 
-  const snapPoints = useMemo(() => [
+  const isSaved = React.useMemo(() => {
+    if (!savedData?.features || !poi) return false;
+    return savedData.features.some((f: any) => 
+      f.properties.label === poi.name || 
+      (Math.abs(f.geometry.coordinates[0] - poi.geometry.coordinates[0]) < 0.0001 &&
+       Math.abs(f.geometry.coordinates[1] - poi.geometry.coordinates[1]) < 0.0001)
+    );
+  }, [savedData, poi]);
+
+  // Check if the current POI *is* a saved marker (different from just being "in favorites")
+  const isSelectedSaved = React.useMemo(() => {
+    if (!savedData?.features || !poi) return false;
+    // If it comes from savedData, it will match by ID (saved marker ID != POI ID usually)
+    // But in MapIndex we pass the marker as a POI object
+    return savedData.features.some((f: any) => Number(f.properties.id) === Number(poi.id));
+  }, [savedData, poi]);
+
+  const snapPoints = React.useMemo(() => [
     insets.bottom + 260, // Collapsed
     SCREEN_HEIGHT - insets.top - 40 // Expanded
   ], [insets.bottom, insets.top]);
 
-  const formattedDuration = useMemo(() => {
+  const formattedDuration = React.useMemo(() => {
     if (!route?.properties.durationEstimate) return '--';
     const mins = Math.round(route.properties.durationEstimate / 60);
     return durationFormatter.format(mins || 1);
   }, [route]);
 
-  const formattedDistance = useMemo(() => {
+  const formattedDistance = React.useMemo(() => {
     if (!route?.properties.distance) return '--';
     const dist = route.properties.distance;
     return dist >= 1000 
       ? kmFormatter.format(dist / 1000)
       : distanceFormatter.format(dist);
   }, [route]);
+
+  const handleToggleSave = () => {
+    console.log('[PoiDetailSheet] Toggle save pressed for:', poi?.name);
+    if (!poi) return;
+    if (isSaved) {
+      const savedItem = savedData.features.find((f: any) => f.properties.label === poi.name);
+      if (savedItem) {
+        console.log('[PoiDetailSheet] Deleting saved location:', savedItem.properties.id);
+        deleteLocation.mutate(savedItem.properties.id);
+      }
+    } else {
+      console.log('[PoiDetailSheet] Saving new location:', poi.name);
+      saveLocation.mutate({
+        label: poi.name,
+        latitude: poi.geometry.coordinates[1],
+        longitude: poi.geometry.coordinates[0],
+      });
+    }
+  };
 
   if (!poi) return null;
 
@@ -106,7 +148,9 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
             style={styles.headerTitleContainer}
           >
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
-            <Text style={styles.subtitle}>{poi.category}</Text>
+            <Text style={styles.subtitle}>
+              {isSelectedSaved ? 'Lugar Guardado' : (poi.category || 'Punto de interés')}
+            </Text>
           </Animated.View>
           <View style={styles.headerActions}>
             <Pressable 
@@ -128,6 +172,10 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
         </View>
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
+          {poi.description && (
+            <Text style={styles.descriptionText}>{poi.description}</Text>
+          )}
+
           {/* Action Buttons */}
           <Animated.View 
             entering={FadeInUp.delay(200).springify()}
@@ -148,7 +196,6 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
                 </View>
               </View>
             </Pressable>
-            
             <View style={styles.secondaryActions}>
                 <Pressable 
                     onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
@@ -178,20 +225,40 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
           {/* Info Grid */}
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Horario</Text>
-              <Text style={[styles.infoValue, { color: '#FF3B30' }]}>Abre pronto</Text>
+              <Text style={styles.infoLabel}>Ocupación</Text>
+              <Text style={[
+                styles.infoValue, 
+                { color: poi.crowdLevel === 'high' || poi.crowdLevel === 'blocked' ? '#FF3B30' : 
+                         poi.crowdLevel === 'moderate' ? '#FF9500' : '#30D158' }
+              ]}>
+                {poi.crowdLevel === 'low' ? 'Baja' : 
+                 poi.crowdLevel === 'moderate' ? 'Media' : 
+                 poi.crowdLevel === 'high' ? 'Alta' :
+                 poi.crowdLevel === 'blocked' ? 'Cerrado' : '--'}
+              </Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>15 valoraciones</Text>
+              <Text style={styles.infoLabel}>Accesible</Text>
               <View style={styles.ratingRow}>
-                <Feather name="thumbs-up" size={14} color="white" />
-                <Text style={styles.infoValue}> 67 %</Text>
+                <Feather 
+                  name={poi.isWheelchairAccessible ? "check-circle" : "x-circle"} 
+                  size={14} 
+                  color={poi.isWheelchairAccessible ? "#30D158" : "#FF3B30"} 
+                />
+                <Text style={styles.infoValue}> {poi.isWheelchairAccessible ? 'Sí' : 'No'}</Text>
               </View>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Acepta</Text>
+              <Text style={styles.infoLabel}>Prioridad</Text>
               <View style={styles.paymentRow}>
-                <Feather name="credit-card" size={14} color="white" />
+                <Feather 
+                  name="user-check" 
+                  size={14} 
+                  color={poi.hasPriorityLane ? "#30D158" : "rgba(255,255,255,0.4)"} 
+                />
+                <Text style={[styles.infoValue, { color: poi.hasPriorityLane ? '#30D158' : 'white' }]}>
+                  {poi.hasPriorityLane ? ' Carril' : ' No'}
+                </Text>
               </View>
             </View>
             <View style={styles.infoItem}>
@@ -206,20 +273,28 @@ export const PoiDetailSheet = forwardRef<BottomSheet, PoiDetailSheetProps>(({
           {/* Photos */}
           <View style={styles.photosSection}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {[1, 2, 3].map((i) => (
-                <View key={i} style={styles.photoPlaceholder} />
-              ))}
+              {poi.images && poi.images.length > 0 ? (
+                poi.images.map((img, i) => (
+                  <View key={i} style={styles.photoPlaceholder} /> // In a real app we'd use <Image source={{uri: img}} />
+                ))
+              ) : (
+                [1, 2, 3].map((i) => (
+                  <View key={i} style={styles.photoPlaceholder} />
+                ))
+              )}
             </ScrollView>
           </View>
-        </BottomSheetScrollView>
 
-        {/* Floating Toolbar */}
-        <View style={[styles.toolbar, { bottom: insets.bottom + 20 }]}>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="plus" size={20} color="white" /></Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="star" size={20} color="white" /></Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="thumbs-up" size={20} color="white" /></Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="more-horizontal" size={20} color="white" /></Pressable>
-        </View>
+          {/* User Specific Note if applicable */}
+          {user?.avoidStairs && !poi.isWheelchairAccessible && (
+            <View className="mt-6 flex-row items-center p-4 bg-[#FF3B30]/10 rounded-2xl border border-[#FF3B30]/20">
+              <Feather name="alert-circle" size={20} color="#FF3B30" />
+              <Text className="ml-3 text-[#FF3B30] font-semibold flex-1">
+                Atención: Este sitio puede no ser accesible según tus preferencias de movilidad.
+              </Text>
+            </View>
+          )}
+        </BottomSheetScrollView>
       </View>
     </BottomSheet>
   );
@@ -276,7 +351,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
+  },
+  descriptionText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 20,
   },
   actionRow: {
     flexDirection: 'column',
@@ -309,25 +390,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 0,
-  },
-  secondaryActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  circleButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    height: 60,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circleButtonText: {
-    color: '#FF3B30',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -374,6 +436,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 12,
   },
+  secondaryActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  circleButton: {
+    flex: 1,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  circleButtonText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   premiumBorder: {
     ...StyleSheet.absoluteFillObject,
     borderTopWidth: 0.5,
@@ -381,24 +461,4 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     pointerEvents: 'none',
   },
-  toolbar: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    height: 56,
-    backgroundColor: 'rgba(30, 30, 32, 0.95)',
-    borderRadius: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-  },
-  toolbarItem: {
-    padding: 10,
-  }
 });

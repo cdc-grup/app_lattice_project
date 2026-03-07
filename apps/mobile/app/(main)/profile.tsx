@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert, Modal, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import * as React from 'react';
+import { View, Text, Pressable, Alert, Modal, ActivityIndicator } from 'react-native';
+import * as SafeAreaContext from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { authService } from '../../src/services/authService';
@@ -8,24 +8,26 @@ import { colors } from '../../src/styles/colors';
 import { useRouter } from 'expo-router';
 import { SettingItem } from '../../src/components/ui/SettingItem';
 import { WalletStack } from '../../src/components/ui/WalletStack';
-import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
+import { AuthLayout } from '../../src/components/ui/AuthLayout';
+import { PremiumButton } from '../../src/components/ui/PremiumButton';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 export default function ProfileScreen() {
-  const { user, token, activeTicket, tickets, logout, setAuth } = useAuthStore();
+  const { user, token, tickets, logout, setAuth } = useAuthStore();
   const router = useRouter();
   
   // Local state for toggles and wizard
-  const [avoidStairs, setAvoidStairs] = useState(user?.avoidStairs ?? false);
-  const [avoidGrandstands, setAvoidGrandstands] = useState(user?.avoidGrandstands ?? false);
-  const [avoidSlopes, setAvoidSlopes] = useState(user?.avoidSlopes ?? false);
+  const [avoidStairs, setAvoidStairs] = React.useState(user?.avoidStairs ?? false);
+  const [avoidGrandstands, setAvoidGrandstands] = React.useState(user?.avoidGrandstands ?? false);
+  const [avoidSlopes, setAvoidSlopes] = React.useState(user?.avoidSlopes ?? false);
   
-  const [showWizard, setShowWizard] = useState(false);
-  const [showWallet, setShowWallet] = useState(false);
-  const [wizardStep, setWizardStep] = useState(1);
-  const [isSaving, setIsSaving] = useState(false);
+  const [showWizard, setShowWizard] = React.useState(false);
+  const [showWallet, setShowWallet] = React.useState(false);
+  const [wizardStep, setWizardStep] = React.useState(1);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
       setAvoidStairs(user.avoidStairs ?? false);
       setAvoidGrandstands(user.avoidGrandstands ?? false);
@@ -65,55 +67,56 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleToggle = (key: 'avoidStairs' | 'avoidGrandstands' | 'avoidSlopes', value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const prefs = { 
-      avoidStairs: key === 'avoidStairs' ? value : avoidStairs,
-      avoidGrandstands: key === 'avoidGrandstands' ? value : avoidGrandstands,
-      avoidSlopes: key === 'avoidSlopes' ? value : avoidSlopes 
-    };
-    
-    // Update local state immediately for UI responsiveness
-    if (key === 'avoidStairs') setAvoidStairs(value);
-    if (key === 'avoidGrandstands') setAvoidGrandstands(value);
-    if (key === 'avoidSlopes') setAvoidSlopes(value);
-    
-    savePreferences(prefs);
-  };
-
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
+    <AuthLayout 
+      showBack 
+      onBack={() => router.push('/(main)')}
+    >
+      <Animated.View 
+        entering={FadeInDown.duration(600)}
+        className="flex-1"
       >
         {/* Profile Header */}
-        <View className="pt-12 pb-8 items-center">
-          <View className="mb-4">
-            <View className="w-24 h-24 rounded-full bg-primary/20 items-center justify-center border-2 border-primary">
-              <Feather name="user" size={48} color={colors.primary} />
+        <View className="pt-8 pb-10 items-center">
+          <View className="mb-6">
+            <View className="w-24 h-24 rounded-[32px] bg-white items-center justify-center shadow-2xl">
+              <Feather name="user" size={48} color="#000" />
             </View>
           </View>
-          <Text className="text-white text-2xl font-black mb-1">
-            {user ? user.fullName : 'Guest Account'}
-          </Text>
-          <Text className="text-muted text-base">
-            {user ? `@${user.fullName.replace(/\s+/g, '').toLowerCase()}` : 'Not logged in'}
-          </Text>
           
-          <View className="flex-row gap-x-3 mt-6">
-            <Pressable 
-              className="bg-primary py-3 px-8 rounded-full active:opacity-90"
-            >
-              <Text className="text-white font-bold text-base">Editar Perfil</Text>
-            </Pressable>
-          </View>
+          <Animated.Text 
+            entering={FadeInDown.delay(200).duration(600)}
+            className="text-3xl font-bold text-white tracking-tighter mb-1"
+          >
+            {user ? user.fullName : 'Guest Account'}
+          </Animated.Text>
+          
+          <Animated.Text 
+            entering={FadeInDown.delay(300).duration(600)}
+            className="text-lg text-white/50 font-medium"
+          >
+            {user ? `@${user.fullName.replace(/\s+/g, '').toLowerCase()}` : 'Not logged in'}
+          </Animated.Text>
+          
+          <Animated.View 
+            entering={FadeInDown.delay(400).duration(600)}
+            className="w-full mt-10 px-4"
+          >
+            <PremiumButton 
+              onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
+              label="Editar Perfil"
+              variant="outline"
+              className="h-14"
+            />
+          </Animated.View>
         </View>
 
-        <View className="px-4 mb-8 mt-4">
-          {/* List Section */}
-          <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
-            
+        {/* Settings Section */}
+        <Animated.View 
+          entering={FadeInDown.delay(500).duration(600)}
+          className="mb-12"
+        >
+          <View className="bg-white/5 border border-white/10 rounded-[32px] overflow-hidden">
             <SettingItem 
               label="Billetera de Entradas"
               icon="tag"
@@ -127,41 +130,15 @@ export default function ProfileScreen() {
               }}
             />
 
-            <SettingItem 
-              label="Vincular Entrada"
-              icon="maximize"
-              onPress={() => {
-                Alert.alert(
-                  "Vincular Entrada",
-                  "Elige un método para vincular tu entrada",
-                  [
-                    { text: "Escanear QR", onPress: () => router.push('/scan' as any) },
-                    {
-                      text: "Simular Escaneo",
-                      onPress: async () => {
-                        const ticketToClaim = (tickets && tickets.some(t => t.code === 'CIRCUIT-G-2026')) ? 'CIRCUIT-EXTRA-VIP' : 'CIRCUIT-G-2026';
-                        const success = await useAuthStore.getState().claimTicket(ticketToClaim);
-                        if (success) {
-                          Alert.alert('Éxito', `Entrada ${ticketToClaim} vinculada correctamente!`);
-                        } else {
-                          Alert.alert('Error', 'No se ha podido vincular la entrada. Asegúrate de que el código existe en la BD.');
-                        }
-                      }
-                    },
-                    { text: "Cancelar", style: "cancel" }
-                  ]
-                );
-              }}
-            />
 
-            <View className="px-5 py-3 bg-black/20">
-              <Text className="text-muted text-xs font-bold uppercase tracking-wider">Preferencias de cuenta</Text>
+            <View className="px-6 py-4 bg-white/5">
+              <Text className="text-white/30 text-xs font-bold uppercase tracking-[2px]">Preferencias</Text>
             </View>
 
             <SettingItem 
-              label="Configurar Preferencias"
+              label="Configuración de Ruta"
               icon="settings"
-              secondaryText="Ajustar rutas y accesibilidad"
+              secondaryText="Ajustar accesibilidad"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 setShowWizard(true);
@@ -183,8 +160,8 @@ export default function ProfileScreen() {
               onPress={handleLogout}
             />
           </View>
-        </View>
-      </ScrollView>
+        </Animated.View>
+      </Animated.View>
 
       {/* Wallet Modal */}
       <Modal
@@ -193,7 +170,7 @@ export default function ProfileScreen() {
         transparent={false}
         onRequestClose={() => setShowWallet(false)}
       >
-        <SafeAreaView className="flex-1 bg-background">
+        <SafeAreaContext.SafeAreaView className="flex-1 bg-background">
           <View className="flex-row items-center justify-between px-6 py-4">
             <Text className="text-white text-3xl font-black">Mis Entradas</Text>
             <View className="flex-row gap-x-3">
@@ -218,7 +195,7 @@ export default function ProfileScreen() {
           <View className="flex-1 px-6">
             <WalletStack tickets={tickets} />
           </View>
-        </SafeAreaView>
+        </SafeAreaContext.SafeAreaView>
       </Modal>
 
       {/* Preferences Wizard Modal */}
@@ -336,6 +313,6 @@ export default function ProfileScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
-    </SafeAreaView>
+    </AuthLayout>
   );
 }
