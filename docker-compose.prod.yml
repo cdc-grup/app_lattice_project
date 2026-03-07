@@ -1,5 +1,6 @@
 services:
   gateway:
+    container_name: lattice-gateway
     build:
       context: .
       dockerfile: apps/server/gateway/Dockerfile
@@ -17,6 +18,9 @@ services:
       - auth
       - geo
       - social
+    networks:
+      - default
+      - red_proyectos
 
   auth:
     build:
@@ -63,3 +67,7 @@ services:
     ports:
       - "6379:6379"
     restart: always
+
+networks:
+  red_proyectos:
+    external: true
