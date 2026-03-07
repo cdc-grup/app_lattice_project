@@ -1,0 +1,38 @@
+name: Deploy Backend to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/server/**'
+      - 'packages/**'
+      - 'docker-compose.prod.yml'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    name: Deploy to Self-Hosted Runner
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "REDIS_URL=redis://redis:6379" >> .env
+
+      - name: Build and Deploy Containers
+        run: |
+          docker compose -f docker-compose.prod.yml down --remove-orphans
+          docker compose -f docker-compose.prod.yml up -d --build
+
+      - name: Run Database Migrations
+        run: |
+          docker compose -f docker-compose.prod.yml exec -T auth npm run db:migrate
+
+      - name: Cleanup Unused Docker Resources
+        run: docker system prune -f

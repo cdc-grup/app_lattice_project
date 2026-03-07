@@ -1,0 +1,65 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/server/gateway/Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth:3001
+      - GEO_SERVICE_URL=http://geo:3002
+      - SOCIAL_SERVICE_URL=http://social:3003
+    depends_on:
+      - auth
+      - geo
+      - social
+
+  auth:
+    build:
+      context: .
+      dockerfile: apps/server/auth/Dockerfile
+      target: production
+    ports:
+      - "3001:3001"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+
+  geo:
+    build:
+      context: .
+      dockerfile: apps/server/geo/Dockerfile
+      target: production
+    ports:
+      - "3002:3002"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=${DATABASE_URL}
+
+  social:
+    build:
+      context: .
+      dockerfile: apps/server/social/Dockerfile
+      target: production
+    ports:
+      - "3003:3003"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - DATABASE_URL=${DATABASE_URL}
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
