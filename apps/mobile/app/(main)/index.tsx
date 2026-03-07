@@ -29,7 +29,11 @@ import { QuickActions } from '../../src/components/map/QuickActions';
 import { SearchFilters } from '../../src/components/map/SearchFilters';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
+import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
+import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
+import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
+import * as Haptics from 'expo-haptics';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -80,6 +84,13 @@ function MapIndex() {
   // Position for the POI detail sheet
   const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
+  const { data: savedData } = useSavedLocations();
+  const saveLocationMutation = useSaveLocation();
+  const [showSaveModal, setShowSaveModal] = React.useState(false);
+  const [showSavedManager, setShowSavedManager] = React.useState(false);
+
+  const selectPoi = useMapStore(s => s.selectPoi);
+
   // Active sheet position for the location button to track
   const activePosition = useMemo(() => {
     return selectedPoiId ? poiSheetPosition : sheetPosition;
@@ -106,27 +117,49 @@ function MapIndex() {
   const { data: poisData, isLoading } = usePOIs(activeCategory);
   
   // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
-  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(selectedPoiId);
+  // Fix: Don't call this if the selected ID belongs to a saved location (managed locally or via prefix)
+  const isSelectedSaved = useMemo(() => {
+    return selectedPoiId?.startsWith('saved_') || false;
+  }, [selectedPoiId]);
+
+  const numericPoiId = useMemo(() => {
+    if (!selectedPoiId) return null;
+    if (selectedPoiId.startsWith('saved_')) {
+      return Number(selectedPoiId.replace('saved_', ''));
+    }
+    return Number(selectedPoiId);
+  }, [selectedPoiId]);
+
+  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(isSelectedSaved ? null : numericPoiId);
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId) return null;
     
-    const idToMatch = Number(selectedPoiId);
-    console.log('[MapIndex] Looking for selected POI:', idToMatch);
+    console.log('[MapIndex] Looking for selected POI:', selectedPoiId);
 
-    // 1. Try to find it in the current filtered list (fastest)
+    // 1. If it's a saved location, look it up in savedData first
+    if (isSelectedSaved) {
+      if (savedData) {
+        const idToMatch = numericPoiId;
+        const f = savedData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+        if (f) return { ...f.properties, name: f.properties.label, geometry: f.geometry };
+      }
+      return null;
+    }
+
+    // 2. Otherwise it's a system POI. Try to find it in the current filtered list (fastest)
     if (poisData) {
-      const f = poisData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+      const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) return { ...f.properties, geometry: f.geometry };
     }
     
-    // 2. Fallback to the single POI fetch results
-    if (soloPoiData && Number(soloPoiData.properties.id) === idToMatch) {
+    // 3. Fallback to the single POI fetch results
+    if (soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
       return { ...soloPoiData.properties, geometry: soloPoiData.geometry };
     }
 
     return null;
-  }, [selectedPoiId, poisData, soloPoiData]);
+  }, [selectedPoiId, isSelectedSaved, numericPoiId, poisData, soloPoiData, savedData]);
 
   const handleRecenter = useCallback(async () => {
     await requestPermission();
@@ -147,6 +180,7 @@ function MapIndex() {
           userCoords={userCoords}
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
+          savedLocations={savedData}
           onDeselect={deselect}
         />
         <AROverlay 
@@ -191,8 +225,14 @@ function MapIndex() {
           <SearchBar onArPress={() => router.push('/(main)/profile')} />
           <SearchFilters />
           <View className="px-4">
-            <GuidesSection />
-            <SheetFooterActions />
+            <GuidesSection 
+              onSeeAll={() => setShowSavedManager(true)} 
+              onSelectMarker={(coords, id) => {
+                selectPoi(`saved_${id}`, coords);
+                // Optionally close bottom sheet if needed, but standard maps usually keep it open or snap to small
+              }}
+            />
+            <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
             <View style={{ height: 100 }} />
           </View>
         </View>
@@ -205,6 +245,34 @@ function MapIndex() {
         route={currentRoute}
         onClose={deselect}
         translateY={poiSheetPosition}
+      />
+
+      <SaveLocationModal 
+        isVisible={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        isLoading={saveLocationMutation.isPending}
+        onSave={(name) => {
+          // Approximate center or user coords if available
+          const coords = userCoords || [2.261, 41.570];
+          saveLocationMutation.mutate({
+            label: name,
+            latitude: coords[1],
+            longitude: coords[0]
+          }, {
+            onSuccess: () => {
+              setShowSaveModal(false);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+          });
+        }}
+      />
+
+      <SavedLocationsManager 
+        isVisible={showSavedManager}
+        onClose={() => setShowSavedManager(false)}
+        onSelectMarker={(coords, id) => {
+          selectPoi(`saved_${id}`, coords);
+        }}
       />
     </View>
   );

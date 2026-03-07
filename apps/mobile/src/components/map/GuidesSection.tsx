@@ -1,54 +1,51 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSavedLocations } from '../../hooks/queries/useSavedLocations';
+import { colors } from '../../styles/colors';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const GuideItem = ({ title, sublabel, icon, color }: { title: string, sublabel: string, icon: string, color?: string }) => (
+const GuideItem = ({ title, coords, onPress }: { title: string, coords: [number, number], onPress?: () => void }) => (
   <Pressable 
+    onPress={onPress}
     style={({ pressed }) => [
-      styles.guideItem,
-      pressed && { opacity: 0.8, transform: [{ scale: 0.97 }] }
+      styles.markerItem,
+      pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
     ]}
   >
-    <View style={styles.guideIconWrapper}>
-      <View style={[styles.iconIndicator, { backgroundColor: color || '#FFFFFF' }]} />
-      <Feather name={icon as any} size={26} color="white" />
+    <View style={styles.markerInfo}>
+      <View style={styles.iconWrapper}>
+        <Feather name="map-pin" size={18} color={colors.primary} />
+      </View>
+      <View style={styles.nameContainer}>
+        <Text style={styles.markerName} numberOfLines={1}>
+          {title || 'Marcador sin nombre'}
+        </Text>
+        <Text style={styles.markerCoords}>
+          {coords[1].toFixed(5)}, {coords[0].toFixed(5)}
+        </Text>
+      </View>
     </View>
-    <View style={styles.textContainer}>
-      <Text style={styles.guideTitle} numberOfLines={1}>{title}</Text>
-      <Text style={styles.guideSublabel}>{sublabel}</Text>
-    </View>
+    <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.2)" />
   </Pressable>
 );
 
-export const GuidesSection = () => {
+interface GuidesSectionProps {
+  onSeeAll: () => void;
+  onSelectMarker: (coords: [number, number], id: number) => void;
+}
+
+export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) => {
   const { data: savedData, isLoading } = useSavedLocations();
 
-  const guides = useMemo(() => {
+  const displayItems = useMemo(() => {
     if (!savedData?.features) return [];
-    
-    // Group by label to simulate "guides"
-    const groups: Record<string, any[]> = {};
-    savedData.features.forEach((f: any) => {
-      const label = f.properties.label || 'Otros';
-      if (!groups[label]) groups[label] = [];
-      groups[label].push(f);
-    });
-
-    return Object.entries(groups).map(([label, items]) => ({
-      title: label,
-      count: items.length,
-      icon: label.toLowerCase().includes('comida') ? 'coffee' : 'map-pin',
-      color: label.toLowerCase().includes('favoritos') ? '#FF3B30' : '#30D158'
-    }));
+    return savedData.features.slice(0, 3);
   }, [savedData]);
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator color="#FF3B30" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -56,148 +53,121 @@ export const GuidesSection = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Tus guías</Text>
-        <Pressable style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}>
-          <Text style={styles.seeAllText}>Ver todas</Text>
+        <Text style={styles.sectionTitle}>Tus lugares</Text>
+        <Pressable 
+          onPress={onSeeAll}
+          style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={styles.seeAllText}>Ver todos</Text>
           <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
         </Pressable>
       </View>
       
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false} 
-        contentContainerStyle={styles.scrollContent}
-        decelerationRate="fast"
-      >
-        {guides.length > 0 ? (
-          guides.map((guide, idx) => (
+      <View style={styles.listContent}>
+        {displayItems.length > 0 ? (
+          displayItems.map((feature: any) => (
             <GuideItem 
-              key={idx}
-              title={guide.title} 
-              sublabel={`${guide.count} sitio${guide.count > 1 ? 's' : ''}`} 
-              icon={guide.icon} 
-              color={guide.color} 
+              key={feature.properties.id}
+              title={feature.properties.label} 
+              coords={feature.geometry.coordinates}
+              onPress={() => onSelectMarker(feature.geometry.coordinates, feature.properties.id)}
             />
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No tienes guías guardadas</Text>
+            <Text style={styles.emptyText}>Guarda tus sitios favoritos aquí</Text>
           </View>
         )}
-        
-        <Pressable 
-          style={({ pressed }) => [
-            styles.newGuideButton,
-            pressed && { backgroundColor: 'rgba(255, 255, 255, 0.15)' }
-          ]}
-        >
-          <Feather name="plus" size={24} color="rgba(255, 255, 255, 0.6)" />
-          <Text style={styles.newGuideText}>Nueva guía</Text>
-        </Pressable>
-      </ScrollView>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
-    marginBottom: 24,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  loadingContainer: {
+    height: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 0,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     color: 'white',
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: -0.6,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   seeAll: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     borderRadius: 12,
   },
   seeAllText: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 13,
-    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    fontWeight: '700',
     marginRight: 2,
   },
-  scrollContent: {
-    paddingRight: 20,
+  listContent: {
+    gap: 8,
   },
-  guideItem: {
-    width: 140,
-    marginRight: 12,
-  },
-  guideIconWrapper: {
-    width: '100%',
-    height: 90,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  markerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  markerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    position: 'relative',
-    overflow: 'hidden',
+    marginRight: 10,
   },
-  iconIndicator: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  nameContainer: {
+    flex: 1,
   },
-  textContainer: {
-    paddingLeft: 4,
-  },
-  guideTitle: {
+  markerName: {
     color: 'white',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: -0.2,
   },
-  guideSublabel: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  newGuideButton: {
-    width: 140,
-    height: 90,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderStyle: 'dashed',
-  },
-  newGuideText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 6,
+  markerCoords: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 11,
+    marginTop: 1,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   emptyContainer: {
-    width: 200,
-    justifyContent: 'center',
-    paddingLeft: 4,
+    paddingVertical: 20,
+    alignItems: 'center',
   },
   emptyText: {
-    color: 'rgba(255, 255, 255, 0.3)',
-    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.2)',
+    fontSize: 13,
     fontStyle: 'italic',
   },
 });

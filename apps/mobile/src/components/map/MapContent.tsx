@@ -13,6 +13,7 @@ interface MapContentProps {
   userCoords: number[] | null;
   locationStatus: string;
   poisGeoJSON: any;
+  savedLocations?: any;
   onDeselect?: () => void;
 }
 
@@ -20,6 +21,7 @@ export const MapContent = React.memo(({
   userCoords, 
   locationStatus, 
   poisGeoJSON,
+  savedLocations,
   onDeselect
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
@@ -86,11 +88,19 @@ export const MapContent = React.memo(({
 
   const onSourcePress = useCallback((event: any) => {
     const feature = event.features[0];
+    const sourceId = event.sourceId; // Detect which source was pressed
+    
     if (feature?.properties && feature.geometry.type === 'Point') {
-      const poiId = Number(feature.properties.id);
-      console.log('[MapContent] ULTRA-STABLE-V2: Source press detected for ID:', poiId);
+      let finalId = String(feature.properties.id);
+      
+      // Prefix with 'saved_' if it comes from the saved locations source
+      if (sourceId === 'savedSource') {
+        finalId = `saved_${finalId}`;
+      }
+      
+      console.log(`[MapContent] Press detected for ID: ${finalId} from source: ${sourceId}`);
       lastSelectionTime.current = Date.now();
-      selectPoi(poiId, feature.geometry.coordinates);
+      selectPoi(finalId, feature.geometry.coordinates);
     }
   }, [selectPoi]);
 
@@ -168,7 +178,7 @@ export const MapContent = React.memo(({
           {/* Selection Highlight */}
           <MapLibreGL.CircleLayer
             id="poiSelectionOuter"
-            filter={['==', ['get', 'id'], selectedPoiId || -1]}
+            filter={['==', ['to-string', ['get', 'id']], selectedPoiId || '']}
             style={{
               circleRadius: 22,
               circleColor: '#FF3B30',
@@ -204,6 +214,55 @@ export const MapContent = React.memo(({
               textHaloWidth: 2,
               textIgnorePlacement: false,
               textAllowOverlap: false,
+            }}
+          />
+        </MapLibreGL.ShapeSource>
+      )}
+      {/* 📍 Saved Locations Layer (Green) */}
+      {savedLocations && (
+        <MapLibreGL.ShapeSource
+          id="savedSource"
+          shape={savedLocations}
+          onPress={onSourcePress}
+          hitbox={{ width: 44, height: 44 }}
+        >
+          {/* Selection Highlight for Saved */}
+          <MapLibreGL.CircleLayer
+            id="savedSelectionOuter"
+            filter={['==', ['concat', 'saved_', ['to-string', ['get', 'id']]], selectedPoiId || '']}
+            style={{
+              circleRadius: 18,
+              circleColor: '#30D158',
+              circleOpacity: 1,
+              circleStrokeWidth: 3,
+              circleStrokeColor: 'white',
+              circlePitchAlignment: 'map',
+            }}
+          />
+
+          <MapLibreGL.CircleLayer
+            id="savedCircles"
+            style={{
+              circleRadius: 12,
+              circleColor: '#30D158',
+              circleStrokeWidth: 2.5,
+              circleStrokeColor: 'white',
+              circleOpacity: 0.95,
+              circlePitchAlignment: 'map',
+            }}
+          />
+          <MapLibreGL.SymbolLayer
+            id="savedLabels"
+            style={{
+              textField: ['get', 'label'],
+              textSize: 11,
+              textColor: 'white',
+              textOffset: [0, 2.2],
+              textHaloColor: 'rgba(0,0,0,0.85)',
+              textHaloWidth: 2,
+              iconAllowOverlap: true,
+              textIgnorePlacement: true,
+              textAllowOverlap: true,
             }}
           />
         </MapLibreGL.ShapeSource>

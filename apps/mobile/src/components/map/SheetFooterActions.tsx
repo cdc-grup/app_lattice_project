@@ -11,70 +11,47 @@ interface ActionButtonProps {
   flex?: number;
 }
 
-const ActionButton = ({ icon, label, onPress, flex = 1 }: ActionButtonProps) => (
+const ActionButton = ({ icon, label, onPress, flex = 1 }: { icon: string, label: string, onPress: () => void, flex?: number }) => (
   <Pressable
     onPress={onPress}
     style={({ pressed }) => [
         styles.actionButton,
         { flex },
-        pressed && { backgroundColor: 'rgba(255, 255, 255, 0.18)', transform: [{ scale: 0.98 }] }
+        pressed && { backgroundColor: 'rgba(255, 255, 255, 0.15)', transform: [{ scale: 0.96 }] }
     ]}
   >
     <View style={styles.buttonContent}>
         <View style={styles.iconCircle}>
-            <Feather name={icon as any} size={20} color="#FF3B30" />
+            <Feather name={icon as any} size={24} color="#FF3B30" />
         </View>
         <Text style={styles.actionLabel}>{label}</Text>
     </View>
   </Pressable>
 );
 
-export const SheetFooterActions = () => {
-  const saveLocation = useSaveLocation();
+interface SheetFooterActionsProps {
+  onFixPin: () => void;
+}
 
-  const handleFixPin = () => {
-    console.log('[SheetFooterActions] Fix pin pressed');
-    // Alert.prompt is iOS only. For cross-platform we use Alert.alert or a custom modal.
-    Alert.alert(
-      "Guardar ubicación",
-      "¿Quieres guardar esta ubicación en tus guías?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Guardar", 
-          onPress: () => {
-            console.log('[SheetFooterActions] Saving pinned location...');
-            saveLocation.mutate({
-              label: "Mi marcador",
-              latitude: 41.570,
-              longitude: 2.261,
-            });
-          }
-        }
-      ]
-    );
-  };
-
+export const SheetFooterActions = ({ onFixPin }: SheetFooterActionsProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
         <ActionButton 
-          icon="share" 
-          label="Enviar ubicación" 
+          icon="share-2" 
+          label="Enviar" 
           onPress={() => console.log('Share location')} 
         />
         <ActionButton 
           icon="map-pin" 
-          label="Fijar pin aquí" 
-          onPress={handleFixPin} 
+          label="Fijar pin" 
+          onPress={onFixPin} 
         />
-      </View>
-      
-      <View style={styles.termsContainer}>
-        <Pressable style={({ pressed }) => [styles.termsButton, pressed && { opacity: 0.6 }]}>
-            <Text style={styles.termsText}>Términos y condiciones</Text>
-            <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
-        </Pressable>
+        <ActionButton 
+          icon="navigation" 
+          label="Planear" 
+          onPress={() => console.log('Plan route')} 
+        />
       </View>
     </View>
   );
@@ -82,56 +59,49 @@ export const SheetFooterActions = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
-    paddingBottom: 60,
+    marginTop: 20,
+    width: '100%',
   },
   row: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    height: 60,
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    height: 100,
+    borderRadius: 24,
     justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 12,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 59, 48, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   actionLabel: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: -0.3,
-    flexShrink: 1,
-  },
-  termsContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  termsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  termsText: {
-    color: 'rgba(255, 255, 255, 0.3)',
-    fontSize: 12,
-    marginRight: 4,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.2,
   }
 });
