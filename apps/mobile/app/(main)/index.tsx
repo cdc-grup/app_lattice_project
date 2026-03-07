@@ -118,45 +118,56 @@ function MapIndex() {
   
   // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
   // Fix: Don't call this if the selected ID belongs to a saved location OR if we already have it in poisData
-  const isSelectedSaved = useMemo(() => {
-    if (!selectedPoiId || !savedData?.features) return false;
-    return savedData.features.some((f: any) => Number(f.properties.id) === Number(selectedPoiId));
+  const { isSelectedSaved, numericPoiId } = useMemo(() => {
+    if (!selectedPoiId) return { isSelectedSaved: false, numericPoiId: null };
+    
+    // Check for explicit 'saved_' prefix from MapContent
+    const isPrefixed = selectedPoiId.toString().startsWith('saved_');
+    const rawId = isPrefixed ? selectedPoiId.toString().replace('saved_', '') : selectedPoiId;
+    const numId = Number(rawId);
+
+    // Also check if this ID (numeric) exists in savedData even if not prefixed
+    const existsInSaved = savedData?.features?.some((f: any) => Number(f.properties.id) === numId) || false;
+
+    return { 
+      isSelectedSaved: isPrefixed || existsInSaved, 
+      numericPoiId: isNaN(numId) ? null : numId 
+    };
   }, [selectedPoiId, savedData]);
 
   const isAlreadyLoaded = useMemo(() => {
-    if (!selectedPoiId || !poisData?.features) return false;
-    return poisData.features.some((f: any) => Number(f.properties.id) === Number(selectedPoiId));
-  }, [selectedPoiId, poisData]);
+    if (!numericPoiId || !poisData?.features) return false;
+    return poisData.features.some((f: any) => Number(f.properties.id) === numericPoiId);
+  }, [numericPoiId, poisData]);
 
   const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(
-    (isSelectedSaved || isAlreadyLoaded) ? null : Number(selectedPoiId)
+    (isSelectedSaved || isAlreadyLoaded) ? null : numericPoiId
   );
 
   const selectedPoi = useMemo(() => {
-    if (!selectedPoiId) return null;
+    if (!selectedPoiId || numericPoiId === null) return null;
     
-    const idToMatch = Number(selectedPoiId);
-    console.log('[MapIndex] Resolving selection for ID:', idToMatch);
+    console.log('[MapIndex] Resolving selection for ID:', selectedPoiId, 'Numeric:', numericPoiId);
 
     // 1. Try to find it in the current filtered list (fastest)
     if (poisData) {
-      const f = poisData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+      const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) return { ...f.properties, geometry: f.geometry };
     }
     
     // 2. Check in saved locations (Prioritize local saved data)
     if (savedData) {
-      const f = savedData.features.find((f: any) => Number(f.properties.id) === idToMatch);
+      const f = savedData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) return { ...f.properties, name: f.properties.label, geometry: f.geometry, isSaved: true };
     }
 
     // 3. Fallback to the single POI fetch results
-    if (soloPoiData && Number(soloPoiData.properties.id) === idToMatch) {
+    if (soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
       return { ...soloPoiData.properties, geometry: soloPoiData.geometry };
     }
 
     return null;
-  }, [selectedPoiId, poisData, soloPoiData, savedData]);
+  }, [selectedPoiId, numericPoiId, poisData, soloPoiData, savedData]);
 
   const handleRecenter = useCallback(async () => {
     await requestPermission();

@@ -150,11 +150,6 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
           </View>
           <View style={styles.headerActions}>
             <Pressable 
-              style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
-            >
-              <Feather name="share" size={20} color="#FF3B30" />
-            </Pressable>
-            <Pressable 
               onPress={onClose} 
               style={({ pressed }) => [styles.headerIcon, styles.closeIcon, pressed && { opacity: 0.7 }]}
             >
@@ -184,27 +179,6 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                 </View>
               </View>
             </Pressable>
-            
-            <View style={styles.secondaryActions}>
-                <Pressable 
-                    style={({ pressed }) => [
-                        styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
-                    ]}
-                >
-                    <Feather name="phone" size={20} color="#FF3B30" />
-                    <Text style={styles.circleButtonText}>Llamar</Text>
-                </Pressable>
-                <Pressable 
-                    style={({ pressed }) => [
-                        styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' }
-                    ]}
-                >
-                    <Feather name="globe" size={20} color="#FF3B30" />
-                    <Text style={styles.circleButtonText}>Sitio web</Text>
-                </Pressable>
-            </View>
           </View>
 
           {/* Info Grid */}
@@ -280,19 +254,6 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             </View>
           )}
         </BottomSheetScrollView>
-
-        {/* Floating Toolbar */}
-        <View style={[styles.toolbar, { bottom: insets.bottom + 20 }]}>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="plus" size={20} color="white" /></Pressable>
-          <Pressable 
-            onPress={handleToggleSave}
-            style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}
-          >
-            <Feather name="star" size={20} color={isSaved ? "#FF3B30" : "white"} fill={isSaved ? "#FF3B30" : "transparent"} />
-          </Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="thumbs-up" size={20} color="white" /></Pressable>
-          <Pressable style={({ pressed }) => [styles.toolbarItem, pressed && { opacity: 0.6 }]}><Feather name="more-horizontal" size={20} color="white" /></Pressable>
-        </View>
       </View>
     </BottomSheet>
   );
@@ -349,7 +310,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
   },
   descriptionText: {
     color: 'rgba(255, 255, 255, 0.7)',
@@ -388,25 +349,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 0,
-  },
-  secondaryActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  circleButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    height: 60,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circleButtonText: {
-    color: '#FF3B30',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
   },
   infoGrid: {
     flexDirection: 'row',
@@ -460,24 +402,4 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     pointerEvents: 'none',
   },
-  toolbar: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    height: 56,
-    backgroundColor: 'rgba(30, 30, 32, 0.95)',
-    borderRadius: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-  },
-  toolbarItem: {
-    padding: 10,
-  }
 });
