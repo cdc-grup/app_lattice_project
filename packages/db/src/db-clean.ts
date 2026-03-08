@@ -18,8 +18,19 @@ async function clean() {
 
   try {
     for (const table of tables) {
-      console.log(`Truncating ${table}...`);
-      await db.execute(sql.raw(`TRUNCATE TABLE "${table}" CASCADE`));
+      const exists = await db.execute(sql.raw(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = '${table}'
+        )
+      `));
+
+      if (exists.rows[0].exists) {
+        console.log(`Truncating ${table}...`);
+        await db.execute(sql.raw(`TRUNCATE TABLE "${table}" CASCADE`));
+      } else {
+        console.log(`Skipping ${table} (does not exist)`);
+      }
     }
     console.log('Database cleaned successfully.');
   } catch (error) {

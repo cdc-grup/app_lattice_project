@@ -14,7 +14,7 @@ export const ScanOverlay = ({ isProcessing, scanned, onReset }: ScanOverlayProps
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-black/50 items-center justify-center">
+    <View className="absolute inset-0 bg-black/50 items-center justify-center">
       {/* Viewfinder cutout frame */}
       <View className="w-64 h-64 border-2 border-primary rounded-xl relative justify-center items-center">
         {/* Corner styling */}
