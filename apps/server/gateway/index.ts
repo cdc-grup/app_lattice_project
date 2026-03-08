@@ -77,9 +77,15 @@ app.use(
 // Social Service
 app.use(
   createProxyMiddleware({
-    pathFilter: [`${API_PREFIX}/groups`, '/groups'],
+    pathFilter: [
+      `${API_PREFIX}/groups`,
+      `${API_PREFIX}/telemetry`,
+      '/groups',
+      '/telemetry'
+    ],
     target: SOCIAL_SERVICE_URL,
     changeOrigin: true,
+    ws: true, // Enable WebSocket proxying
     pathRewrite: {
       [`^${API_PREFIX}`]: '',
     },
