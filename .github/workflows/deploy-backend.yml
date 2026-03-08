@@ -20,6 +20,7 @@ jobs:
           echo "DATABASE_URL=$(echo '${{ secrets.DATABASE_URL }}' | xargs)" > .env
           echo "JWT_SECRET=$(echo '${{ secrets.JWT_SECRET }}' | xargs)" >> .env
           echo "REDIS_URL=redis://redis:6379" >> .env
+          cp .env packages/db/.env
 
       - name: Build and Deploy Containers
         run: |
