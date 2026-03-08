@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { db, pool } from './index';
 import { pointsOfInterest, nodes, pathSegments } from './schema';
 import { sql } from 'drizzle-orm';
