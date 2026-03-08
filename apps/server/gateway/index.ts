@@ -10,6 +10,8 @@ dotenv.config({ path: envFile });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const basePath = process.env.BASE_PATH || '/';
+const router = express.Router();
 
 // Service URLs (Defaults for local dev)
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
@@ -34,7 +36,9 @@ router.get('/status', (req: Request, res: Response) => {
 const API_PREFIX = '/api/v1';
 
 const stripPrefix = (path: string, req: express.Request) => {
-  return path.replace(API_PREFIX, '');
+  const newPath = path.replace(API_PREFIX, '');
+  console.log(`[Gateway] Stripping prefix: ${path} -> ${newPath}`);
+  return newPath;
 };
 
 // Auth Service
@@ -106,6 +110,7 @@ if (basePath && basePath !== '/') {
 
 app.listen(PORT, () => {
   console.log(`[Gateway] running on port ${PORT}`);
+  console.log(`[Gateway] Base Path: ${basePath}`);
   console.log(`[Gateway] Routing /auth, /users -> ${AUTH_SERVICE_URL}`);
   console.log(`[Gateway] Routing /pois, /locations, /navigation -> ${GEO_SERVICE_URL}`);
   console.log(`[Gateway] Routing /groups -> ${SOCIAL_SERVICE_URL}`);
