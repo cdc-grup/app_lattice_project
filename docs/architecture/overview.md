@@ -1,6 +1,6 @@
-# System Overview: Circuit Copilot
+# System Overview: Lattice
 
-Circuit Copilot is a premium mobile application designed to enhance the spectator experience at high-density events like the Formula 1 Santander Spanish Grand Prix at the Circuit de Barcelona-Catalunya.
+Lattice is a premium mobile application designed to enhance the spectator experience at high-density events like the Formula 1 Santander Spanish Grand Prix at the Circuit de Barcelona-Catalunya.
 
 ## Technology Stack
 

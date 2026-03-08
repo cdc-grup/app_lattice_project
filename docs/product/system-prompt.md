@@ -1,4 +1,4 @@
-# System Prompt: Agent Circuit Copilot
+# System Prompt: Agent Lattice
 
 ## Identitat Central
 

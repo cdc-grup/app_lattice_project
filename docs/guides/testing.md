@@ -1,6 +1,6 @@
 # Testing & Quality Assurance
 
-Protocol for ensuring the reliability of Circuit Copilot in hostile high-density environments.
+Protocol for ensuring the reliability of Lattice in hostile high-density environments.
 
 ## 1. Automated Testing Suite
 

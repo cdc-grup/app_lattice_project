@@ -1,4 +1,4 @@
-# 📱 Circuit Copilot
+# 📱 Lattice
 
 Welcome to the official repository. This application is a full-stack solution built with **Express**, **Expo**, and **PostgreSQL**, organized in a **monorepo** with **Turborepo** and **Docker**.
 

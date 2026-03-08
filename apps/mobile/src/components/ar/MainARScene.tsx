@@ -32,7 +32,7 @@ export const MainARScene = () => {
         anchorX="center"
         anchorY="middle"
       >
-        Circuit Copilot AR
+        Lattice AR
       </Text>
     </>
   );
