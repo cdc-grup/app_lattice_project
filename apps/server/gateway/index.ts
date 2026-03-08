@@ -21,8 +21,12 @@ app.use(logger);
 
 // Middleware to handle production prefix
 app.use((req, res, next) => {
+  const originalUrl = req.url;
   if (req.url.startsWith('/lattice')) {
     req.url = req.url.replace('/lattice', '');
+    console.log(`[Gateway] [Prefix Stripped] ${originalUrl} -> ${req.url}`);
+  } else {
+    console.log(`[Gateway] [No Prefix] ${req.url}`);
   }
   next();
 });
