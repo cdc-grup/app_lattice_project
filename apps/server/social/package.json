@@ -16,7 +16,7 @@
     "@app/types-schema": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.30.9",
+    "drizzle-orm": "^0.45.1",
     "express": "^4.21.2",
     "socket.io": "^4.7.5"
   },

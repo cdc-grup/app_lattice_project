@@ -28,7 +28,5 @@ RUN npm run build --workspace=@app/auth
 FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=prod-builder /app/apps/server/auth/dist ./dist
-COPY --from=prod-builder /app/apps/server/auth/package.json ./package.json
-RUN npm install --omit=dev --legacy-peer-deps
-CMD ["node", "dist/index.js"]
+COPY --from=prod-builder /app /app
+CMD ["npx", "tsx", "apps/server/auth/index.ts"]

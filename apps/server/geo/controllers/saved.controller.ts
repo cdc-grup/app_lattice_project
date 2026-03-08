@@ -69,7 +69,7 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
   try {
     const userId = getUserIdFromAuth(req);
     const { id } = req.params;
-    const savedId = parseInt(id, 10);
+    const savedId = parseInt(id as string, 10);
 
     if (isNaN(savedId)) {
       return res.status(400).json({ error: 'Invalid ID' });

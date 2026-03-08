@@ -17,8 +17,8 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "DATABASE_URL=$(echo '${{ secrets.DATABASE_URL }}' | xargs)" > .env
+          echo "JWT_SECRET=$(echo '${{ secrets.JWT_SECRET }}' | xargs)" >> .env
           echo "REDIS_URL=redis://redis:6379" >> .env
 
       - name: Build and Deploy Containers

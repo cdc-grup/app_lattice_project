@@ -17,7 +17,7 @@
     "db:qrs": "tsx src/generate-qrs.ts"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "drizzle-orm": "^0.45.1",
     "pg": "^8.11.5",
     "qrcode": "^1.5.4"
