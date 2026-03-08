@@ -1,6 +1,6 @@
 # Backend Architecture & Infrastructure
 
-The Circuit Copilot backend is a containerized microservices architecture designed for high availability and fault isolation.
+The Lattice backend is a containerized microservices architecture designed for high availability and fault isolation.
 
 ## System Components
 

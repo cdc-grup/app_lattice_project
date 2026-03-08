@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Lattice",
+    "slug": "lattice",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "lattice",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.cdc.mobile",
+      "bundleIdentifier": "com.cdc.lattice",
       "infoPlist": {
-        "NSCameraUsageDescription": "Circuit Copilot uses the camera to display augmented reality navigation and points of interest."
+        "NSCameraUsageDescription": "Lattice uses the camera to display augmented reality navigation and points of interest."
       }
     },
     "android": {
-      "package": "com.cdc.mobile",
+      "package": "com.cdc.lattice",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -57,8 +57,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
-          "locationWhenInUsePermission": "Allow Circuit Copilot to use your location to guide you through the circuit.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Lattice to use your location to guide you through the circuit.",
+          "locationWhenInUsePermission": "Allow Lattice to use your location to guide you through the circuit.",
           "isAndroidBackgroundLocationEnabled": false
         }
       ],

@@ -1,4 +1,4 @@
-# Contracte de l'API v1.0 - Circuit Copilot API
+# Contracte de l'API v1.0 - Lattice API
 
 ## 1. Estàndards Generals
 
