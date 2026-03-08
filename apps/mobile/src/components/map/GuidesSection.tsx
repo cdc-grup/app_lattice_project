@@ -4,12 +4,13 @@ import { Feather } from '@expo/vector-icons';
 import { useSavedLocations } from '../../hooks/queries/useSavedLocations';
 import { colors } from '../../styles/colors';
 
-const GuideItem = ({ title, coords, onPress }: { title: string, coords: [number, number], onPress?: () => void }) => (
+const GuideItem = ({ title, coords, onPress, isLast }: { title: string, coords: [number, number], onPress?: () => void, isLast?: boolean }) => (
   <Pressable 
     onPress={onPress}
     style={({ pressed }) => [
       styles.markerItem,
-      pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
+      !isLast && styles.markerItemBorder,
+      pressed && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
     ]}
   >
     <View style={styles.markerInfo}>
@@ -25,7 +26,6 @@ const GuideItem = ({ title, coords, onPress }: { title: string, coords: [number,
         </Text>
       </View>
     </View>
-    <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.2)" />
   </Pressable>
 );
 
@@ -59,20 +59,22 @@ export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) 
           style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
         >
           <Text style={styles.seeAllText}>Ver todos</Text>
-          <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
         </Pressable>
       </View>
       
       <View style={styles.listContent}>
         {displayItems.length > 0 ? (
-          displayItems.map((feature: any) => (
-            <GuideItem 
-              key={feature.properties.id}
-              title={feature.properties.label} 
-              coords={feature.geometry.coordinates}
-              onPress={() => onSelectMarker(feature.geometry.coordinates, feature.properties.id)}
-            />
-          ))
+          <View style={styles.cardContainer}>
+            {displayItems.map((feature: any, index: number) => (
+              <GuideItem 
+                key={feature.properties.id}
+                title={feature.properties.label} 
+                coords={feature.geometry.coordinates}
+                onPress={() => onSelectMarker(feature.geometry.coordinates, feature.properties.id)}
+                isLast={index === displayItems.length - 1}
+              />
+            ))}
+          </View>
         ) : (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>Guarda tus sitios favoritos aquí</Text>
@@ -119,18 +121,26 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginRight: 2,
   },
+  cardContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+  },
   listContent: {
-    gap: 8,
+    gap: 0,
   },
   markerItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 20,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  markerItemBorder: {
+    borderBottomWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   markerInfo: {
     flexDirection: 'row',

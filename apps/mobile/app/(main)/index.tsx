@@ -21,7 +21,7 @@ import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-na
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
@@ -34,6 +34,7 @@ import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
 import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
 import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
+import { getCategoryMetadata } from '../../src/utils/poiUtils';
 
 
 // Configure MapLibre
@@ -56,6 +57,47 @@ const styles = StyleSheet.create({
     zIndex: 90,
   },
   filtersContainer: { paddingHorizontal: 16 },
+  cardContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  searchResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  searchResultInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  searchResultIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  searchResultName: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  searchResultCat: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12,
+    marginTop: 2,
+  },
 });
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -89,6 +131,7 @@ function MapIndex() {
   const saveLocationMutation = useSaveLocation();
   const [showSaveModal, setShowSaveModal] = React.useState(false);
   const [showSavedManager, setShowSavedManager] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const selectPoi = useMapStore(s => s.selectPoi);
 
@@ -144,6 +187,16 @@ function MapIndex() {
   const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(
     (isSelectedSaved || isAlreadyLoaded) ? null : numericPoiId
   );
+
+  // Search logic
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || !poisData?.features) return [];
+    const query = searchQuery.toLowerCase();
+    return poisData.features.filter((f: any) => 
+      f.properties.name?.toLowerCase().includes(query) ||
+      f.properties.category?.toLowerCase().includes(query)
+    ).slice(0, 5); // Return top 5 matches
+  }, [searchQuery, poisData]);
 
   const selectedPoi = useMemo(() => {
     if (!selectedPoiId || numericPoiId === null) return null;
@@ -233,16 +286,71 @@ function MapIndex() {
         translateY={sheetPosition}
       >
         <View>
-          <SearchBar onArPress={() => router.push('/(main)/profile')} />
-          <SearchFilters />
+          <SearchBar 
+            value={searchQuery}
+            onSearch={setSearchQuery} 
+            onArPress={() => router.push('/(main)/profile')} 
+            onFocus={() => bottomSheetRef.current?.snapToIndex(2)}
+          />
+          <SearchFilters 
+            onSelectCategory={(category) => {
+              // Find the first POI matching this category
+              if (poisData?.features) {
+                const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
+                if (foundPoi) {
+                  selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
+                }
+              }
+            }}
+          />
           <View className="px-4">
-            <GuidesSection 
-              onSeeAll={() => setShowSavedManager(true)} 
-              onSelectMarker={(coords, id) => {
-                selectPoi(`saved_${id}`, coords);
-                // Optionally close bottom sheet if needed, but standard maps usually keep it open or snap to small
-              }}
-            />
+            {searchQuery.trim() !== '' ? (
+              // Search Results
+              <View style={styles.cardContainer}>
+                {searchResults.length > 0 ? (
+                  searchResults.map((f: any, index: number) => {
+                    const metadata = getCategoryMetadata(f.properties.category);
+                    return (
+                      <Pressable 
+                        key={f.properties.id}
+                        onPress={() => {
+                          selectPoi(f.properties.id, f.geometry.coordinates);
+                          setSearchQuery(''); // clear search on selection
+                        }}
+                        style={({ pressed }) => [
+                          styles.searchResultItem,
+                          index === searchResults.length - 1 && { borderBottomWidth: 0 },
+                          pressed && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
+                        ]}
+                      >
+                        <View style={styles.searchResultInfo}>
+                          <View style={[styles.searchResultIcon, { backgroundColor: `${metadata.color}15` }]}>
+                            <MaterialCommunityIcons name={metadata.icon as any} size={20} color={metadata.color} />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={styles.searchResultName} numberOfLines={1}>{f.properties.name}</Text>
+                            <Text style={styles.searchResultCat}>{metadata.label}</Text>
+                          </View>
+                        </View>
+                      </Pressable>
+                    );
+                  })
+                ) : (
+                  <View className="py-6 items-center">
+                     <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No se encontraron resultados</Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              // Default Guides Section
+              <GuidesSection 
+                onSeeAll={() => setShowSavedManager(true)} 
+                onSelectMarker={(coords, id) => {
+                  selectPoi(`saved_${id}`, coords);
+                }}
+              />
+            )}
+            
             <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
             <View style={{ height: 100 }} />
           </View>

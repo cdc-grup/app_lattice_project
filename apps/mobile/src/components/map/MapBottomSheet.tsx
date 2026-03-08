@@ -16,26 +16,11 @@ interface MapBottomSheetProps {
   snapPoints?: any; // kept for backwards compat but ignored
 }
 
-const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    // Solid fallback color for when BlurView is missing/unimplemented
-    const opacity = interpolate(
-      animatedIndex.value,
-      [-1, 0, 1],
-      [0.4, 0.92, 1],
-      Extrapolate.CLAMP
-    );
-    
-    return {
-      backgroundColor: `rgba(18, 18, 20, ${opacity})`,
-    };
-  });
-
+const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
   return (
-    <Animated.View style={[style, styles.blurBackground, animatedStyle]}>
-      <SafeBlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+    <View style={[style, styles.solidBackground]}>
       <View style={styles.premiumBorder} />
-    </Animated.View>
+    </View>
   );
 };
 
@@ -65,6 +50,7 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
       handleIndicatorStyle={styles.handleIndicator}
       // Pass the animated position up to let the map sync with it
       animatedPosition={translateY}
+      keyboardBehavior="extend"
     >
       {header ? <View style={styles.headerContainer}>{header}</View> : null}
       <BottomSheetScrollView 
@@ -79,18 +65,19 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
 });
 
 const styles = StyleSheet.create({
-  blurBackground: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden',
-    borderTopWidth: 0.5,
+  solidBackground: {
+    backgroundColor: '#1C1C1E', // Match profile wizard background
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   handleIndicator: {
-    backgroundColor: 'rgba(150, 150, 150, 0.4)',
-    width: 36,
-    height: 5,
-    marginTop: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Matches w-12 h-1.5 bg-white/20
+    width: 48,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 8,
   },
   headerContainer: {
     paddingHorizontal: 0,
@@ -101,11 +88,8 @@ const styles = StyleSheet.create({
   },
   premiumBorder: {
     ...StyleSheet.absoluteFillObject,
-    borderTopWidth: 0.5,
-    borderLeftWidth: 0.2,
-    borderRightWidth: 0.2,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     pointerEvents: 'none',
   }
 });

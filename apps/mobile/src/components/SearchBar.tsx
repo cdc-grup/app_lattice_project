@@ -6,14 +6,18 @@ import { theme } from '../styles/theme';
 
 interface SearchBarProps {
   placeholder?: string;
+  value?: string;
   onSearch?: (text: string) => void;
   onArPress?: () => void;
+  onFocus?: () => void;
 }
 
 export const SearchBar = React.memo(({
   placeholder = 'Find grandstands, food...',
+  value,
   onSearch,
   onArPress,
+  onFocus,
 }: SearchBarProps) => {
   return (
     <View className="flex-row items-center px-4 pt-4 pb-2">
@@ -27,7 +31,9 @@ export const SearchBar = React.memo(({
           className="flex-1 ml-2 text-white font-normal text-[17px] pt-0 pb-0"
           placeholder={placeholder}
           placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          value={value}
           onChangeText={onSearch}
+          onFocus={onFocus}
           accessibilityLabel="Main search input"
           style={{ height: 44 }}
         />
@@ -49,7 +55,7 @@ export const SearchBar = React.memo(({
           opacity: pressed ? 0.7 : 1,
           transform: [{ scale: pressed ? 0.94 : 1 }],
         })}
-        className="w-11 h-11 ml-3 items-center justify-center rounded-full bg-[#2c2c2e]/80 border border-white/5 shadow-sm"
+        className="w-11 h-11 ml-3 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-sm"
         accessibilityLabel="Go to profile"
       >
         <View className="items-center justify-center">
@@ -62,8 +68,8 @@ export const SearchBar = React.memo(({
 
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: 'rgba(50, 50, 52, 0.5)', 
-    borderWidth: 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 });

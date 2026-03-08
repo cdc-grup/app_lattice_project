@@ -40,23 +40,11 @@ interface PoiDetailSheetProps {
   translateY: SharedValue<number>;
 }
 
-const CustomBackground = ({ style, animatedIndex }: BottomSheetBackgroundProps) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: `rgba(18, 18, 20, ${interpolate(
-        animatedIndex.value,
-        [-1, 0, 1],
-        [0.4, 0.92, 1],
-        Extrapolate.CLAMP
-      )})`,
-    };
-  });
-
+const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
   return (
-    <Animated.View style={[style, styles.blurBackground, animatedStyle]}>
-      <SafeBlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
+    <View style={[style, styles.solidBackground]}>
       <View style={styles.premiumBorder} />
-    </Animated.View>
+    </View>
   );
 };
 
@@ -154,12 +142,6 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
           </Animated.View>
           <View style={styles.headerActions}>
             <Pressable 
-              onPress={() => Haptics.selectionAsync()}
-              style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
-            >
-              <Feather name="share" size={20} color="#E10600" />
-            </Pressable>
-            <Pressable 
               onPress={() => {
                 Haptics.selectionAsync();
                 onClose();
@@ -196,30 +178,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                 </View>
               </View>
             </Pressable>
-            <View style={styles.secondaryActions}>
-                <Pressable 
-                    onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-                    style={({ pressed }) => [
-                        styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' },
-                        pressed && { transform: [{ scale: 0.98 }] }
-                    ]}
-                >
-                    <Feather name="phone" size={20} color="#E10600" />
-                    <Text style={styles.circleButtonText}>Llamar</Text>
-                </Pressable>
-                <Pressable 
-                    onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-                    style={({ pressed }) => [
-                        styles.circleButton, 
-                        pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)' },
-                        pressed && { transform: [{ scale: 0.98 }] }
-                    ]}
-                >
-                    <Feather name="globe" size={20} color="#E10600" />
-                    <Text style={styles.circleButtonText}>Sitio web</Text>
-                </Pressable>
-            </View>
+
           </Animated.View>
 
           {/* Info Grid */}
@@ -301,16 +260,19 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 });
 
 const styles = StyleSheet.create({
-  blurBackground: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    overflow: 'hidden',
+  solidBackground: {
+    backgroundColor: '#1C1C1E', // Match profile wizard background
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   handleIndicator: {
-    backgroundColor: 'rgba(150, 150, 150, 0.4)',
-    width: 36,
-    height: 5,
-    marginTop: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Matches w-12 h-1.5 bg-white/20
+    width: 48,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 8,
   },
   container: {
     flex: 1,
@@ -395,10 +357,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 24,
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 32,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 12,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
   },
   infoItem: {
     width: '25%',
@@ -436,29 +400,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 12,
   },
-  secondaryActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  circleButton: {
-    flex: 1,
-    height: 64,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  circleButtonText: {
-    color: '#E10600',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+
   premiumBorder: {
     ...StyleSheet.absoluteFillObject,
-    borderTopWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
     pointerEvents: 'none',
   },
 });

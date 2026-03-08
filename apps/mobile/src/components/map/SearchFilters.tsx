@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface FilterChipProps {
@@ -27,7 +28,11 @@ const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChi
   </Pressable>
 );
 
-export const SearchFilters = () => {
+interface SearchFiltersProps {
+  onSelectCategory?: (category: string) => void;
+}
+
+export const SearchFilters = ({ onSelectCategory }: SearchFiltersProps) => {
   return (
     <ScrollView 
       horizontal 
@@ -38,22 +43,22 @@ export const SearchFilters = () => {
       <FilterChip 
         icon="log-in" 
         label="Gates" 
-        onPress={() => {}} 
+        onPress={() => onSelectCategory?.('gate')} 
       />
       <FilterChip 
         icon="map" 
         label="Grandstands" 
-        onPress={() => {}} 
+        onPress={() => onSelectCategory?.('grandstand')} 
       />
       <FilterChip 
         icon="coffee" 
         label="Food" 
-        onPress={() => {}} 
+        onPress={() => onSelectCategory?.('restaurant')} 
       />
       <FilterChip 
         icon="shopping-bag" 
         label="Merch" 
-        onPress={() => {}} 
+        onPress={() => onSelectCategory?.('shop')} 
       />
     </ScrollView>
   );
