@@ -26,70 +26,83 @@ app.use((req, _res, next) => {
 });
 
 // Health Check
-app.get('/status', (req: Request, res: Response) => {
-  res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV });
+router.get('/status', (req: Request, res: Response) => {
+  res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV, basePath });
 });
 
-// --- ROUTING ---
+// --- API ROUTING ---
 const API_PREFIX = '/api/v1';
 
+const stripPrefix = (path: string, req: express.Request) => {
+  return path.replace(API_PREFIX, '');
+};
+
 // Auth Service
-app.use(
+router.use(
   createProxyMiddleware({
-    pathFilter: [`${API_PREFIX}/auth`, `${API_PREFIX}/users`, '/auth', '/users'],
+    pathFilter: ['/**/auth/**', '/**/users/**', '/**/auth', '/**/users'],
     target: AUTH_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix
   })
 );
 
 // Geo Service
-app.use(
+router.use(
   createProxyMiddleware({
     pathFilter: [
-      `${API_PREFIX}/pois`,
-      `${API_PREFIX}/locations`,
-      `${API_PREFIX}/navigation`,
-      `${API_PREFIX}/map`,
-      `${API_PREFIX}/saved`,
-      '/pois',
-      '/locations',
-      '/navigation',
-      '/map',
-      '/saved',
+      '/**/pois/**',
+      '/**/locations/**',
+      '/**/navigation/**',
+      '/**/map/**',
+      '/**/saved/**',
+      '/**/pois',
+      '/**/locations',
+      '/**/navigation',
+      '/**/map',
+      '/**/saved',
     ],
     target: GEO_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix,
+    on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway -> Geo] Forwarding: ${req.url} -> ${proxyReq.path}`);
+      }
+    }
   })
 );
 
 // Social Service
-app.use(
+router.use(
   createProxyMiddleware({
     pathFilter: [
-      `${API_PREFIX}/groups`,
-      `${API_PREFIX}/telemetry`,
-      '/groups',
-      '/telemetry'
+      '/**/groups/**',
+      '/**/telemetry/**',
+      '/**/groups',
+      '/**/telemetry'
     ],
     target: SOCIAL_SERVICE_URL,
     changeOrigin: true,
     ws: true, // Enable WebSocket proxying
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix
   })
 );
 
-// Fallback for unhandled routes (404)
-app.use('*', (req, res) => {
+// Fallback for unhandled API routes
+router.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found at Gateway level' });
 });
+
+if (basePath && basePath !== '/') {
+  // Mount the router on the base path
+  app.use(basePath, router);
+  // Also provide a root fallback to catch things without a prefix directly and 404 immediately
+  app.use('*', (req, res) => res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' }));
+  console.log(`[Gateway] Mounting API at base path: ${basePath}`);
+} else {
+  app.use('/', router);
+}
 
 app.listen(PORT, () => {
   console.log(`[Gateway] running on port ${PORT}`);
