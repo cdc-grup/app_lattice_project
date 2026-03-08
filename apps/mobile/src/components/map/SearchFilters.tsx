@@ -43,22 +43,22 @@ export const SearchFilters = ({ onSelectCategory }: SearchFiltersProps) => {
       <FilterChip 
         icon="log-in" 
         label="Gates" 
-        onPress={() => onSelectCategory?.('gates')} 
+        onPress={() => onSelectCategory?.('gate')} 
       />
       <FilterChip 
         icon="map" 
         label="Grandstands" 
-        onPress={() => onSelectCategory?.('grandstands')} 
+        onPress={() => onSelectCategory?.('grandstand')} 
       />
       <FilterChip 
         icon="coffee" 
         label="Food" 
-        onPress={() => onSelectCategory?.('food')} 
+        onPress={() => onSelectCategory?.('restaurant')} 
       />
       <FilterChip 
         icon="shopping-bag" 
         label="Merch" 
-        onPress={() => onSelectCategory?.('merch')} 
+        onPress={() => onSelectCategory?.('shop')} 
       />
     </ScrollView>
   );

@@ -21,7 +21,7 @@ import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-na
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useMapStore } from '../../src/store/useMapStore';
 import { MapContent } from '../../src/components/map/MapContent';
@@ -325,7 +325,7 @@ function MapIndex() {
                       >
                         <View style={styles.searchResultInfo}>
                           <View style={[styles.searchResultIcon, { backgroundColor: `${metadata.color}15` }]}>
-                            <Feather name={metadata.icon as any} size={18} color={metadata.color} />
+                            <MaterialCommunityIcons name={metadata.icon as any} size={20} color={metadata.color} />
                           </View>
                           <View className="flex-1">
                             <Text style={styles.searchResultName} numberOfLines={1}>{f.properties.name}</Text>
