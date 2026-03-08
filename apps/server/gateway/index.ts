@@ -35,60 +35,38 @@ router.get('/status', (req: Request, res: Response) => {
 // --- API ROUTING ---
 const API_PREFIX = '/api/v1';
 
-const stripPrefix = (path: string, req: express.Request) => {
+const stripPrefix = (path: string) => {
   const newPath = path.replace(API_PREFIX, '');
   console.log(`[Gateway] Stripping prefix: ${path} -> ${newPath}`);
   return newPath;
 };
 
-// Auth Service
+// Auth & Users Service
 router.use(
+  [`/auth`, `/users`],
   createProxyMiddleware({
-    pathFilter: ['/**/auth/**', '/**/users/**', '/**/auth', '/**/users'],
     target: AUTH_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: stripPrefix
+    pathRewrite: (path) => path.replace('/api/v1', '')
   })
 );
 
 // Geo Service
 router.use(
+  ['/pois', '/locations', '/navigation', '/map', '/saved'],
   createProxyMiddleware({
-    pathFilter: [
-      '/**/pois/**',
-      '/**/locations/**',
-      '/**/navigation/**',
-      '/**/map/**',
-      '/**/saved/**',
-      '/**/pois',
-      '/**/locations',
-      '/**/navigation',
-      '/**/map',
-      '/**/saved',
-    ],
     target: GEO_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: stripPrefix,
-    on: {
-      proxyReq: (proxyReq, req, res) => {
-        console.log(`[Gateway -> Geo] Forwarding: ${req.url} -> ${proxyReq.path}`);
-      }
-    }
+    pathRewrite: (path) => path.replace('/api/v1', '')
   })
 );
 
 // Social Service
 router.use(
+  ['/groups', '/telemetry'],
   createProxyMiddleware({
-    pathFilter: [
-      '/**/groups/**',
-      '/**/telemetry/**',
-      '/**/groups',
-      '/**/telemetry'
-    ],
     target: SOCIAL_SERVICE_URL,
     changeOrigin: true,
-    ws: true, // Enable WebSocket proxying
     pathRewrite: stripPrefix
   })
 );
