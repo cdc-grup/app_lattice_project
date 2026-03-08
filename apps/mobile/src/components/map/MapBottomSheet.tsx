@@ -50,6 +50,7 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
       handleIndicatorStyle={styles.handleIndicator}
       // Pass the animated position up to let the map sync with it
       animatedPosition={translateY}
+      keyboardBehavior="extend"
     >
       {header ? <View style={styles.headerContainer}>{header}</View> : null}
       <BottomSheetScrollView 

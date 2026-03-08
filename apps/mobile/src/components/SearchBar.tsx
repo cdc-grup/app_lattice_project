@@ -6,14 +6,18 @@ import { theme } from '../styles/theme';
 
 interface SearchBarProps {
   placeholder?: string;
+  value?: string;
   onSearch?: (text: string) => void;
   onArPress?: () => void;
+  onFocus?: () => void;
 }
 
 export const SearchBar = React.memo(({
   placeholder = 'Find grandstands, food...',
+  value,
   onSearch,
   onArPress,
+  onFocus,
 }: SearchBarProps) => {
   return (
     <View className="flex-row items-center px-4 pt-4 pb-2">
@@ -27,7 +31,9 @@ export const SearchBar = React.memo(({
           className="flex-1 ml-2 text-white font-normal text-[17px] pt-0 pb-0"
           placeholder={placeholder}
           placeholderTextColor="rgba(255, 255, 255, 0.35)"
+          value={value}
           onChangeText={onSearch}
+          onFocus={onFocus}
           accessibilityLabel="Main search input"
           style={{ height: 44 }}
         />
