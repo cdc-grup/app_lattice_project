@@ -1,5 +1,5 @@
 # --- Base Stage ---
-FROM node:20-slim AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY packages/types-schema/package.json ./packages/types-schema/
@@ -25,7 +25,7 @@ FROM builder AS prod-builder
 RUN npm run build --workspace=@app/geo
 
 # --- Production Stage ---
-FROM node:20-slim AS production
+FROM node:20-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=prod-builder /app /app
