@@ -27,18 +27,20 @@ router.get('/status', (req: Request, res: Response) => {
   res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV, basePath });
 });
 
-// --- ROUTING ---
+// --- API ROUTING ---
 const API_PREFIX = '/api/v1';
+
+const stripPrefix = (path: string, req: express.Request) => {
+  return path.replace(API_PREFIX, '');
+};
 
 // Auth Service
 router.use(
   createProxyMiddleware({
-    pathFilter: [`${API_PREFIX}/auth`, `${API_PREFIX}/users`, '/auth', '/users'],
+    pathFilter: ['/**/auth/**', '/**/users/**', '/**/auth', '/**/users'],
     target: AUTH_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix
   })
 );
 
@@ -46,22 +48,25 @@ router.use(
 router.use(
   createProxyMiddleware({
     pathFilter: [
-      `${API_PREFIX}/pois`,
-      `${API_PREFIX}/locations`,
-      `${API_PREFIX}/navigation`,
-      `${API_PREFIX}/map`,
-      `${API_PREFIX}/saved`,
-      '/pois',
-      '/locations',
-      '/navigation',
-      '/map',
-      '/saved',
+      '/**/pois/**',
+      '/**/locations/**',
+      '/**/navigation/**',
+      '/**/map/**',
+      '/**/saved/**',
+      '/**/pois',
+      '/**/locations',
+      '/**/navigation',
+      '/**/map',
+      '/**/saved',
     ],
     target: GEO_SERVICE_URL,
     changeOrigin: true,
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix,
+    on: {
+      proxyReq: (proxyReq, req, res) => {
+        console.log(`[Gateway -> Geo] Forwarding: ${req.url} -> ${proxyReq.path}`);
+      }
+    }
   })
 );
 
@@ -69,21 +74,19 @@ router.use(
 router.use(
   createProxyMiddleware({
     pathFilter: [
-      `${API_PREFIX}/groups`,
-      `${API_PREFIX}/telemetry`,
-      '/groups',
-      '/telemetry'
+      '/**/groups/**',
+      '/**/telemetry/**',
+      '/**/groups',
+      '/**/telemetry'
     ],
     target: SOCIAL_SERVICE_URL,
     changeOrigin: true,
     ws: true, // Enable WebSocket proxying
-    pathRewrite: {
-      [`^${API_PREFIX}`]: '',
-    },
+    pathRewrite: stripPrefix
   })
 );
 
-// Fallback for unhandled routes (404)
+// Fallback for unhandled API routes
 router.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found at Gateway level' });
 });
