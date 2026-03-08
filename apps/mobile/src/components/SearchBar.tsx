@@ -37,15 +37,24 @@ export const SearchBar = React.memo(({
           accessibilityLabel="Main search input"
           style={{ height: 44 }}
         />
-        <Pressable 
-          style={({ pressed }) => ({ 
-            opacity: pressed ? 0.6 : 1,
-          })}
-          className="pl-2" 
-          accessibilityLabel="Voice search"
-        >
-          <Feather name="mic" size={18} color="rgba(255, 255, 255, 0.5)" />
-        </Pressable>
+        {(value && value.length > 0) ? (
+          <Pressable 
+            onPress={() => onSearch?.('')}
+            className="pl-2"
+          >
+            <Feather name="x-circle" size={18} color="rgba(255, 255, 255, 0.4)" />
+          </Pressable>
+        ) : (
+          <Pressable 
+            style={({ pressed }) => ({ 
+              opacity: pressed ? 0.6 : 1,
+            })}
+            className="pl-2" 
+            accessibilityLabel="Voice search"
+          >
+            <Feather name="mic" size={18} color="rgba(255, 255, 255, 0.5)" />
+          </Pressable>
+        )}
       </View>
 
       {/* Profile Button */}

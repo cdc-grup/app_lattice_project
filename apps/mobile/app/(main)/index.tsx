@@ -59,21 +59,15 @@ const styles = StyleSheet.create({
   },
   filtersContainer: { paddingHorizontal: 16 },
   cardContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden',
-    marginTop: 12,
+    marginTop: 0,
     marginBottom: 8,
   },
   searchResultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    marginBottom: 8,
   },
   searchResultInfo: {
     flexDirection: 'row',
@@ -81,12 +75,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchResultIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 16,
   },
   searchResultName: {
     color: 'white',
@@ -133,6 +127,7 @@ function MapIndex() {
   const [showSaveModal, setShowSaveModal] = React.useState(false);
   const [showSavedManager, setShowSavedManager] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [isSearching, setIsSearching] = React.useState(false);
 
   const selectPoi = useMapStore(s => s.selectPoi);
 
@@ -318,48 +313,55 @@ function MapIndex() {
             value={searchQuery}
             onSearch={setSearchQuery} 
             onArPress={() => router.push('/(main)/profile')} 
-            onFocus={() => bottomSheetRef.current?.snapToIndex(2)}
-          />
-          <SearchFilters 
-            animatedPosition={sheetPosition}
-            onSelectCategory={(category) => {
-              // 1. If user has a ticket, prioritize their assigned gate/grandstand
-              if (activeTicket) {
-                if (category === 'gate' && activeTicket.gate) {
-                  const found = poisData?.features.find((f: any) => 
-                    f.properties.category === 'gate' && 
-                    (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
-                     activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                  );
-                  if (found) {
-                    selectPoi(found.properties.id, found.geometry.coordinates);
-                    return;
-                  }
-                }
-                if (category === 'grandstand' && activeTicket.zoneName) {
-                  const found = poisData?.features.find((f: any) => 
-                    f.properties.category === 'grandstand' && 
-                    (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
-                     activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                  );
-                  if (found) {
-                    selectPoi(found.properties.id, found.geometry.coordinates);
-                    return;
-                  }
-                }
-              }
-
-              // 2. Default behavior: Find the first POI matching this category
-              if (poisData?.features) {
-                const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
-                if (foundPoi) {
-                  selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
-                }
-              }
+            onFocus={() => {
+              setIsSearching(true);
+              bottomSheetRef.current?.snapToIndex(2);
             }}
           />
+          {!isSearching && (
+            <React.Fragment>
+              <SearchFilters 
+                animatedPosition={sheetPosition}
+                onSelectCategory={(category) => {
+                  // 1. If user has a ticket, prioritize their assigned gate/grandstand
+                  if (activeTicket) {
+                    if (category === 'gate' && activeTicket.gate) {
+                      const found = poisData?.features.find((f: any) => 
+                        f.properties.category === 'gate' && 
+                        (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
+                        activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                      );
+                      if (found) {
+                        selectPoi(found.properties.id, found.geometry.coordinates);
+                        return;
+                      }
+                    }
+                    if (category === 'grandstand' && activeTicket.zoneName) {
+                      const found = poisData?.features.find((f: any) => 
+                        f.properties.category === 'grandstand' && 
+                        (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
+                        activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                      );
+                      if (found) {
+                        selectPoi(found.properties.id, found.geometry.coordinates);
+                        return;
+                      }
+                    }
+                  }
+
+                  // 2. Default behavior: Find the first POI matching this category
+                  if (poisData?.features) {
+                    const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
+                    if (foundPoi) {
+                      selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
+                    }
+                  }
+                }}
+              />
+            </React.Fragment>
+          )}
           <View className="px-4">
-            {searchQuery.trim() !== '' ? (
+            {searchQuery.trim() !== '' || isSearching ? (
               // Search Results
               <View style={styles.cardContainer}>
                 {searchResults.length > 0 ? (
@@ -370,7 +372,8 @@ function MapIndex() {
                         key={f.properties.id}
                         onPress={() => {
                           selectPoi(f.properties.id, f.geometry.coordinates);
-                          setSearchQuery(''); // clear search on selection
+                          setSearchQuery(''); 
+                          setIsSearching(false);
                         }}
                         style={({ pressed }) => [
                           styles.searchResultItem,
@@ -392,21 +395,32 @@ function MapIndex() {
                   })
                 ) : (
                   <View className="py-6 items-center">
-                     <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No se encontraron resultados</Text>
+                      {searchQuery.trim() !== '' ? (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No se encontraron resultados</Text>
+                      ) : (
+                        <View className="items-center px-10">
+                          <MaterialCommunityIcons name="magnify" size={48} color="rgba(255,255,255,0.1)" />
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, textAlign: 'center', marginTop: 12 }}>
+                            Escribe para buscar sitios, entradas o servicios
+                          </Text>
+                        </View>
+                      )}
                   </View>
                 )}
               </View>
             ) : (
               // Default Guides Section
-              <GuidesSection 
-                onSeeAll={() => setShowSavedManager(true)} 
-                onSelectMarker={(coords, id) => {
-                  selectPoi(`saved_${id}`, coords);
-                }}
-              />
+              <View>
+                <GuidesSection 
+                  onSeeAll={() => setShowSavedManager(true)} 
+                  onSelectMarker={(coords, id) => {
+                    selectPoi(`saved_${id}`, coords);
+                  }}
+                />
+                <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
+              </View>
             )}
             
-            <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
             <View style={{ height: 100 }} />
           </View>
         </View>

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
 import { RouteGeoJSON } from '../../types';
 import { useAuthStore } from '../../hooks/useAuthStore';
+import { useMapStore } from '../../store/useMapStore';
 import { useSavedLocations, useSaveLocation, useDeleteSavedLocation } from '../../hooks/queries/useSavedLocations';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -56,6 +57,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 }, ref) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
+  const setNavigating = useMapStore(s => s.setNavigating);
   const { data: savedData } = useSavedLocations();
   const saveLocation = useSaveLocation();
   const deleteLocation = useDeleteSavedLocation();
@@ -154,17 +156,16 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
         </View>
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
-          {poi.description && (
-            <Text style={styles.descriptionText}>{poi.description}</Text>
-          )}
-
-          {/* Action Buttons */}
+          {/* Action Buttons - Moved to top for visibility */}
           <Animated.View 
             entering={FadeInUp.delay(200).springify()}
             style={styles.actionRow}
           >
             <Pressable 
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setNavigating(true);
+              }}
               style={({ pressed }) => [
                 styles.driveButton, 
                 pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }
@@ -178,8 +179,11 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                 </View>
               </View>
             </Pressable>
-
           </Animated.View>
+
+          {poi.description && (
+            <Text style={styles.descriptionText}>{poi.description}</Text>
+          )}
 
           {/* Info Grid */}
           <View style={styles.infoGrid}>

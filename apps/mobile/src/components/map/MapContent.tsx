@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { 
@@ -10,6 +10,7 @@ import Animated, {
   useSharedValue,
   FadeInDown,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 // State & Store
@@ -141,7 +142,9 @@ export const MapContent = React.memo(({
   const selectedCoords = useMapStore(s => s.selectedCoords);
   const recenterCount = useMapStore(s => s.recenterCount);
   const currentRoute = useMapStore(s => s.currentRoute);
+  const isNavigating = useMapStore(s => s.isNavigating);
   const selectPoi = useMapStore(s => s.selectPoi);
+  const setNavigating = useMapStore(s => s.setNavigating);
   const storeDeselect = useMapStore(s => s.deselect);
 
   const lastSelectionTime = useRef(0);
@@ -175,7 +178,7 @@ export const MapContent = React.memo(({
   }, [recenterCount, userCoords]);
 
   useEffect(() => {
-    if (selectedCoords && camera.current) {
+    if (selectedCoords && camera.current && !isNavigating) {
       camera.current.setCamera({
         centerCoordinate: selectedCoords,
         zoomLevel: DEFAULT_ZOOM,
@@ -183,7 +186,7 @@ export const MapContent = React.memo(({
         animationMode: 'flyTo',
       });
     }
-  }, [selectedCoords]);
+  }, [selectedCoords, isNavigating]);
 
   // Event Handlers
   const onMapPress = useCallback(() => {
@@ -206,6 +209,14 @@ export const MapContent = React.memo(({
     lastSelectionTime.current = Date.now();
     selectPoi(id, coords);
   }, [selectPoi]);
+
+  const insets = useSafeAreaInsets();
+
+  const destinationName = useMemo(() => {
+    if (!selectedPoiId || !poisGeoJSON?.features) return 'Destino';
+    const poi = poisGeoJSON.features.find((f: any) => String(f.properties.id) === String(selectedPoiId));
+    return poi?.properties.name || 'Destino';
+  }, [selectedPoiId, poisGeoJSON]);
 
   // Render Helpers
   const renderMarkers = useMemo(() => {
@@ -274,22 +285,27 @@ export const MapContent = React.memo(({
   }, [poisGeoJSON, savedLocations, selectedPoiId, onPoiPress]);
 
   return (
-    <MapLibreGL.MapView
-      style={styles.map}
-      mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-      logoEnabled={false}
-      attributionEnabled={false}
-      compassEnabled={false}
-      onPress={onMapPress}
-    >
-      <MapLibreGL.Camera
-        ref={camera}
-        minZoomLevel={12}
-        defaultSettings={{
-          centerCoordinate: MAP_CENTER,
-          zoomLevel: DEFAULT_ZOOM,
-        }}
-      />
+    <View style={{ flex: 1 }}>
+      <MapLibreGL.MapView
+        style={styles.map}
+        mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        logoEnabled={false}
+        attributionEnabled={false}
+        compassEnabled={false}
+        onPress={onMapPress}
+      >
+        <MapLibreGL.Camera
+          ref={camera}
+          minZoomLevel={12}
+          defaultSettings={{
+            centerCoordinate: MAP_CENTER,
+            zoomLevel: DEFAULT_ZOOM,
+          }}
+          followUserLocation={isNavigating}
+          followUserMode={(isNavigating ? 'compass' : 'normal') as any}
+          followZoomLevel={18}
+          followPitch={45}
+        />
 
       <MapLibreGL.UserLocation 
         visible={locationStatus === 'granted'} 
@@ -350,9 +366,69 @@ export const MapContent = React.memo(({
         />
       </MapLibreGL.ShapeSource>
 
-      {/* Points of Interest & Saved Locations (Animated Markers) */}
-      {renderMarkers}
-    </MapLibreGL.MapView>
+        {/* Points of Interest & Saved Locations (Animated Markers) */}
+        {renderMarkers}
+      </MapLibreGL.MapView>
+
+      {/* Top Navigation Bar (Google Maps Style) */}
+      {isNavigating && (
+        <Animated.View 
+          entering={FadeInDown.duration(400)}
+          style={[styles.topNavContainer, { paddingTop: insets.top + 10 }]}
+        >
+          <View style={styles.topNavContent}>
+            <View style={styles.topNavLeft}>
+              <MaterialCommunityIcons name="arrow-up" size={32} color="white" />
+            </View>
+            <View style={styles.topNavCenter}>
+              <Text style={styles.topNavInstruction}>Hacia</Text>
+              <Text style={styles.topNavDestination} numberOfLines={1}>{destinationName}</Text>
+            </View>
+            <View style={styles.topNavRight}>
+              <View style={styles.sparkleCircle}>
+                <MaterialCommunityIcons name={"sparkles" as any} size={20} color="#006B6B" />
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Bottom Navigation Bar (Google Maps Style) */}
+      {isNavigating && (
+        <Animated.View 
+          entering={FadeInDown.duration(400).delay(100)}
+          style={[styles.bottomNavContainer, { paddingBottom: insets.bottom + 10 }]}
+        >
+          <View style={styles.bottomNavHeader}>
+            <View style={styles.bottomNavInfo}>
+              <View style={styles.durationRow}>
+                <Text style={styles.durationText}>7 min</Text>
+                <MaterialCommunityIcons name="walk" size={24} color="#007AFF" style={{ marginLeft: 8 }} />
+              </View>
+              <Text style={styles.distanceText}>500 m • 23:03</Text>
+            </View>
+            
+            <View style={styles.bottomNavActions}>
+              <View style={styles.routePreviewButton}>
+                <MaterialCommunityIcons name="gesture-double-tap" size={24} color="white" />
+              </View>
+              <Pressable 
+                onPress={() => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  setNavigating(false);
+                }}
+                style={({ pressed }: { pressed: boolean }) => [
+                  styles.googleExitButton,
+                  pressed && { scale: 0.95, opacity: 0.9 }
+                ]}
+              >
+                <Text style={styles.exitButtonText}>Salir</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      )}
+    </View>
   );
 });
 
@@ -374,5 +450,111 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
-  }
+  },
+  topNavContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 10,
+    right: 10,
+  },
+  topNavContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#006B6B',
+    padding: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  topNavLeft: {
+    marginRight: 16,
+  },
+  topNavCenter: {
+    flex: 1,
+  },
+  topNavInstruction: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+  },
+  topNavDestination: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  topNavRight: {
+    marginLeft: 8,
+  },
+  sparkleCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomNavContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#1C1C1C',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  bottomNavHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomNavInfo: {
+    flex: 1,
+  },
+  durationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  durationText: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  distanceText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 16,
+    marginTop: 2,
+  },
+  bottomNavActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  routePreviewButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#333',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleExitButton: {
+    backgroundColor: '#EA4335',
+    paddingHorizontal: 24,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
