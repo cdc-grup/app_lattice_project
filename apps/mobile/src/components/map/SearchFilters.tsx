@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface FilterChipProps {
   icon: any;
@@ -9,6 +11,8 @@ interface FilterChipProps {
   onPress: () => void;
   IconComponent?: any;
 }
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChipProps) => (
   <Pressable 
@@ -30,16 +34,41 @@ const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChi
 
 interface SearchFiltersProps {
   onSelectCategory?: (category: string) => void;
+  animatedPosition: SharedValue<number>;
 }
 
-export const SearchFilters = ({ onSelectCategory }: SearchFiltersProps) => {
+export const SearchFilters = ({ onSelectCategory, animatedPosition }: SearchFiltersProps) => {
+  const insets = useSafeAreaInsets();
+  
+  // The sheet is collapsed at SCREEN_HEIGHT - (insets.bottom + 80)
+  // We want to fade in as it moves towards the medium snap point
+  const animatedStyle = useAnimatedStyle(() => {
+    const collapsedPos = SCREEN_HEIGHT - (insets.bottom + 80);
+    
+    // Using an increasing range [lower_bound, upper_bound]
+    // where lower_bound is "open" (small Y) and upper_bound is "collapsed" (large Y)
+    // We want opacity 1 when Y < collapsedPos - 100
+    // We want opacity 0 when Y > collapsedPos - 20
+    const opacity = interpolate(
+      animatedPosition.value,
+      [collapsedPos - 100, collapsedPos - 20],
+      [1, 0],
+      Extrapolate.CLAMP
+    );
+
+    return {
+      opacity,
+    };
+  });
+
   return (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false} 
-      contentContainerStyle={styles.container}
-      className="mb-4"
-    >
+    <Animated.View style={animatedStyle}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.container}
+        className="mb-4"
+      >
       <FilterChip 
         icon="log-in" 
         label="Gates" 
@@ -60,7 +89,8 @@ export const SearchFilters = ({ onSelectCategory }: SearchFiltersProps) => {
         label="Merch" 
         onPress={() => onSelectCategory?.('shop')} 
       />
-    </ScrollView>
+      </ScrollView>
+    </Animated.View>
   );
 };
 

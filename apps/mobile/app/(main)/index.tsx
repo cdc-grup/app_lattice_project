@@ -24,6 +24,7 @@ import { AROverlay } from '../../src/components/ar/AROverlay';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useMapStore } from '../../src/store/useMapStore';
+import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { QuickActions } from '../../src/components/map/QuickActions';
@@ -153,12 +154,39 @@ function MapIndex() {
     }
   }, [selectedPoiId]);
 
+  const activeTicket = useAuthStore((s: any) => s.activeTicket);
   const activeCategory = useMemo(() => {
     if (!activeCategoryId) return undefined;
     return categories?.find(c => c.id === activeCategoryId)?.category;
   }, [activeCategoryId, categories]);
 
-  const { data: poisData, isLoading } = usePOIs(activeCategory);
+  const { data: rawPoisData, isLoading } = usePOIs(activeCategory);
+
+  // Filter POIs based on the active ticket
+  const poisData = useMemo(() => {
+    if (!rawPoisData?.features || !activeTicket) return rawPoisData;
+
+    const filteredFeatures = rawPoisData.features.filter((f: any) => {
+      const { category, name } = f.properties;
+      
+      // Personalize Gates: Only show assigned gate
+      if (category === 'gate' && activeTicket.gate) {
+        return name.toLowerCase().includes(activeTicket.gate.toLowerCase()) || 
+               activeTicket.gate.toLowerCase().includes(name.toLowerCase());
+      }
+      
+      // Personalize Grandstands: Only show assigned zone
+      if (category === 'grandstand' && activeTicket.zoneName) {
+        return name.toLowerCase().includes(activeTicket.zoneName.toLowerCase()) || 
+               activeTicket.zoneName.toLowerCase().includes(name.toLowerCase());
+      }
+
+      // Show all other categories (food, medical, etc.) normally
+      return true;
+    });
+
+    return { ...rawPoisData, features: filteredFeatures };
+  }, [rawPoisData, activeTicket]);
   
   // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
   // Fix: Don't call this if the selected ID belongs to a saved location OR if we already have it in poisData
@@ -293,8 +321,35 @@ function MapIndex() {
             onFocus={() => bottomSheetRef.current?.snapToIndex(2)}
           />
           <SearchFilters 
+            animatedPosition={sheetPosition}
             onSelectCategory={(category) => {
-              // Find the first POI matching this category
+              // 1. If user has a ticket, prioritize their assigned gate/grandstand
+              if (activeTicket) {
+                if (category === 'gate' && activeTicket.gate) {
+                  const found = poisData?.features.find((f: any) => 
+                    f.properties.category === 'gate' && 
+                    (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
+                     activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                  );
+                  if (found) {
+                    selectPoi(found.properties.id, found.geometry.coordinates);
+                    return;
+                  }
+                }
+                if (category === 'grandstand' && activeTicket.zoneName) {
+                  const found = poisData?.features.find((f: any) => 
+                    f.properties.category === 'grandstand' && 
+                    (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
+                     activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                  );
+                  if (found) {
+                    selectPoi(found.properties.id, found.geometry.coordinates);
+                    return;
+                  }
+                }
+              }
+
+              // 2. Default behavior: Find the first POI matching this category
               if (poisData?.features) {
                 const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
                 if (foundPoi) {

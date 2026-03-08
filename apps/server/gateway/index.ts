@@ -40,12 +40,12 @@ const createServiceProxy = (target: string, label: string, paths: string[]) => {
   return createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathFilter: (path) => {
+    pathFilter: (path: string) => {
       // Return true if the path starts with any of the allowed service paths, 
       // accounting for optional API_PREFIX
       return paths.some(p => path.startsWith(p) || path.startsWith(`${API_PREFIX}${p}`));
     },
-    pathRewrite: (path) => {
+    pathRewrite: (path: string) => {
       let newPath = path;
       // Strip API_PREFIX if present
       if (path.startsWith(API_PREFIX)) {
@@ -56,19 +56,18 @@ const createServiceProxy = (target: string, label: string, paths: string[]) => {
       return newPath || '/';
     },
     on: {
-      error: (err, req, res) => {
+      error: (err: any, req: any, res: any) => {
         console.error(`[Gateway -> ${label}] Error:`, err.message);
-        const response = res as any;
-        if (response.writeHead) {
-          response.writeHead(502, { 'Content-Type': 'application/json' });
-          response.end(JSON.stringify({ error: `${label} service unreachable`, details: err.message }));
+        if (res && res.writeHead) {
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `${label} service unreachable`, details: err.message }));
         }
       },
-      proxyRes: (proxyRes, req, res) => {
+      proxyRes: (proxyRes: any, req: any, res: any) => {
         if (proxyRes.statusCode && proxyRes.statusCode >= 400) {
-          console.warn(`[Gateway -> ${label}] Error Response: ${proxyRes.statusCode} for ${req.method} ${req.url}`);
+          console.warn(`[Gateway -> ${label}] Error Response: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);
         } else {
-          console.log(`[Gateway -> ${label}] Success: ${proxyRes.statusCode} for ${req.method} ${req.url}`);
+          console.log(`[Gateway -> ${label}] Success: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);
         }
       }
     }
@@ -89,7 +88,7 @@ router.use(createServiceProxy(GEO_SERVICE_URL, 'Geo', ['/pois', '/locations', '/
 router.use(createServiceProxy(SOCIAL_SERVICE_URL, 'Social', ['/groups', '/telemetry']));
 
 // Fallback for unhandled API routes
-router.use('*', (req, res) => {
+router.use('*', (req: Request, res: Response) => {
   console.log(`[Gateway] 404 Fallback reached for: ${req.method} ${req.originalUrl} (URL in router: ${req.url})`);
   res.status(404).json({ 
     error: 'Route not found at Gateway level',
@@ -103,7 +102,7 @@ if (basePath && basePath !== '/') {
   // Mount the router on the base path
   app.use(basePath, router);
   // Also provide a root fallback to catch things without a prefix directly and 404 immediately
-  app.use('*', (req, res) => res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' }));
+  app.use('*', (req: Request, res: Response) => res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' }));
   console.log(`[Gateway] Mounting API at base path: ${basePath}`);
 } else {
   app.use('/', router);
