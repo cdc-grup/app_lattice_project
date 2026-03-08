@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'apps/server/**'
-      - 'packages/**'
-      - 'docker-compose.prod.yml'
-      - '.github/workflows/deploy-backend.yml'
+      - dev
 
 jobs:
   deploy:
