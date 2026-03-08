@@ -16,31 +16,22 @@ const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001'
 const GEO_SERVICE_URL = process.env.GEO_SERVICE_URL || 'http://localhost:3002';
 const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL || 'http://localhost:3003';
 
-app.use(cors());
-app.use(logger);
+const basePath = process.env.BASE_PATH || '/';
+const router = express.Router();
 
-// Middleware to handle production prefix
-app.use((req, res, next) => {
-  const originalUrl = req.url;
-  if (req.url.startsWith('/lattice')) {
-    req.url = req.url.replace('/lattice', '');
-    console.log(`[Gateway] [Prefix Stripped] ${originalUrl} -> ${req.url}`);
-  } else {
-    console.log(`[Gateway] [No Prefix] ${req.url}`);
-  }
-  next();
-});
+router.use(cors());
+router.use(logger);
 
 // Health Check
-app.get('/status', (req: Request, res: Response) => {
-  res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV });
+router.get('/status', (req: Request, res: Response) => {
+  res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV, basePath });
 });
 
 // --- ROUTING ---
 const API_PREFIX = '/api/v1';
 
 // Auth Service
-app.use(
+router.use(
   createProxyMiddleware({
     pathFilter: [`${API_PREFIX}/auth`, `${API_PREFIX}/users`, '/auth', '/users'],
     target: AUTH_SERVICE_URL,
@@ -52,7 +43,7 @@ app.use(
 );
 
 // Geo Service
-app.use(
+router.use(
   createProxyMiddleware({
     pathFilter: [
       `${API_PREFIX}/pois`,
@@ -75,7 +66,7 @@ app.use(
 );
 
 // Social Service
-app.use(
+router.use(
   createProxyMiddleware({
     pathFilter: [
       `${API_PREFIX}/groups`,
@@ -93,9 +84,19 @@ app.use(
 );
 
 // Fallback for unhandled routes (404)
-app.use('*', (req, res) => {
+router.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found at Gateway level' });
 });
+
+if (basePath && basePath !== '/') {
+  // Mount the router on the base path
+  app.use(basePath, router);
+  // Also provide a root fallback to catch things without a prefix directly and 404 immediately
+  app.use('*', (req, res) => res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' }));
+  console.log(`[Gateway] Mounting API at base path: ${basePath}`);
+} else {
+  app.use('/', router);
+}
 
 app.listen(PORT, () => {
   console.log(`[Gateway] running on port ${PORT}`);
