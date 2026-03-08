@@ -20,8 +20,10 @@ const ActionButton = ({ icon, label, onPress, flex = 1 }: { icon: string, label:
         pressed && { backgroundColor: 'rgba(255, 59, 48, 0.15)', transform: [{ scale: 0.96 }] }
     ]}
   >
-    <Feather name={icon as any} size={22} color="#E10600" />
-    <Text style={styles.actionLabel}>{label}</Text>
+    <View style={styles.buttonContent}>
+      <Feather name={icon as any} size={22} color="#E10600" />
+      <Text style={styles.actionLabel}>{label}</Text>
+    </View>
   </Pressable>
 );
 
@@ -72,6 +74,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 59, 48, 0.15)',
     height: 72,
     borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonContent: {
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',

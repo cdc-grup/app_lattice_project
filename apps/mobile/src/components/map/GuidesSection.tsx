@@ -26,7 +26,6 @@ const GuideItem = ({ title, coords, onPress, isLast }: { title: string, coords: 
         </Text>
       </View>
     </View>
-    <Feather name="chevron-right" size={16} color="rgba(255, 255, 255, 0.2)" />
   </Pressable>
 );
 
@@ -60,7 +59,6 @@ export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) 
           style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
         >
           <Text style={styles.seeAllText}>Ver todos</Text>
-          <Feather name="chevron-right" size={12} color="rgba(255, 255, 255, 0.2)" />
         </Pressable>
       </View>
       
