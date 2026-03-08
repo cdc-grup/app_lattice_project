@@ -11,6 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - BASE_PATH=/lattice
       - AUTH_SERVICE_URL=http://auth:3001
       - GEO_SERVICE_URL=http://geo:3002
       - SOCIAL_SERVICE_URL=http://social:3003

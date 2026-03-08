@@ -19,6 +19,18 @@ const SOCIAL_SERVICE_URL = process.env.SOCIAL_SERVICE_URL || 'http://localhost:3
 app.use(cors());
 app.use(logger);
 
+// Middleware to handle production prefix
+app.use((req, res, next) => {
+  const originalUrl = req.url;
+  if (req.url.startsWith('/lattice')) {
+    req.url = req.url.replace('/lattice', '');
+    console.log(`[Gateway] [Prefix Stripped] ${originalUrl} -> ${req.url}`);
+  } else {
+    console.log(`[Gateway] [No Prefix] ${req.url}`);
+  }
+  next();
+});
+
 // Health Check
 app.get('/status', (req: Request, res: Response) => {
   res.json({ status: 'gateway_ok', timestamp: new Date(), env: process.env.NODE_ENV });
