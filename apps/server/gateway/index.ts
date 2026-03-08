@@ -35,45 +35,68 @@ router.get('/status', (req: Request, res: Response) => {
 // --- API ROUTING ---
 const API_PREFIX = '/api/v1';
 
-const stripPrefix = (path: string) => {
-  const newPath = path.replace(API_PREFIX, '');
-  console.log(`[Gateway] Stripping prefix: ${path} -> ${newPath}`);
-  return newPath;
+// Helper to create proxy with robust path rewrite and logging
+const createServiceProxy = (target: string, label: string, paths: string[]) => {
+  return createProxyMiddleware({
+    target,
+    changeOrigin: true,
+    pathFilter: (path) => {
+      // Return true if the path starts with any of the allowed service paths, 
+      // accounting for optional API_PREFIX
+      return paths.some(p => path.startsWith(p) || path.startsWith(`${API_PREFIX}${p}`));
+    },
+    pathRewrite: (path) => {
+      let newPath = path;
+      // Strip API_PREFIX if present
+      if (path.startsWith(API_PREFIX)) {
+        newPath = path.substring(API_PREFIX.length);
+      }
+      
+      console.log(`[Gateway -> ${label}] Proxying: ${path} -> ${newPath || '/'}`);
+      return newPath || '/';
+    },
+    on: {
+      error: (err, req, res) => {
+        console.error(`[Gateway -> ${label}] Error:`, err.message);
+        const response = res as any;
+        if (response.writeHead) {
+          response.writeHead(502, { 'Content-Type': 'application/json' });
+          response.end(JSON.stringify({ error: `${label} service unreachable`, details: err.message }));
+        }
+      },
+      proxyRes: (proxyRes, req, res) => {
+        if (proxyRes.statusCode && proxyRes.statusCode >= 400) {
+          console.warn(`[Gateway -> ${label}] Error Response: ${proxyRes.statusCode} for ${req.method} ${req.url}`);
+        } else {
+          console.log(`[Gateway -> ${label}] Success: ${proxyRes.statusCode} for ${req.method} ${req.url}`);
+        }
+      }
+    }
+  });
 };
 
-// Auth & Users Service
-router.use(
-  [`/auth`, `/users`],
-  createProxyMiddleware({
-    target: AUTH_SERVICE_URL,
-    changeOrigin: true,
-    pathRewrite: (path) => path.replace('/api/v1', '')
-  })
-);
+// Mount Service Proxies
+// We mount them on the router root and let the internal pathFilter handle matches.
+// This prevents Express from stripping the matched path part, giving us full control.
 
-// Geo Service
-router.use(
-  ['/pois', '/locations', '/navigation', '/map', '/saved'],
-  createProxyMiddleware({
-    target: GEO_SERVICE_URL,
-    changeOrigin: true,
-    pathRewrite: (path) => path.replace('/api/v1', '')
-  })
-);
+// Auth Service: /auth, /users
+router.use(createServiceProxy(AUTH_SERVICE_URL, 'Auth', ['/auth', '/users']));
 
-// Social Service
-router.use(
-  ['/groups', '/telemetry'],
-  createProxyMiddleware({
-    target: SOCIAL_SERVICE_URL,
-    changeOrigin: true,
-    pathRewrite: stripPrefix
-  })
-);
+// Geo Service: /pois, /locations, /navigation, /map, /saved
+router.use(createServiceProxy(GEO_SERVICE_URL, 'Geo', ['/pois', '/locations', '/navigation', '/map', '/saved']));
+
+// Social Service: /groups, /telemetry
+router.use(createServiceProxy(SOCIAL_SERVICE_URL, 'Social', ['/groups', '/telemetry']));
 
 // Fallback for unhandled API routes
 router.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found at Gateway level' });
+  console.log(`[Gateway] 404 Fallback reached for: ${req.method} ${req.originalUrl} (URL in router: ${req.url})`);
+  res.status(404).json({ 
+    error: 'Route not found at Gateway level',
+    requestedUrl: req.originalUrl,
+    routerPath: req.url,
+    basePath
+  });
 });
 
 if (basePath && basePath !== '/') {
