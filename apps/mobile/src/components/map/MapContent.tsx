@@ -97,18 +97,21 @@ const PoiMarker = React.memo(({
 }) => {
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ scale: withSpring(isSelected ? 1.15 : 1, { damping: 15 }) }],
-      backgroundColor: withTiming(isSelected ? 'white' : metadata.color, { duration: 250 }),
-      borderColor: withTiming(isSelected ? metadata.color : 'white', { duration: 250 }),
-      width: isSelected ? 40 : 32,
-      height: isSelected ? 40 : 32,
-      borderRadius: isSelected ? 20 : 16,
+      transform: [
+        { scale: withSpring(isSelected ? 1.2 : 1, { damping: 12, stiffness: 100 }) },
+      ],
+      backgroundColor: withTiming(isSelected ? 'white' : 'rgba(10, 10, 10, 0.75)', { duration: 300 }),
+      borderColor: withTiming(isSelected ? 'white' : metadata.color, { duration: 300 }),
+      borderWidth: withTiming(isSelected ? 4 : 1.5, { duration: 300 }),
+      width: isSelected ? 44 : 34,
+      height: isSelected ? 44 : 34,
+      borderRadius: isSelected ? 22 : 17,
     };
   }, [isSelected, metadata.color]);
 
   return (
     <Animated.View 
-      entering={FadeInDown.delay(Math.min(index * 30, 800)).springify()}
+      entering={FadeInDown.delay(Math.min(index * 20, 600)).springify().damping(15)}
       style={styles.markerContainer}
     >
       <Animated.View 
@@ -120,8 +123,8 @@ const PoiMarker = React.memo(({
       >
         <MaterialCommunityIcons
           name={metadata.icon as any}
-          size={isSelected ? 20 : 16}
-          color={isSelected ? metadata.color : 'white'}
+          size={isSelected ? 22 : 18}
+          color={isSelected ? '#0A0A0A' : metadata.color}
         />
       </Animated.View>
     </Animated.View>
@@ -445,11 +448,6 @@ const styles = StyleSheet.create({
   markerBase: {
     justifyContent: 'center', 
     alignItems: 'center',
-    borderWidth: 2, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
   },
   topNavContainer: {
     position: 'absolute',

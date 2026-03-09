@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView, Alert } from
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather } from '@expo/vector-icons';
-import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, FadeInUp } from 'react-native-reanimated';
+import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, FadeInUp, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
@@ -11,6 +11,9 @@ import { RouteGeoJSON } from '../../types';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import { useMapStore } from '../../store/useMapStore';
 import { useSavedLocations, useSaveLocation, useDeleteSavedLocation } from '../../hooks/queries/useSavedLocations';
+import { Image } from 'expo-image';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getCategoryMetadata } from '../../utils/poiUtils';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -61,6 +64,14 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
   const { data: savedData } = useSavedLocations();
   const saveLocation = useSaveLocation();
   const deleteLocation = useDeleteSavedLocation();
+  const scale = useSharedValue(1);
+
+  const metadata = React.useMemo(() => getCategoryMetadata(poi?.category), [poi?.category]);
+
+  const driveButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    width: '100%',
+  }));
 
   const isSaved = React.useMemo(() => {
     if (!savedData?.features || !poi) return false;
@@ -131,16 +142,24 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
       onClose={onClose}
     >
       <View style={styles.container}>
-        {/* Apple Maps Style Header */}
+        {/* Maps Style Header */}
         <View style={styles.header}>
           <Animated.View 
-            entering={FadeInUp.delay(100).springify()}
+            entering={FadeInUp.delay(100).duration(800).springify().damping(20)}
             style={styles.headerTitleContainer}
           >
+            <View className="flex-row items-center mb-1">
+              <View 
+                className="px-2 py-0.5 rounded-full flex-row items-center mr-2"
+                style={{ backgroundColor: `${metadata.color}20` }}
+              >
+                <MaterialCommunityIcons name={metadata.icon as any} size={12} color={metadata.color} />
+                <Text style={[styles.categoryBadgeText, { color: metadata.color }]}>
+                  {metadata.label.toUpperCase()}
+                </Text>
+              </View>
+            </View>
             <Text style={styles.title} numberOfLines={1}>{poi.name}</Text>
-            <Text style={styles.subtitle}>
-              {isSelectedSaved ? 'Lugar Guardado' : (poi.category || 'Punto de interés')}
-            </Text>
           </Animated.View>
           <View style={styles.headerActions}>
             <Pressable 
@@ -157,96 +176,95 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
           {/* Action Buttons - Moved to top for visibility */}
-          <Animated.View 
-            entering={FadeInUp.delay(200).springify()}
-            style={styles.actionRow}
-          >
-            <Pressable 
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setNavigating(true);
-              }}
-              style={({ pressed }) => [
-                styles.driveButton, 
-                pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 }
-              ]}
+            <Animated.View 
+              entering={FadeInUp.delay(200).duration(800).springify()}
+              style={driveButtonStyle}
             >
-              <View style={styles.driveButtonContent}>
-                <Feather name="navigation" size={22} color="white" />
-                <View style={styles.driveButtonTextContainer}>
-                  <Text style={styles.driveButtonTitle}>INDICACIONES</Text>
-                  <Text style={styles.driveButtonSubtitle}>{formattedDuration}</Text>
+              <Pressable 
+                onPressIn={() => scale.value = withSpring(0.96)}
+                onPressOut={() => scale.value = withSpring(1)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setNavigating(true);
+                }}
+                style={[styles.driveButton, { backgroundColor: metadata.color }]}
+              >
+                <View style={styles.driveButtonContent}>
+                  <View style={styles.driveButtonIconContainer}>
+                    <Feather name="navigation" size={24} color="white" />
+                  </View>
+                  <View style={styles.driveButtonTextContainer}>
+                    <Text style={styles.driveButtonTitle}>ESTA A {formattedDistance}</Text>
+                    <Text style={styles.driveButtonSubtitle}>Indicaciones • {formattedDuration}</Text>
+                  </View>
+                  <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" style={{ marginLeft: 'auto' }} />
                 </View>
+              </Pressable>
+            </Animated.View>
+
+          <Animated.View 
+            entering={FadeInUp.delay(300).duration(800).springify()}
+            style={styles.statsRow}
+          >
+            <SafeBlurView intensity={20} style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: `${poi.crowdLevel === 'low' ? '#30D15820' : '#FF950020'}` }]}>
+                <Feather 
+                  name="users" 
+                  size={16} 
+                  color={poi.crowdLevel === 'low' ? '#30D158' : '#FF9500'} 
+                />
               </View>
-            </Pressable>
+              <Text style={styles.statLabel}>Ocupación</Text>
+              <Text style={[styles.statValue, { color: poi.crowdLevel === 'low' ? '#30D158' : '#FF9500' }]}>
+                {poi.crowdLevel === 'low' ? 'Baja' : 'Media'}
+              </Text>
+            </SafeBlurView>
+
+            <SafeBlurView intensity={20} style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#A2C2E120' }]}>
+                <Feather name="clock" size={16} color="#A2C2E1" />
+              </View>
+              <Text style={styles.statLabel}>Apertura</Text>
+              <Text style={styles.statValue}>8:30 AM</Text>
+            </SafeBlurView>
+
+            <SafeBlurView intensity={20} style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: '#C197D620' }]}>
+                <Feather name="star" size={16} color="#C197D6" />
+              </View>
+              <Text style={styles.statLabel}>Popular</Text>
+              <Text style={styles.statValue}>4.8 / 5</Text>
+            </SafeBlurView>
+          </Animated.View>
+
+          <Animated.View entering={FadeInUp.delay(400).duration(800).springify()}>
+            <View style={styles.photosSection}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 20 }}>
+                {(poi.images && poi.images.length > 0 ? poi.images : [
+                  'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=800&auto=format&fit=crop',
+                  'https://images.unsplash.com/photo-1471295253337-3ceaaedca402?q=80&w=800&auto=format&fit=crop',
+                  'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=800&auto=format&fit=crop'
+                ]).map((img, i) => (
+                  <Image 
+                    key={i} 
+                    source={{ uri: img }} 
+                    style={styles.photoContainer}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                ))}
+              </ScrollView>
+            </View>
           </Animated.View>
 
           {poi.description && (
-            <Text style={styles.descriptionText}>{poi.description}</Text>
+            <Animated.Text 
+              entering={FadeInUp.delay(500).duration(800).springify()}
+              style={styles.descriptionText}
+            >
+              {poi.description}
+            </Animated.Text>
           )}
-
-          {/* Info Grid */}
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Ocupación</Text>
-              <Text style={[
-                styles.infoValue, 
-                { color: poi.crowdLevel === 'high' || poi.crowdLevel === 'blocked' ? '#E10600' : 
-                         poi.crowdLevel === 'moderate' ? '#FF9500' : '#30D158' }
-              ]}>
-                {poi.crowdLevel === 'low' ? 'Baja' : 
-                 poi.crowdLevel === 'moderate' ? 'Media' : 
-                 poi.crowdLevel === 'high' ? 'Alta' :
-                 poi.crowdLevel === 'blocked' ? 'Cerrado' : '--'}
-              </Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Accesible</Text>
-              <View style={styles.ratingRow}>
-                <Feather 
-                  name={poi.isWheelchairAccessible ? "check-circle" : "x-circle"} 
-                  size={14} 
-                  color={poi.isWheelchairAccessible ? "#30D158" : "#E10600"} 
-                />
-                <Text style={styles.infoValue}> {poi.isWheelchairAccessible ? 'Sí' : 'No'}</Text>
-              </View>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Prioridad</Text>
-              <View style={styles.paymentRow}>
-                <Feather 
-                  name="user-check" 
-                  size={14} 
-                  color={poi.hasPriorityLane ? "#30D158" : "rgba(255,255,255,0.4)"} 
-                />
-                <Text style={[styles.infoValue, { color: poi.hasPriorityLane ? '#30D158' : 'white' }]}>
-                  {poi.hasPriorityLane ? ' Carril' : ' No'}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Distancia</Text>
-              <View style={styles.distRow}>
-                <Feather name="navigation-2" size={14} color="white" style={{ transform: [{ rotate: '45deg' }] }} />
-                <Text style={styles.infoValue}> {formattedDistance}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Photos */}
-          <View style={styles.photosSection}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {poi.images && poi.images.length > 0 ? (
-                poi.images.map((img, i) => (
-                  <View key={i} style={styles.photoPlaceholder} /> // In a real app we'd use <Image source={{uri: img}} />
-                ))
-              ) : (
-                [1, 2, 3].map((i) => (
-                  <View key={i} style={styles.photoPlaceholder} />
-                ))
-              )}
-            </ScrollView>
-          </View>
 
           {/* User Specific Note if applicable */}
           {user?.avoidStairs && !poi.isWheelchairAccessible && (
@@ -290,119 +308,137 @@ const styles = StyleSheet.create({
   headerTitleContainer: {
     flex: 1,
   },
+  categoryBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginLeft: 4,
+    letterSpacing: 0.5,
+  },
   title: {
     color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 14,
     marginTop: 2,
+    fontWeight: '500',
   },
   headerActions: {
     flexDirection: 'row',
     gap: 12,
   },
   headerIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeIcon: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   descriptionText: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 20,
+    lineHeight: 24,
+    marginTop: 20,
+    fontWeight: '400',
   },
-  actionRow: {
-    flexDirection: 'column',
-    gap: 16,
-    marginTop: 8,
+  statsRow: {
+    flexDirection: 'row',
+    marginTop: 24,
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    overflow: 'hidden',
+  },
+  statIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  statLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  statValue: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: '800',
   },
   driveButton: {
-    backgroundColor: '#E10600',
-    height: 64,
-    borderRadius: 14,
+    borderRadius: 18,
+    overflow: 'hidden',
     width: '100%',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 12,
+    marginTop: 12,
   },
   driveButtonContent: {
+    height: 72,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  driveButtonIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   driveButtonTextContainer: {
-    marginLeft: 16,
+    marginLeft: 14,
   },
   driveButtonTitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 1,
   },
   driveButtonSubtitle: {
     color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 0,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    paddingVertical: 20,
-    paddingHorizontal: 8,
-  },
-  infoItem: {
-    width: '25%',
-    alignItems: 'center',
-  },
-  infoLabel: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 11,
-    marginBottom: 4,
-  },
-  infoValue: {
-    color: 'white',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  distRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    fontSize: 20,
+    fontWeight: '800',
+    marginTop: -2,
   },
   photosSection: {
-    marginTop: 20,
+    marginTop: 28,
   },
-  photoPlaceholder: {
-    width: 200,
-    height: 150,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    marginRight: 12,
+  photoContainer: {
+    width: 280,
+    height: 180,
+    borderRadius: 28,
+    marginRight: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
 
   premiumBorder: {

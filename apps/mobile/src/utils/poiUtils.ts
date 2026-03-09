@@ -8,21 +8,21 @@ export const NEUTRAL_MARKER_COLOR = 'rgba(255, 255, 255, 0.15)'; // Neutral glas
 export const NEUTRAL_MARKER_BORDER = 'rgba(255, 255, 255, 0.3)';
 
 const CATEGORY_MAP: Record<string, CategoryMetadata> = {
-  restaurant: { icon: 'food-fork-drink', color: '#FFD085', label: 'Food & Drinks' }, // Pastel Amber
-  food: { icon: 'food-fork-drink', color: '#FFD085', label: 'Food & Drinks' },
-  parking: { icon: 'parking', color: '#B4C5CD', label: 'Parking Area' }, // Pastel Slate
-  shop: { icon: 'shopping', color: '#C197D6', label: 'Official Store' }, // Pastel Purple
-  shopping: { icon: 'shopping', color: '#C197D6', label: 'Official Store' },
-  wc: { icon: 'toilet', color: '#A2C2E1', label: 'Restrooms' }, // Pastel Blue
-  toilet: { icon: 'toilet', color: '#A2C2E1', label: 'Restrooms' },
-  restroom: { icon: 'toilet', color: '#A2C2E1', label: 'Restrooms' },
-  grandstand: { icon: 'stadium-variant', color: '#A8D5BA', label: 'Grandstand' }, // Pastel Green
-  medical: { icon: 'medical-bag', color: '#B39DDB', label: 'Medical Point' }, // Pastel Grape
-  hospital: { icon: 'hospital-building', color: '#B39DDB', label: 'Hospital' },
-  gate: { icon: 'door-open', color: '#9FA8DA', label: 'Entrance Gate' }, // Pastel Indigo
-  entrance: { icon: 'door-open', color: '#9FA8DA', label: 'Entrance Gate' },
-  meetup_point: { icon: 'account-group', color: '#C5E1A5', label: 'Meetup Point' }, // Pastel Lime
-  info: { icon: 'information', color: '#80CBC4', label: 'Information' }, // Pastel Teal
+  restaurant: { icon: 'food-fork-drink', color: '#FF9F0A', label: 'Food & Drinks' }, // Apple System Orange
+  food: { icon: 'food-fork-drink', color: '#FF9F0A', label: 'Food & Drinks' },
+  parking: { icon: 'parking', color: '#0A84FF', label: 'Parking Area' }, // Apple System Blue
+  shop: { icon: 'shopping', color: '#BF5AF2', label: 'Official Store' }, // Apple System Purple
+  shopping: { icon: 'shopping', color: '#BF5AF2', label: 'Official Store' },
+  wc: { icon: 'toilet', color: '#64D2FF', label: 'Restrooms' }, // Apple System Cyan
+  toilet: { icon: 'toilet', color: '#64D2FF', label: 'Restrooms' },
+  restroom: { icon: 'toilet', color: '#64D2FF', label: 'Restrooms' },
+  grandstand: { icon: 'stadium-variant', color: '#32D74B', label: 'Grandstand' }, // Apple System Green
+  medical: { icon: 'medical-bag', color: '#FF453A', label: 'Medical Point' }, // Apple System Red
+  hospital: { icon: 'hospital-building', color: '#FF453A', label: 'Hospital' },
+  gate: { icon: 'door-open', color: '#5E5CE6', label: 'Entrance Gate' }, // Apple System Indigo
+  entrance: { icon: 'door-open', color: '#5E5CE6', label: 'Entrance Gate' },
+  meetup_point: { icon: 'account-group', color: '#66D4CF', label: 'Meetup Point' }, // Apple System Teal
+  info: { icon: 'information', color: '#FFD60A', label: 'Information' }, // Apple System Yellow
 };
 
 export const DIRECT_ACCESS_CATEGORIES = ['gate', 'grandstand', 'parking'];

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 interface QuickActionProps {
   icon: string;
@@ -10,24 +11,28 @@ interface QuickActionProps {
   isRed?: boolean;
 }
 
-const QuickAction = ({ icon, label, sublabel, onPress }: QuickActionProps) => (
+const QuickAction = ({ icon, label, sublabel, onPress, color }: QuickActionProps & { color: string }) => (
   <View style={styles.actionItem}>
     <Pressable 
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       style={({ pressed }) => [
         styles.actionButton,
         { 
-          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)',
+          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+          borderColor: pressed ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
           transform: [{ scale: pressed ? 0.94 : 1 }],
         }
       ]}
       className="items-center justify-center mb-2"
     >
-      <Feather name={icon as any} size={22} color="rgba(255, 255, 255, 0.8)" />
+      <Feather name={icon as any} size={22} color={color} />
     </Pressable>
     <Text style={styles.actionLabel} numberOfLines={1}>{label}</Text>
     {sublabel ? (
-      <Text style={styles.actionSublabel} numberOfLines={1}>{sublabel}</Text>
+      <Text style={[styles.actionSublabel, { color: `${color}80` }]} numberOfLines={1}>{sublabel}</Text>
     ) : null}
   </View>
 );
@@ -49,17 +54,20 @@ export const QuickActions = () => {
           icon="home" 
           label="Casa" 
           sublabel="Añadir" 
+          color="#0A84FF"
           onPress={() => console.log('Home pressed')} 
         />
         <QuickAction 
           icon="briefcase" 
           label="Trabajo" 
           sublabel="Añadir" 
+          color="#FF9F0A"
           onPress={() => console.log('Work pressed')} 
         />
         <QuickAction 
           icon="plus" 
           label="Añadir" 
+          color="rgba(255, 255, 255, 0.6)"
           onPress={() => console.log('Add pressed')} 
         />
       </ScrollView>
