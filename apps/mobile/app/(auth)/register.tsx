@@ -9,13 +9,17 @@ import {
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
+import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { useRegister } from '../../src/services/auth';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { AuthLayout } from '../../src/components/ui/AuthLayout';
 import { PremiumButton } from '../../src/components/ui/PremiumButton';
 
+/**
+ * Standard Registration Screen.
+ * Simplified to match the clean "Muzaic" cleanup.
+ */
 export default function RegisterScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -72,33 +76,49 @@ export default function RegisterScreen() {
       showBack 
       onBack={() => {
         useAuthStore.getState().clearRegistrationData();
-        router.back();
+        router.replace('/(auth)/welcome');
       }}
     >
       {/* Header section matching login */}
       <Animated.View 
-        entering={FadeInDown.duration(800).delay(100)}
+        entering={FadeInDown.duration(800).delay(100).springify()}
         className="pt-8 pb-10 items-center"
       >
-        <View className="w-20 h-20 mb-8 rounded-[22px] bg-white items-center justify-center shadow-2xl">
-          <MaterialCommunityIcons name="account-plus" size={44} color="#000" />
+        <View className="w-20 h-20 mb-8 rounded-[24px] bg-white items-center justify-center shadow-2xl">
+          <MaterialCommunityIcons name="account-plus" size={40} color={colors.background} />
         </View>
-        <Text className="text-4xl font-bold text-white tracking-tight mb-3">
+        <Text 
+          className="text-4xl font-bold text-white tracking-tighter mb-3"
+          style={{ fontFamily: 'Outfit-Bold' }}
+        >
           {registrationRequired ? 'Finish Profile' : 'Create Profile'}
         </Text>
         
         {registrationRequired ? (
-          <View className="bg-primary/20 px-5 py-2.5 rounded-2xl border border-primary/30 mt-3 flex-row items-center">
+          <View className="bg-primary/10 px-5 py-2.5 rounded-2xl border border-primary/20 mt-3 flex-row items-center">
              <Feather name="check-circle" size={16} color={colors.primary} />
-             <Text className="text-white text-sm font-bold ml-2">Ticket Scanned! Set Password</Text>
+             <Text 
+               className="text-white text-sm font-bold ml-2"
+               style={{ fontFamily: 'PlusJakartaSans-Bold' }}
+             >
+               Ticket Scanned! Set Password
+             </Text>
           </View>
         ) : pendingTicketCode ? (
-          <View className="bg-primary/20 px-5 py-2.5 rounded-2xl border border-primary/30 mt-3 flex-row items-center">
+          <View className="bg-primary/10 px-5 py-2.5 rounded-2xl border border-primary/20 mt-3 flex-row items-center">
              <Feather name="check-circle" size={16} color={colors.primary} />
-             <Text className="text-white text-sm font-bold ml-2">Ticket Ready to Sync</Text>
+             <Text 
+               className="text-white text-sm font-bold ml-2"
+               style={{ fontFamily: 'PlusJakartaSans-Bold' }}
+             >
+               Ticket Ready to Sync
+             </Text>
           </View>
         ) : (
-          <Text className="text-base text-white/50 text-center font-medium px-4">
+          <Text 
+            className="text-base text-white/40 text-center font-medium px-4 leading-6"
+            style={{ fontFamily: 'PlusJakartaSans-Medium' }}
+          >
             Join the elite crew and access real-time race analytics.
           </Text>
         )}
@@ -107,29 +127,30 @@ export default function RegisterScreen() {
       {/* Form Container */}
       <Animated.View 
         layout={Layout.springify()}
-        entering={FadeIn.duration(600).delay(300)}
+        entering={FadeInDown.duration(600).delay(300).springify()}
         className="mb-8"
       >
-        <View className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-8">
+        <View className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden mb-8 p-1">
           {/* Full Name Input */}
-          <View className="flex-row items-center px-4 py-4 border-b border-white/5">
-            <Feather name="user" size={18} color="rgba(255,255,255,0.4)" />
+          <View className="flex-row items-center px-6 py-5 border-b border-white/5">
+            <Feather name="user" size={20} color="rgba(255,255,255,0.3)" />
             <TextInput 
-              className="flex-1 text-white text-lg font-medium ml-3"
+              className="flex-1 text-white text-lg font-medium ml-4 h-10"
               autoCapitalize="words" 
               placeholder="Full Name"
               placeholderTextColor="rgba(255,255,255,0.2)"
               value={fullName}
               onChangeText={setFullName}
               editable={!isLoading}
+              style={{ fontFamily: 'Outfit-Medium' }}
             />
           </View>
 
           {/* Email Input */}
-          <View className="flex-row items-center px-4 py-4 border-b border-white/5">
-            <Feather name="mail" size={18} color="rgba(255,255,255,0.4)" />
+          <View className="flex-row items-center px-6 py-5 border-b border-white/5">
+            <Feather name="mail" size={20} color="rgba(255,255,255,0.3)" />
             <TextInput 
-              className="flex-1 text-white text-lg font-medium ml-3"
+              className="flex-1 text-white text-lg font-medium ml-4 h-10"
               keyboardType="email-address" 
               autoCapitalize="none" 
               placeholder="Email address"
@@ -137,49 +158,54 @@ export default function RegisterScreen() {
               value={email}
               onChangeText={setEmail}
               editable={!isLoading && !registrationRequired}
+              style={{ fontFamily: 'Outfit-Medium' }}
             />
           </View>
           
           {/* Password Input */}
-          <View className="flex-row items-center px-4 py-4">
-            <Feather name="lock" size={18} color="rgba(255,255,255,0.4)" />
+          <View className="flex-row items-center px-6 py-5">
+            <Feather name="lock" size={20} color="rgba(255,255,255,0.3)" />
             <TextInput 
-              className="flex-1 text-white text-lg font-medium ml-3"
+              className="flex-1 text-white text-lg font-medium ml-4 h-10"
               secureTextEntry={!showPassword} 
               placeholder="Create Password"
               placeholderTextColor="rgba(255,255,255,0.2)"
               value={password}
               onChangeText={setPassword}
               editable={!isLoading}
+              style={{ fontFamily: 'Outfit-Medium' }}
             />
-            <Pressable onPress={() => setShowPassword(!showPassword)} className="active:opacity-70">
-              <Feather name={showPassword ? "eye-off" : "eye"} size={18} color="rgba(255,255,255,0.4)" />
+            <Pressable onPress={() => setShowPassword(!showPassword)} className="active:opacity-70" hitSlop={20}>
+              <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="rgba(255,255,255,0.3)" />
             </Pressable>
           </View>
         </View>
 
         <PremiumButton 
           onPress={handleRegister} 
-          label="Launch Account" 
+          label="LAUNCH ACCOUNT" 
           isLoading={isLoading} 
-          variant="secondary"
+          variant="primary"
         />
       </Animated.View>
 
       {/* Footer */}
       <Animated.View 
-        entering={FadeInDown.duration(800).delay(500)}
-        className="items-center pb-12"
+        entering={FadeInDown.duration(800).delay(500).springify()}
+        className="items-center pb-8"
       >
         <Pressable 
           onPress={() => {
             Haptics.selectionAsync();
-            router.push('/(auth)/login');
+            router.replace('/(auth)/login');
           }}
-          className="active:opacity-70"
+          className="active:opacity-70 p-4"
         >
-          <Text className="text-white/40 text-sm font-medium">
-            Already a member? <Text className="text-primary font-bold">Log in here</Text>
+          <Text 
+            className="text-white/40 text-sm font-medium tracking-wide"
+            style={{ fontFamily: 'PlusJakartaSans-Bold' }}
+          >
+            ALREADY A MEMBER? <Text className="text-white font-black" style={{ color: colors.primary }}>LOG IN HERE</Text>
           </Text>
         </Pressable>
       </Animated.View>

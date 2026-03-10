@@ -113,4 +113,5 @@ cd "$SCRIPT_DIR" || exit 1
 export EXPO_PACKAGER_PROXY_URL="$METRO_URL"
 
 # Start expo
-npx expo start --android --clear
+echo "📲 Starting Expo (scan the QR code if it's not detected automatically)..."
+npx expo start --clear

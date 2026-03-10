@@ -13,7 +13,11 @@ import { PremiumButton } from '../../src/components/ui/PremiumButton';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-export default function ProfileScreen() {
+/**
+ * Main Profile Screen.
+ * Handles user preferences, wallet, and account settings.
+ */
+function ProfileScreen() {
   const { user, token, tickets, logout, setAuth } = useAuthStore();
   const router = useRouter();
   
@@ -70,7 +74,7 @@ export default function ProfileScreen() {
   return (
     <AuthLayout 
       showBack 
-      onBack={() => router.push('/(main)')}
+      onBack={() => router.replace('/(main)')}
     >
       <Animated.View 
         entering={FadeInDown.duration(600)}
@@ -316,3 +320,5 @@ export default function ProfileScreen() {
     </AuthLayout>
   );
 }
+
+export default ProfileScreen;

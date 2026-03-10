@@ -4,15 +4,13 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   ScrollView, 
-  Pressable, 
-  StyleSheet 
+  Pressable 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { colors } from '../../styles/colors';
+import { ThemeGradient } from './ThemeGradient';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -24,6 +22,10 @@ interface AuthLayoutProps {
   transparent?: boolean;
 }
 
+/**
+ * Shared layout for all authentication screens.
+ * Handles progress, navigation, and consistent background styling.
+ */
 export const AuthLayout = ({ 
   children, 
   step, 
@@ -41,7 +43,7 @@ export const AuthLayout = ({
           {Array.from({ length: totalSteps }).map((_, i) => (
             <View 
               key={i} 
-              className={`h-1.5 rounded-full flex-1 ${step >= i + 1 ? 'bg-[#E10600]' : 'bg-white/10'}`} 
+              className={`h-1.5 rounded-full flex-1 ${step >= i + 1 ? 'bg-white' : 'bg-white/10'}`} 
             />
           ))}
         </View>
@@ -66,14 +68,11 @@ export const AuthLayout = ({
   );
 
   return (
-    <View className={`flex-1 ${transparent ? '' : 'bg-[#050505]'}`}>
+    <View className="flex-1">
       <StatusBar style="light" />
-      {!transparent && (
-        <LinearGradient 
-          colors={[colors.background, colors.black]} 
-          style={StyleSheet.absoluteFill}
-        />
-      )}
+      
+      {!transparent && <ThemeGradient variant="auth" />}
+      
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 

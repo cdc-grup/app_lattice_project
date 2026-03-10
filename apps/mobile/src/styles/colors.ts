@@ -1,14 +1,16 @@
 export const colors = {
-  primary: '#E10600',
-  background: '#000000',
-  navbar: '#0F0F10',
-  border: '#1A1A1B',
-  surface: '#18181B',
-  muted: '#9CA3AF',
-  accent: '#E10600',
-  glass: 'rgba(255, 255, 255, 0.1)',
-  white: '#FFFFFF',
-  black: '#000000',
+  primary: '#907783', // Magic Gem
+  background: '#1D1C1D', // Dynamic Black
+  navbar: '#1D1C1D',
+  border: '#2D2B2C',
+  surface: '#2D2B2C', // Warm Onyx variant
+  muted: '#6D6A6B', // Boat Anchor
+  accent: '#F6F6F6', // Cascading White
+  glass: 'rgba(255, 255, 255, 0.05)',
+  white: '#F6F6F6',
+  black: '#1D1C1D',
+  secondary: '#6D6A6B',
+  steel: '#5C5A59', // Forged Steel
   red: {
     500: '#E10600',
     600: '#C40500',

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ticket } from '../../types/models/auth';
 import { colors } from '../../styles/colors';
 import { Image } from 'expo-image';
@@ -18,11 +18,12 @@ interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0, onCardPress }) => {
-  // Select a color scheme based on the zone
   const isTribuna = ticket.zoneName?.toLowerCase().includes('tribuna');
+  
+  // Premium gradient combinations
   const gradientColors = isTribuna 
-    ? ['#E10600', '#8E1D18'] // Red for Tribuna
-    : ['#5856D6', '#2D2B8A']; // Purple/Blue for others
+    ? [colors.primary, '#5C4A54'] // Magic Gem variant
+    : [colors.secondary, '#4D4B4C']; // Boat Anchor variant
 
   return (
     <Animated.View 
@@ -35,63 +36,63 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, index = 0, onCar
         style={{ flex: 1 }}
       >
         <LinearGradient
-        colors={gradientColors as any}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.brandTitle}>CIRCUIT</Text>
-            <Text style={styles.brandSub}>COPILOT</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <MaterialCommunityIcons name="integrated-circuit-chip" size={32} color="rgba(255,255,255,0.8)" />
-          </View>
-        </View>
-
-        {/* Content */}
-        <View style={styles.content}>
-          <View style={styles.row}>
-            <View style={styles.field}>
-              <Text style={styles.label}>ZONA</Text>
-              <Text style={styles.value}>{ticket.zoneName || 'Pelouse'}</Text>
+          colors={gradientColors as any}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          {/* Top Glass Header */}
+          <View style={styles.glassHeader}>
+            <View>
+              <Text style={styles.brandTitle}>LATTICE</Text>
+              <Text style={styles.brandSub}>CIRCUIT ELITE</Text>
             </View>
-            <View style={[styles.field, { alignItems: 'flex-end' }]}>
-              <Text style={styles.label}>PORTA</Text>
-              <Text style={styles.value}>{ticket.gate || '3'}</Text>
+            <View style={styles.chipContainer}>
+              <MaterialCommunityIcons name="integrated-circuit-chip" size={24} color="rgba(255,255,255,0.7)" />
             </View>
           </View>
 
-          <View style={[styles.row, { marginTop: 24 }]}>
-            <View style={styles.field}>
-              <Text style={styles.label}>FILA</Text>
-              <Text style={styles.value}>{ticket.seatRow || 'N/A'}</Text>
+          {/* Main Info Section */}
+          <View style={styles.content}>
+            <View style={styles.mainField}>
+              <Text style={styles.label}>ZONE</Text>
+              <Text style={styles.value}>{ticket.zoneName || 'General Admission'}</Text>
             </View>
-            <View style={[styles.field, { alignItems: 'flex-end' }]}>
-              <Text style={styles.label}>SEIENT</Text>
-              <Text style={styles.value}>{ticket.seatNumber || 'N/A'}</Text>
+
+            <View style={styles.grid}>
+              <View style={styles.field}>
+                <Text style={styles.label}>GATE</Text>
+                <Text style={styles.subValue}>{ticket.gate || '03'}</Text>
+              </View>
+              <View style={styles.field}>
+                <Text style={styles.label}>ROW</Text>
+                <Text style={styles.subValue}>{ticket.seatRow || '—'}</Text>
+              </View>
+              <View style={styles.field}>
+                <Text style={styles.label}>SEAT</Text>
+                <Text style={styles.subValue}>{ticket.seatNumber || '—'}</Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Footer / QR Section */}
-        <View style={styles.footer}>
-          <View style={styles.qrContainer}>
-            {/* Using a placeholder QR for now */}
-            <Image 
-              source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${ticket.code}` }}
-              style={styles.qrCode}
-            />
+          {/* Bottom QR Section (Clean) */}
+          <View style={styles.footer}>
+            <View style={styles.qrWrapper}>
+              <Image 
+                source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${ticket.code}&color=1d1c1d` }}
+                style={styles.qrCode}
+                contentFit="contain"
+              />
+            </View>
+            <View style={styles.codeContainer}>
+              <Text style={styles.ticketCode}>{ticket.code}</Text>
+            </View>
           </View>
-          <Text style={styles.ticketCode}>{ticket.code}</Text>
-        </View>
 
-        {/* Decorative elements */}
-        <View style={styles.decorCircle} />
-        <View style={styles.decorStripe} />
-      </LinearGradient>
+          {/* Abstract Decorations */}
+          <View style={styles.decorCircle} />
+          <View style={styles.decorLines} />
+        </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -101,48 +102,58 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 24,
+    borderRadius: 32,
     overflow: 'hidden',
+    backgroundColor: colors.background,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
-    backgroundColor: '#1C1C1E',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 15,
   },
   gradient: {
     flex: 1,
-    padding: 24,
+    padding: 32,
     justifyContent: 'space-between',
   },
-  header: {
+  glassHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerRight: {
-    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  chipContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandTitle: {
     color: '#FFF',
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: 2,
+    fontSize: 18,
+    fontFamily: 'Outfit-Bold',
+    letterSpacing: 1,
   },
   brandSub: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 4,
-    marginTop: -4,
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 10,
+    fontFamily: 'PlusJakartaSans-ExtraBold',
+    letterSpacing: 2,
+    marginTop: 2,
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
-    marginVertical: 40,
+    paddingVertical: 20,
   },
-  row: {
+  mainField: {
+    marginBottom: 32,
+  },
+  grid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -152,57 +163,68 @@ const styles = StyleSheet.create({
   label: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 4,
+    fontFamily: 'PlusJakartaSans-Bold',
+    letterSpacing: 1.5,
+    marginBottom: 8,
   },
   value: {
     color: '#FFF',
+    fontSize: 28,
+    fontFamily: 'Outfit-Bold',
+    letterSpacing: -0.5,
+  },
+  subValue: {
+    color: '#FFF',
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: 'Outfit-Medium',
   },
   footer: {
-    alignItems: 'center',
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 20,
+    borderRadius: 28,
+    padding: 24,
+    alignItems: 'center',
   },
-  qrContainer: {
-    width: 140,
-    height: 140,
+  qrWrapper: {
+    width: 160,
+    height: 160,
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   qrCode: {
-    width: 120,
-    height: 120,
+    width: 140,
+    height: 140,
+  },
+  codeContainer: {
+    marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: 12,
   },
   ticketCode: {
-    marginTop: 12,
-    color: '#000',
-    fontSize: 14,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    opacity: 0.5,
+    color: colors.background,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Bold',
+    letterSpacing: 3,
+    opacity: 0.6,
   },
   decorCircle: {
     position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
-  decorStripe: {
-    position: 'absolute',
-    bottom: 100,
-    left: 0,
-    right: 0,
-    height: 40,
+    top: -60,
+    right: -60,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    transform: [{ rotate: '-5deg' }, { scale: 1.5 }],
+  },
+  decorLines: {
+    position: 'absolute',
+    bottom: 240,
+    left: -20,
+    width: 100,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    transform: [{ rotate: '45deg' }],
   }
 });
