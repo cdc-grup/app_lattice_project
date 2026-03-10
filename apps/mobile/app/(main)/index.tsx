@@ -315,60 +315,81 @@ function MapIndex() {
         ref={bottomSheetRef}
         translateY={sheetPosition}
       >
-        <View>
-          <SearchBar 
-            placeholder="Busca sitios, accesos o comida..."
-            value={searchQuery}
-            onSearch={setSearchQuery} 
-            onArPress={() => router.push('/(main)/profile')} 
-            onFocus={() => {
-              setIsSearching(true);
-              bottomSheetRef.current?.snapToIndex(1);
-            }}
-          />
+        <View style={{ paddingBottom: 24 }}>
+          {/* Search Bar Container */}
+          <View style={{ paddingTop: 16 }}>
+            <SearchBar 
+              placeholder="Busca sitios, accesos o comida..."
+              value={searchQuery}
+              onSearch={setSearchQuery} 
+              onArPress={() => router.push('/(main)/profile')} 
+              onFocus={() => {
+                setIsSearching(true);
+                bottomSheetRef.current?.snapToIndex(1);
+              }}
+            />
+          </View>
+
           {!isSearching && (
-            <React.Fragment>
+            <View style={{ paddingVertical: 16 }}>
               <SearchFilters 
+                activeCategory={activeCategoryId}
                 animatedPosition={sheetPosition}
                 onSelectCategory={(category) => {
-                  // 1. If user has a ticket, prioritize their assigned gate/grandstand
-                  if (activeTicket) {
-                    if (category === 'gate' && activeTicket.gate) {
-                      const found = poisData?.features.find((f: any) => 
-                        f.properties.category === 'gate' && 
-                        (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
-                        activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                      );
-                      if (found) {
-                        selectPoi(found.properties.id, found.geometry.coordinates);
-                        return;
-                      }
-                    }
-                    if (category === 'grandstand' && activeTicket.zoneName) {
-                      const found = poisData?.features.find((f: any) => 
-                        f.properties.category === 'grandstand' && 
-                        (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
-                        activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                      );
-                      if (found) {
-                        selectPoi(found.properties.id, found.geometry.coordinates);
-                        return;
-                      }
-                    }
+                  // Toggle off if same category is clicked
+                  if (activeCategoryId === category) {
+                    setActiveCategoryId(null);
+                    return;
                   }
+                  
+                  // Set active category to filter map points
+                  setActiveCategoryId(category);
 
-                  // 2. Default behavior: Find the first POI matching this category
-                  if (poisData?.features) {
-                    const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
-                    if (foundPoi) {
-                      selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
+                  // Only navigate/select directly if it is a Gate or Grandstand
+                  if (category === 'gate' || category === 'grandstand') {
+                    // 1. If user has a ticket, prioritize their assigned gate/grandstand
+                    if (activeTicket) {
+                      if (category === 'gate' && activeTicket.gate) {
+                        const found = poisData?.features.find((f: any) => 
+                          f.properties.category === 'gate' && 
+                          (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
+                          activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                        );
+                        if (found) {
+                          selectPoi(found.properties.id, found.geometry.coordinates);
+                          return;
+                        }
+                      }
+                      if (category === 'grandstand' && activeTicket.zoneName) {
+                        const found = poisData?.features.find((f: any) => 
+                          f.properties.category === 'grandstand' && 
+                          (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
+                          activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                        );
+                        if (found) {
+                          selectPoi(found.properties.id, found.geometry.coordinates);
+                          return;
+                        }
+                      }
+                    }
+
+                    // 2. Default behavior: Find the first POI matching this category
+                    if (poisData?.features) {
+                      const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
+                      if (foundPoi) {
+                        selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
+                      }
                     }
                   }
+                  // For 'restaurant', 'shop', 'medical', we do nothing else
+                  // Setting activeCategoryId is enough to filter the map via usePOIs hook
                 }}
               />
-            </React.Fragment>
+            </View>
           )}
-          <View className="px-4">
+
+          {/* Results or Guides Section Container */}
+          <View className="px-4" style={{ marginTop: isSearching ? 16 : 0 }}>
             {isSearching || searchQuery.trim() !== '' ? (
               // Search Results
               <View style={styles.cardContainer}>

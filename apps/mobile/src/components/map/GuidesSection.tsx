@@ -108,8 +108,6 @@ export const GuidesSection = ({ onSelectMarker }: GuidesSectionProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 0,
-    marginBottom: 8,
   },
   loadingContainer: {
     height: 100,
@@ -187,7 +185,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    marginHorizontal: 16,
   },
   emptyTitle: {
     color: 'white',

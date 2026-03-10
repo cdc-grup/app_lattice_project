@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { View, Text, Pressable, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,13 +11,13 @@ import { SafeBlurView } from '../ui/SafeBlurView';
 interface FilterChipProps {
   icon: any;
   label: string;
+  isActive: boolean;
   onPress: () => void;
-  IconComponent?: any;
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChipProps) => {
+const FilterChip = ({ icon, label, isActive, onPress }: FilterChipProps) => {
   const scale = useSharedValue(1);
 
   const animatedInnerStyle = useAnimatedStyle(() => ({
@@ -26,35 +25,35 @@ const FilterChip = ({ icon, label, onPress, IconComponent = Feather }: FilterChi
   }));
 
   return (
-    <Pressable 
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress();
-      }}
-      onPressIn={() => (scale.value = withSpring(0.96))}
-      onPressOut={() => (scale.value = withSpring(1))}
-      style={({ pressed }) => [
-        styles.chip,
-        {
-          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-        }
-      ]}
-    >
-      <Animated.View style={[styles.chipInner, animatedInnerStyle]}>
-        <Feather name={icon as any} size={15} color="white" />
-        <Text style={styles.chipText}>{label}</Text>
-        <Feather name="chevron-down" size={12} color="rgba(255, 255, 255, 0.4)" style={{ marginLeft: 2 }} />
-      </Animated.View>
-    </Pressable>
+    <View style={styles.chipWrapper}>
+      <Pressable 
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onPress();
+        }}
+        onPressIn={() => (scale.value = withSpring(0.96))}
+        onPressOut={() => (scale.value = withSpring(1))}
+      >
+        <Animated.View style={[
+          styles.chipInner, 
+          isActive && styles.chipActive,
+          animatedInnerStyle
+        ]}>
+          <Feather name={icon as any} size={15} color={isActive ? "white" : "rgba(255, 255, 255, 0.7)"} />
+          <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{label}</Text>
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 };
 
 interface SearchFiltersProps {
+  activeCategory: string | null;
   onSelectCategory?: (category: string) => void;
   animatedPosition: SharedValue<number>;
 }
 
-export const SearchFilters = ({ onSelectCategory, animatedPosition }: SearchFiltersProps) => {
+export const SearchFilters = ({ activeCategory, onSelectCategory, animatedPosition }: SearchFiltersProps) => {
   const insets = useSafeAreaInsets();
   
   // The sheet is collapsed at SCREEN_HEIGHT - (insets.bottom + 80)
@@ -82,31 +81,35 @@ export const SearchFilters = ({ onSelectCategory, animatedPosition }: SearchFilt
         horizontal 
         showsHorizontalScrollIndicator={false} 
         contentContainerStyle={styles.container}
-        className="mb-4"
       >
       <FilterChip 
         icon="log-in" 
-        label="Accesos" 
+        label="Acceso" 
+        isActive={activeCategory === 'gate'}
         onPress={() => onSelectCategory?.('gate')} 
       />
       <FilterChip 
         icon="map" 
-        label="Tribunas" 
+        label="Tribuna" 
+        isActive={activeCategory === 'grandstand'}
         onPress={() => onSelectCategory?.('grandstand')} 
       />
       <FilterChip 
         icon="coffee" 
         label="Comida" 
+        isActive={activeCategory === 'restaurant'}
         onPress={() => onSelectCategory?.('restaurant')} 
       />
       <FilterChip 
         icon="shopping-bag" 
         label="Tiendas" 
+        isActive={activeCategory === 'shop'}
         onPress={() => onSelectCategory?.('shop')} 
       />
       <FilterChip 
         icon="plus-circle" 
         label="Servicios" 
+        isActive={activeCategory === 'medical'}
         onPress={() => onSelectCategory?.('medical')} 
       />
       </ScrollView>
@@ -117,23 +120,34 @@ export const SearchFilters = ({ onSelectCategory, animatedPosition }: SearchFilt
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
   },
-  chip: {
-    paddingHorizontal: 12,
-    height: 38,
-    borderRadius: 18,
-    marginRight: 4,
-    justifyContent: 'center',
+  chipWrapper: {
+    marginRight: 14,
   },
   chipInner: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  chipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 15,
+    fontFamily: typography.primary.medium,
+    marginLeft: 10,
+  },
+  chipTextActive: {
     color: 'white',
-    fontSize: 14,
     fontFamily: typography.primary.bold,
-    marginLeft: 6,
   },
 });

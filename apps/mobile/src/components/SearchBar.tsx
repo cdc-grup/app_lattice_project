@@ -22,7 +22,7 @@ export const SearchBar = React.memo(({
   onFocus,
 }: SearchBarProps) => {
   return (
-    <View className="flex-row items-center px-4 pt-4 pb-2">
+    <View className="flex-row items-center px-4">
       {/* Search Input Container */}
       <View
         className="flex-1 flex-row items-center px-4 h-12 rounded-2xl"
@@ -67,15 +67,25 @@ export const SearchBar = React.memo(({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           onArPress?.();
         }}
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.8 : 1,
-          transform: [{ scale: pressed ? 0.92 : 1 }],
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        })}
-        className="w-12 h-12 ml-3 items-center justify-center rounded-2xl border border-white/10 shadow-lg"
         accessibilityLabel="Go to profile"
       >
-        <Feather name="user" size={22} color="white" />
+        {({ pressed }) => (
+          <View style={[
+            styles.searchContainer,
+            {
+              width: 43,
+              height: 43,
+              marginLeft: 12,
+              borderRadius: 24,
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.8 : 1,
+              transform: [{ scale: pressed ? 0.92 : 1 }],
+            }
+          ]}>
+            <Feather name="user" size={20} color="rgba(255, 255, 255, 0.5)" />
+          </View>
+        )}
       </Pressable>
     </View>
   );
