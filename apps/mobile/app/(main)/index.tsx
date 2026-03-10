@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Dimensions,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
@@ -30,9 +31,6 @@ import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { QuickActions } from '../../src/components/map/QuickActions';
 import { SearchFilters } from '../../src/components/map/SearchFilters';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
-import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
-import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
-import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
 import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
 import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
@@ -123,9 +121,6 @@ function MapIndex() {
   const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
-  const saveLocationMutation = useSaveLocation();
-  const [showSaveModal, setShowSaveModal] = React.useState(false);
-  const [showSavedManager, setShowSavedManager] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearching, setIsSearching] = React.useState(false);
 
@@ -252,6 +247,18 @@ function MapIndex() {
     triggerRecenter();
   }, [requestPermission, triggerRecenter]);
 
+  const handleMapPress = useCallback(() => {
+    Keyboard.dismiss();
+    
+    if (isSearching || searchQuery !== '') {
+      setIsSearching(false);
+      setSearchQuery('');
+      bottomSheetRef.current?.snapToIndex(0);
+    }
+    
+    deselect();
+  }, [isSearching, searchQuery, deselect]);
+
   const rRecenterButtonStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateY: activePosition.value - SCREEN_HEIGHT - 80 }],
@@ -267,7 +274,7 @@ function MapIndex() {
           locationStatus={locationStatus}
           poisGeoJSON={poisData}
           savedLocations={savedData}
-          onDeselect={deselect}
+          onDeselect={handleMapPress}
         />
         <AROverlay 
           isVisible={isARVisible} 
@@ -310,12 +317,13 @@ function MapIndex() {
       >
         <View>
           <SearchBar 
+            placeholder="Busca sitios, accesos o comida..."
             value={searchQuery}
             onSearch={setSearchQuery} 
             onArPress={() => router.push('/(main)/profile')} 
             onFocus={() => {
               setIsSearching(true);
-              bottomSheetRef.current?.snapToIndex(2);
+              bottomSheetRef.current?.snapToIndex(1);
             }}
           />
           {!isSearching && (
@@ -361,7 +369,7 @@ function MapIndex() {
             </React.Fragment>
           )}
           <View className="px-4">
-            {searchQuery.trim() !== '' || isSearching ? (
+            {isSearching || searchQuery.trim() !== '' ? (
               // Search Results
               <View style={styles.cardContainer}>
                 {searchResults.length > 0 ? (
@@ -395,16 +403,16 @@ function MapIndex() {
                   })
                 ) : (
                   <View className="py-6 items-center">
-                      {searchQuery.trim() !== '' ? (
-                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No se encontraron resultados</Text>
-                      ) : (
-                        <View className="items-center px-10">
-                          <MaterialCommunityIcons name="magnify" size={48} color="rgba(255,255,255,0.1)" />
-                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, textAlign: 'center', marginTop: 12 }}>
-                            Escribe para buscar sitios, entradas o servicios
-                          </Text>
-                        </View>
-                      )}
+                    {searchQuery.trim() !== '' ? (
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No se encontraron resultados</Text>
+                    ) : (
+                      <View className="items-center px-10">
+                        <MaterialCommunityIcons name="magnify" size={48} color="rgba(255,255,255,0.1)" />
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, textAlign: 'center', marginTop: 12 }}>
+                          Escribe para buscar sitios, entradas o servicios
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -412,16 +420,14 @@ function MapIndex() {
               // Default Guides Section
               <View>
                 <GuidesSection 
-                  onSeeAll={() => setShowSavedManager(true)} 
                   onSelectMarker={(coords, id) => {
                     selectPoi(`saved_${id}`, coords);
                   }}
                 />
-                <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
               </View>
             )}
             
-            <View style={{ height: 100 }} />
+            <View style={{ height: 20 }} />
           </View>
         </View>
       </MapBottomSheet>
@@ -433,34 +439,6 @@ function MapIndex() {
         route={currentRoute}
         onClose={deselect}
         translateY={poiSheetPosition}
-      />
-
-      <SaveLocationModal 
-        isVisible={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        isLoading={saveLocationMutation.isPending}
-        onSave={(name) => {
-          // Approximate center or user coords if available
-          const coords = userCoords || [2.261, 41.570];
-          saveLocationMutation.mutate({
-            label: name,
-            latitude: coords[1],
-            longitude: coords[0]
-          }, {
-            onSuccess: () => {
-              setShowSaveModal(false);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            }
-          });
-        }}
-      />
-
-      <SavedLocationsManager 
-        isVisible={showSavedManager}
-        onClose={() => setShowSavedManager(false)}
-        onSelectMarker={(coords, id) => {
-          selectPoi(`saved_${id}`, coords);
-        }}
       />
     </View>
   );

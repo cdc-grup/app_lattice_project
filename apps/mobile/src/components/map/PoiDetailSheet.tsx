@@ -47,9 +47,13 @@ interface PoiDetailSheetProps {
 
 const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
   return (
-    <View style={[style, styles.solidBackground]}>
+    <SafeBlurView 
+      intensity={80} 
+      tint="dark"
+      style={[style, styles.blurBackground]}
+    >
       <View style={styles.premiumBorder} />
-    </View>
+    </SafeBlurView>
   );
 };
 
@@ -283,19 +287,20 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 });
 
 const styles = StyleSheet.create({
-  solidBackground: {
-    backgroundColor: '#1C1C1E', // Match profile wizard background
+  blurBackground: {
+    backgroundColor: 'rgba(10, 10, 12, 0.85)',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    overflow: 'hidden',
   },
   handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Matches w-12 h-1.5 bg-white/20
-    width: 48,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    width: 40,
+    height: 5,
+    borderRadius: 2.5,
+    marginTop: 10,
   },
   container: {
     flex: 1,

@@ -46,11 +46,10 @@ const GuideItem = ({ title, coords, onPress, isLast }: { title: string, coords: 
 };
 
 interface GuidesSectionProps {
-  onSeeAll: () => void;
   onSelectMarker: (coords: [number, number], id: number) => void;
 }
 
-export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) => {
+export const GuidesSection = ({ onSelectMarker }: GuidesSectionProps) => {
   const { data: savedData, isLoading } = useSavedLocations();
 
   const displayItems = useMemo(() => {
@@ -68,16 +67,6 @@ export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) 
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Tus lugares</Text>
-        <Pressable 
-          onPress={onSeeAll}
-          style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.6 }]}
-        >
-          <Text style={styles.seeAllText}>Ver todos</Text>
-        </Pressable>
-      </View>
-      
       <View style={styles.listContent}>
         {displayItems.length > 0 ? (
           <View style={styles.cardContainer}>
@@ -96,26 +85,20 @@ export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) 
             entering={FadeInUp.delay(200).duration(800).springify()}
             style={styles.emptyContainer}
           >
-            <SafeBlurView intensity={20} style={styles.heroCard}>
-              <View style={styles.heroIconCircle}>
-                <Feather name="star" size={32} color="#FFD60A" />
-              </View>
-              <View style={styles.heroContent}>
-                <Text style={styles.heroTitle}>Tus Sitios Favoritos</Text>
-                <Text style={styles.heroSubtitle}>
-                  Guarda entradas, zonas de descanso o puntos de encuentro para tenerlos siempre a mano.
-                </Text>
-              </View>
-              <Pressable 
-                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
-                style={({ pressed }) => [
-                  styles.heroButton,
-                  pressed && { opacity: 0.8, scale: 0.98 }
-                ]}
-              >
-                <Text style={styles.heroButtonText}>Empezar a guardar</Text>
-              </Pressable>
-            </SafeBlurView>
+            <Feather name="star" size={32} color="#FFD60A" />
+            <Text style={styles.emptyTitle}>Tus Sitios Favoritos</Text>
+            <Text style={styles.emptySubtitle}>
+              Guarda entradas, zonas de descanso o puntos de encuentro para tenerlos siempre a mano.
+            </Text>
+            <Pressable 
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+              style={({ pressed }) => [
+                styles.emptyButton,
+                pressed && { opacity: 0.8, scale: 0.98 }
+              ]}
+            >
+              <Text style={styles.emptyButtonText}>Empezar a guardar</Text>
+            </Pressable>
           </Animated.View>
         )}
       </View>
@@ -125,24 +108,13 @@ export const GuidesSection = ({ onSeeAll, onSelectMarker }: GuidesSectionProps) 
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
+    marginTop: 0,
     marginBottom: 8,
   },
   loadingContainer: {
     height: 100,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: 'white',
-    ...pageStyles.title,
-    fontSize: 20, // Specific size for this section
   },
   seeAll: {
     flexDirection: 'row',
@@ -209,57 +181,40 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   emptyContainer: {
-    paddingVertical: 12,
-  },
-  heroCard: {
-    padding: 24,
+    paddingVertical: 24,
     borderRadius: 32,
-    borderWidth: 1,
+    alignItems: 'center',
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    alignItems: 'center',
-    overflow: 'hidden',
+    marginHorizontal: 16,
   },
-  heroIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255, 214, 10, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  heroContent: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  heroTitle: {
+  emptyTitle: {
     color: 'white',
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: typography.primary.bold,
-    marginBottom: 8,
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    marginTop: 16,
+    letterSpacing: -0.3,
   },
-  heroSubtitle: {
+  emptySubtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
     fontFamily: typography.secondary.medium,
     textAlign: 'center',
-    paddingHorizontal: 10,
+    marginTop: 8,
+    paddingHorizontal: 40,
+    lineHeight: 18,
   },
-  heroButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    width: '100%',
-    alignItems: 'center',
+  emptyButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
   },
-  heroButtonText: {
-    color: 'white',
+  emptyButtonText: {
+    color: '#000',
     fontSize: 14,
-    fontFamily: typography.secondary.bold,
+    fontFamily: typography.primary.bold,
   },
 });
