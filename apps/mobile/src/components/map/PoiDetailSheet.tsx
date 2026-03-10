@@ -14,6 +14,7 @@ import { useSavedLocations, useSaveLocation, useDeleteSavedLocation } from '../.
 import { Image } from 'expo-image';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCategoryMetadata } from '../../utils/poiUtils';
+import { typography, pageStyles } from '../../styles/typography';
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -310,21 +311,19 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: typography.primary.bold,
     marginLeft: 4,
     letterSpacing: 0.5,
   },
   title: {
     color: 'white',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -0.5,
+    ...pageStyles.title,
+    fontSize: 28, // Matches PoiDetailSheet specific needs
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 14,
+    ...pageStyles.subtitle,
     marginTop: 2,
-    fontWeight: '500',
   },
   headerActions: {
     flexDirection: 'row',
@@ -350,7 +349,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     marginTop: 20,
-    fontWeight: '400',
+    fontFamily: typography.secondary.regular,
   },
   statsRow: {
     flexDirection: 'row',
@@ -378,13 +377,13 @@ const styles = StyleSheet.create({
   statLabel: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: typography.secondary.bold,
     marginBottom: 2,
   },
   statValue: {
     color: 'white',
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: typography.primary.bold,
   },
   driveButton: {
     borderRadius: 18,
@@ -419,13 +418,13 @@ const styles = StyleSheet.create({
   driveButtonTitle: {
     color: 'rgba(255, 255, 255, 0.6)',
     fontSize: 10,
-    fontWeight: '900',
+    fontFamily: typography.primary.bold,
     letterSpacing: 1,
   },
   driveButtonSubtitle: {
     color: 'white',
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: typography.primary.bold,
     marginTop: -2,
   },
   photosSection: {

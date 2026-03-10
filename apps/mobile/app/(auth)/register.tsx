@@ -15,6 +15,7 @@ import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { colors } from '../../src/styles/colors';
 import { AuthLayout } from '../../src/components/ui/AuthLayout';
 import { PremiumButton } from '../../src/components/ui/PremiumButton';
+import { authStyles } from '../../src/styles/typography';
 
 /**
  * Standard Registration Screen.
@@ -82,14 +83,11 @@ export default function RegisterScreen() {
       {/* Header section matching login */}
       <Animated.View 
         entering={FadeInDown.duration(800).delay(100).springify()}
-        className="pt-8 pb-10 items-center"
+        className="pt-8 pb-10 items-start w-full"
       >
-        <View className="w-20 h-20 mb-8 rounded-[24px] bg-white items-center justify-center shadow-2xl">
-          <MaterialCommunityIcons name="account-plus" size={40} color={colors.background} />
-        </View>
         <Text 
-          className="text-4xl font-bold text-white tracking-tighter mb-3"
-          style={{ fontFamily: 'Outfit-Bold' }}
+          className="text-white mb-4"
+          style={authStyles.title}
         >
           {registrationRequired ? 'Finish Profile' : 'Create Profile'}
         </Text>
@@ -116,8 +114,8 @@ export default function RegisterScreen() {
           </View>
         ) : (
           <Text 
-            className="text-base text-white/40 text-center font-medium px-4 leading-6"
-            style={{ fontFamily: 'PlusJakartaSans-Medium' }}
+            className="text-white/40 leading-6"
+            style={authStyles.subtitle}
           >
             Join the elite crew and access real-time race analytics.
           </Text>

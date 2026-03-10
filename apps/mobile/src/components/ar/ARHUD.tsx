@@ -11,6 +11,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../styles/colors';
 import { theme } from '../../styles/theme';
+import { typography } from '../../styles/typography';
 
 interface ARHUDProps {
   onExit: () => void;
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
   statusText: {
     color: 'white',
     fontSize: 10,
-    fontWeight: '900',
+    fontFamily: typography.primary.bold,
     letterSpacing: 1,
   },
   exitButton: {
@@ -170,14 +171,14 @@ const styles = StyleSheet.create({
   headingText: {
     color: 'white',
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily: typography.primary.bold,
     letterSpacing: 0.5,
   },
   subHeadingText: {
     color: colors.muted,
     fontSize: 10,
     marginLeft: 4,
-    fontWeight: '600',
+    fontFamily: typography.secondary.bold,
   },
   sideControls: {
     position: 'absolute',

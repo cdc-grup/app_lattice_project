@@ -15,6 +15,7 @@ import { useSavedLocations, useDeleteSavedLocation } from '../../hooks/queries/u
 import * as SafeAreaContext from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { colors } from '../../styles/colors';
+import { typography, pageStyles } from '../../styles/typography';
 import * as Haptics from 'expo-haptics';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -170,14 +171,11 @@ const styles = StyleSheet.create({
   },
   title: {
     color: 'white',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -1,
+    ...pageStyles.title,
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 14,
-    fontWeight: '600',
+    ...pageStyles.subtitle,
     marginTop: 2,
   },
   closeButton: {
@@ -229,7 +227,7 @@ const styles = StyleSheet.create({
   markerName: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: typography.primary.bold,
     letterSpacing: -0.2,
   },
   markerCoords: {
@@ -262,7 +260,7 @@ const styles = StyleSheet.create({
   actionText: {
     color: 'white',
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: typography.secondary.bold,
   },
   emptyIconCircle: {
     width: 80,
@@ -277,13 +275,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     color: 'white',
     fontSize: 20,
-    fontWeight: '800',
+    fontFamily: typography.primary.bold,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySubtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 15,
+    fontFamily: typography.secondary.medium,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -306,6 +305,6 @@ const styles = StyleSheet.create({
   doneButtonText: {
     color: 'white',
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: typography.secondary.bold,
   }
 });

@@ -9,6 +9,7 @@ Welcome to the Lattice development team. This guide will help you get your local
 - **Mobile SDKs:** 
   - Xcode (macOS only) for iOS.
   - Android Studio + SDK Platform Tools for Android.
+  - **Environment Variables**: `ANDROID_HOME` must point to your Android SDK location.
 
 ## Setup Instructions
 
@@ -47,11 +48,18 @@ Welcome to the Lattice development team. This guide will help you get your local
 
 ```bash
 # For Android
-npm run android -w mobile
+npm run android -w lattice
 
 # For iOS
-npm run ios -w mobile
+npm run ios -w lattice
 ```
+
+### Android Troubleshooting: SDK Location
+If you see a `SDK location not found` error, create a `local.properties` file in `apps/mobile/android/` with the following content:
+```properties
+sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+```
+*(Replace `YOUR_USERNAME` with your actual system username)*
 
 ## Local Tunneling (Remote & Physical Devices)
 

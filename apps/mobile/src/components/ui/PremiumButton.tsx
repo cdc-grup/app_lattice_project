@@ -12,6 +12,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { colors } from '../../styles/colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { typography } from '../../styles/typography';
 
 interface PremiumButtonProps {
   onPress: () => void;
@@ -73,17 +74,17 @@ export const PremiumButton = ({
   const getTextStyle = () => {
     switch (variant) {
       case 'primary':
-        return { color: '#FFFFFF', fontWeight: '700' } as const;
+        return { color: '#FFFFFF', fontFamily: typography.primary.bold } as const;
       case 'secondary':
-        return { color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' } as const;
+        return { color: 'rgba(255, 255, 255, 0.9)', fontFamily: typography.secondary.medium } as const;
       case 'outline':
-        return { color: '#FFFFFF', fontWeight: '500' } as const;
+        return { color: '#FFFFFF', fontFamily: typography.secondary.medium } as const;
       case 'glass':
-        return { color: 'rgba(255, 255, 255, 0.8)', fontWeight: '500' } as const;
+        return { color: 'rgba(255, 255, 255, 0.8)', fontFamily: typography.secondary.medium } as const;
       case 'white':
-        return { color: '#000000', fontWeight: '700' } as const;
+        return { color: '#000000', fontFamily: typography.primary.bold } as const;
       default:
-        return { color: '#FFFFFF' } as const;
+        return { color: '#FFFFFF', fontFamily: typography.primary.regular } as const;
     }
   };
 

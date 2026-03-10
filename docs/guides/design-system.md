@@ -17,15 +17,18 @@ We use vibrant, functional colors inspired by the circuit environment and Formul
 
 ## Typography
 
-- **Primary Font:** Inter (via Google Fonts).
-- **Secondary Font:** System Default (San Francisco / Roboto).
+- **Primary Font (Headings):** Outfit (Medium/Bold).
+- **Secondary Font (Body/Labels):** Plus Jakarta Sans (Medium/Bold).
+- **System Default:** San Francisco (iOS) / Roboto (Android) as a safety fallback.
 
 | Style | Size | Weight | Use Case |
 | :--- | :--- | :--- | :--- |
+| **Hero Title** | 44px | Medium | Auth screens (`authStyles.title`). |
 | **Heading 1** | 32px | Bold | Page titles. |
 | **Heading 2** | 24px | Semibold | Section headers. |
-| **Body** | 16px | Regular | General text. |
-| **Caption** | 12px | Regular | Secondary info. |
+| **Subtitle** | 20px | Medium | Context details (`authStyles.subtitle`). |
+| **Body** | 16px | Regular | General text/inputs. |
+| **Caption** | 14px | Regular | Secondary info. |
 
 ## Glassmorphism
 

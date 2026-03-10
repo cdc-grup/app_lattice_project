@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from '
 import { Feather } from '@expo/vector-icons';
 import { useSavedLocations } from '../../hooks/queries/useSavedLocations';
 import { colors } from '../../styles/colors';
+import { typography, pageStyles } from '../../styles/typography';
 import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { SafeBlurView } from '../ui/SafeBlurView';
@@ -140,9 +141,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: 'white',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    ...pageStyles.title,
+    fontSize: 20, // Specific size for this section
   },
   seeAll: {
     flexDirection: 'row',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: typography.secondary.bold,
     marginRight: 2,
   },
   cardContainer: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   markerName: {
     color: 'white',
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: typography.primary.bold,
     letterSpacing: -0.2,
   },
   markerCoords: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     color: 'white',
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: typography.primary.bold,
     marginBottom: 8,
     textAlign: 'center',
     letterSpacing: -0.5,
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: typography.secondary.medium,
     textAlign: 'center',
     paddingHorizontal: 10,
   },
@@ -259,6 +260,6 @@ const styles = StyleSheet.create({
   heroButtonText: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: typography.secondary.bold,
   },
 });

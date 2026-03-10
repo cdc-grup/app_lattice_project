@@ -16,6 +16,7 @@ import { AuthLayout } from '../../src/components/ui/AuthLayout';
 import { PremiumButton } from '../../src/components/ui/PremiumButton';
 import { ThemeGradient } from '../../src/components/ui/ThemeGradient';
 import { colors } from '../../src/styles/colors';
+import { authStyles } from '../../src/styles/typography';
 
 /**
  * Single Step Visual Component
@@ -41,14 +42,14 @@ const WelcomeStep = ({ title, subtitle, primaryAction, secondaryAction }: StepPr
   >
     <View className="items-start mb-16">
       <Text 
-        className="text-[44px] text-white tracking-tight mb-6 leading-[52px]"
-        style={{ fontFamily: 'Outfit-Medium' }}
+        className="text-white mb-6"
+        style={authStyles.title}
       >
         {title}
       </Text>
       <Text 
-        className="text-xl text-white/50 font-medium leading-8 pr-8"
-        style={{ fontFamily: 'PlusJakartaSans-Medium' }}
+        className="text-white/50 pr-8"
+        style={authStyles.subtitle}
       >
         {subtitle}
       </Text>

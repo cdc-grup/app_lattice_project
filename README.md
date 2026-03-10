@@ -29,7 +29,7 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 1.  **Install**: `npm install` at the root.
 2.  **Infrastructure**: `docker compose up -d` to start PostgreSQL and PostGIS.
-3.  **Mobile Build**: `npm run android -w mobile` (Run this at least once to create the Development Build).
+3.  **Mobile Build**: `npm run android -w lattice` (Run this at least once to create the Development Build).
 4.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
 
 ## 🛠️ Available Commands (Root)
@@ -46,7 +46,7 @@ You can manage the entire project directly from the root of the monorepo:
 | `npm run db:clean`       | Resets all database tables across the monorepo.             |
 | `npm run db:seed-montmelo` | Populates the database with Montmeló circuit data.          |
 | `npm run db:seed-pedralbes` | Populates the database with Pedralbes test data.            |
-| `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w mobile`). |
+| `npm run <cmd> -w <pkg>` | Runs a specific command in a workspace (e.g., `-w lattice`). |
 
 ## 🧪 Testing Infrastructure
 
@@ -65,7 +65,7 @@ More details in the **[Testing Guide](docs/guides/testing.md)**.
 We have recently improved the maintainability of the mobile application:
 
 - **Logic Extraction:** Map controls and location services have been decoupled from the main view (`MapScreen`) using custom hooks (`useLocationService`, `useMapControls`).
-- **Design SSOT:** A Single Source of Truth system for colors and typography is being implemented according to the **[Design System](docs/guides/design-system.md)**.
+- **Typography Unification:** Titles and fonts have been unified across the auth flow using a centralized `authStyles` SSOT in `typography.ts`, following the **[Design System](docs/guides/design-system.md)**.
 
 ### 🗄️ Database Management
 

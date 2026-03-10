@@ -13,4 +13,30 @@ export const typography = {
   },
 } as const;
 
+export const authStyles = {
+  title: {
+    fontFamily: 'Outfit-Medium',
+    fontSize: 44,
+    lineHeight: 52,
+    letterSpacing: -1,
+  },
+  subtitle: {
+    fontFamily: 'PlusJakartaSans-Medium',
+    fontSize: 20,
+    lineHeight: 32,
+  }
+} as const;
+
+export const pageStyles = {
+  title: {
+    fontFamily: 'Outfit-Bold',
+    fontSize: 28,
+    letterSpacing: -1,
+  },
+  subtitle: {
+    fontFamily: 'PlusJakartaSans-Bold',
+    fontSize: 14,
+  }
+} as const;
+
 export default typography;
