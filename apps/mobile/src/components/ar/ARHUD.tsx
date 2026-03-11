@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedStyle, 
@@ -16,10 +16,12 @@ import { typography } from '../../styles/typography';
 interface ARHUDProps {
   onExit: () => void;
   isScanning?: boolean;
+  isLandscape?: boolean;
 }
 
-export const ARHUD: React.FC<ARHUDProps> = ({ onExit, isScanning = true }) => {
+export const ARHUD: React.FC<ARHUDProps> = ({ onExit, isScanning = true, isLandscape = false }) => {
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
   const scanOpacity = useSharedValue(0.5);
 
   useEffect(() => {
@@ -37,64 +39,102 @@ export const ARHUD: React.FC<ARHUDProps> = ({ onExit, isScanning = true }) => {
     opacity: scanOpacity.value,
   }));
 
+  // Rotation style for when the device is physically landscape but the OS is in portrait
+  const rotationStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: withTiming(isLandscape ? '90deg' : '0deg') }],
+  }));
+
+  // Adjust container for landscape rotation
+  // If rotated 90deg, the "top" of our UI should be the long side of the device.
+  const landscapeContainerStyle = isLandscape ? {
+    width: height,
+    height: width,
+    top: (height - width) / 2,
+    left: (width - height) / 2,
+  } : {};
+
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]} pointerEvents="box-none">
-      {/* Top Bar - Status & Exit */}
-      <View 
+      <Animated.View 
         style={[
-          styles.topBar, 
-          { paddingTop: Math.max(insets.top, 20), paddingLeft: Math.max(insets.left, 24), paddingRight: Math.max(insets.right, 24) }
-        ]}
+          StyleSheet.absoluteFill, 
+          rotationStyle,
+          landscapeContainerStyle,
+          { padding: 0 }
+        ]} 
         pointerEvents="box-none"
       >
-        <Animated.View style={[styles.statusBadge, scanAnimatedStyle]}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>{isScanning ? 'SCANNING CIRCUIT…' : 'AR ACTIVE'}</Text>
-        </Animated.View>
-
-        <Pressable
-          onPress={onExit}
-          style={styles.exitButton}
-          accessibilityLabel="Exit AR mode"
-          accessibilityRole="button"
+        {/* Top Bar - Status & Exit */}
+        <View 
+          style={[
+            styles.topBar, 
+            { 
+              paddingTop: Math.max(isLandscape ? insets.left : insets.top, 24), 
+              paddingLeft: Math.max(isLandscape ? insets.top : insets.left, 24), 
+              paddingRight: Math.max(isLandscape ? insets.bottom : insets.right, 24) 
+            }
+          ]}
+          pointerEvents="box-none"
         >
-          <Feather name="x" size={24} color="white" />
-        </Pressable>
-      </View>
+          <Animated.View style={[styles.statusBadge, scanAnimatedStyle]}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>{isScanning ? 'SCANNING CIRCUIT…' : 'AR ACTIVE'}</Text>
+          </Animated.View>
 
-      {/* Bottom Interface - Compass/Heading Concept */}
-      <View 
-        style={[
-          styles.bottomBar, 
-          { paddingBottom: Math.max(insets.bottom, 20), paddingLeft: Math.max(insets.left, 24), paddingRight: Math.max(insets.right, 24) }
-        ]}
-        pointerEvents="box-none"
-      >
-        <View style={styles.headingContainer}>
-          <View style={styles.compassLine} />
-          <View style={styles.compassCenter}>
-            <Text style={styles.headingText}>VIEWING GRANDSTAND AREA</Text>
-            <View className="flex-row items-center mt-1">
-              <Feather name="compass" size={12} color={colors.primary} />
-              <Text style={styles.subHeadingText}>HEADING NORTH-WEST</Text>
+          <Pressable
+            onPress={onExit}
+            style={styles.exitButton}
+            accessibilityLabel="Exit AR mode"
+            accessibilityRole="button"
+          >
+            <Feather name="x" size={24} color="white" />
+          </Pressable>
+        </View>
+
+        {/* Bottom Interface - Compass/Heading Concept */}
+        <View 
+          style={[
+            styles.bottomBar, 
+            { 
+              paddingBottom: Math.max(isLandscape ? insets.right : insets.bottom, 24), 
+              paddingLeft: Math.max(isLandscape ? insets.top : insets.left, 24), 
+              paddingRight: Math.max(isLandscape ? insets.bottom : insets.right, 24) 
+            }
+          ]}
+          pointerEvents="box-none"
+        >
+          <View style={styles.headingContainer}>
+            <View style={styles.compassLine} />
+            <View style={styles.compassCenter}>
+              <Text style={styles.headingText}>VIEWING GRANDSTAND AREA</Text>
+              <View className="flex-row items-center mt-1">
+                <Feather name="compass" size={12} color={colors.primary} />
+                <Text style={styles.subHeadingText}>HEADING NORTH-WEST</Text>
+              </View>
             </View>
+            <View style={styles.compassLine} />
           </View>
-          <View style={styles.compassLine} />
         </View>
-      </View>
 
-      {/* Side Controls - Scale/Zoom controls concept */}
-      <View style={styles.sideControls} pointerEvents="box-none">
-        <View style={styles.controlGroup}>
-          <Pressable style={styles.sideButton} accessibilityLabel="Zoom in AR">
-             <Feather name="plus" size={20} color="white" />
-          </Pressable>
-          <View style={styles.divider} />
-          <Pressable style={styles.sideButton} accessibilityLabel="Zoom out AR">
-             <Feather name="minus" size={20} color="white" />
-          </Pressable>
+        {/* Side Controls - Scale/Zoom controls concept */}
+        <View 
+          style={[
+            styles.sideControls, 
+            isLandscape && { right: Math.max(insets.bottom, 24) }
+          ]} 
+          pointerEvents="box-none"
+        >
+          <View style={styles.controlGroup}>
+            <Pressable style={styles.sideButton} accessibilityLabel="Zoom in AR">
+               <Feather name="plus" size={20} color="white" />
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable style={styles.sideButton} accessibilityLabel="Zoom out AR">
+               <Feather name="minus" size={20} color="white" />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };

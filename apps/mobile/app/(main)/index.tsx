@@ -113,7 +113,7 @@ function MapIndex() {
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
-  const { isVisible: isARVisible } = useCameraTilt();
+  const { isVisible: isARVisible, heading, isLandscape } = useCameraTilt();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const poiDetailSheetRef = useRef<BottomSheet>(null);
 
@@ -272,6 +272,10 @@ function MapIndex() {
         <AROverlay 
           isVisible={isARVisible} 
           onExitAR={() => {}}
+          userCoords={userCoords}
+          heading={heading}
+          pois={poisData?.features || []}
+          isLandscape={isLandscape}
         />
         {isLoading ? (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
@@ -304,10 +308,11 @@ function MapIndex() {
       </Animated.View>
 
       {/* Main Search Bottom Sheet */}
-      <MapBottomSheet 
-        ref={bottomSheetRef}
-        translateY={sheetPosition}
-      >
+      {!isARVisible && (
+        <MapBottomSheet 
+          ref={bottomSheetRef}
+          translateY={sheetPosition}
+        >
         <View>
           <SearchBar 
             value={searchQuery}
@@ -425,15 +430,17 @@ function MapIndex() {
           </View>
         </View>
       </MapBottomSheet>
-
+      )}
       {/* POI Detail Bottom Sheet */}
-      <PoiDetailSheet 
-        ref={poiDetailSheetRef}
-        poi={selectedPoi}
-        route={currentRoute}
-        onClose={deselect}
-        translateY={poiSheetPosition}
-      />
+      {!isARVisible && (
+        <PoiDetailSheet 
+          ref={poiDetailSheetRef}
+          poi={selectedPoi}
+          route={currentRoute}
+          onClose={deselect}
+          translateY={poiSheetPosition}
+        />
+      )}
 
       <SaveLocationModal 
         isVisible={showSaveModal}
