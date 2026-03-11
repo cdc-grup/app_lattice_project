@@ -11,6 +11,8 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { typography } from '../../styles/typography';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getCategoryMetadata } from '../../utils/poiUtils';
 
 // Math helpers
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -73,7 +75,6 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
   const activePois = React.useMemo(() => {
     if (!userCoords || !pois.length) return [];
     const [userLon, userLat] = userCoords;
-    // For debugging/testing, we increased radius to 1km
     return pois.filter(poi => {
       const [poiLon, poiLat] = poi.geometry.coordinates;
       const dist = getDistance(userLat, userLon, poiLat, poiLon);
@@ -96,6 +97,7 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
     return poisToRender.map((poi, idx) => {
       const [poiLon, poiLat] = poi.geometry.coordinates;
       const distance = getDistance(userLat, userLon, poiLat, poiLon);
+      const metadata = getCategoryMetadata(poi.properties.category);
 
       const bearing = getBearing(userLat, userLon, poiLat, poiLon);
       let angleDiff = bearing - heading;
@@ -104,63 +106,71 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
       if (angleDiff > 180) angleDiff -= 360;
       if (angleDiff < -180) angleDiff += 360;
 
-      // Only show if it's within the front hemisphere
-      if (Math.abs(angleDiff) > 90) return null;
+      // Only show if it's within the front hemisphere and reasonably centered
+      if (Math.abs(angleDiff) > 45) return null;
 
-      // Map Angle to X Pixel Coordinates (center = width/2)
-      let xPos = 0;
-      let yPos = 0;
-      let yOffset = (idx % 3) * 30 - 30; // Stagger to prevent overlaps
+      // Use staggered height to prevent overlaps but more subtly
+      let yOffset = (idx % 2) * 50 - 25; 
       
       if (isLandscape) {
-        // When physically in landscape, horizontal movement (angleDiff) 
-        // maps to the screen's long axis (Y in portrait layout).
-        // Vertical staggering (yOffset) maps to the screen's short axis (X).
-        
-        // Physical horizontal center: center of long edge
         const centerOffset = (angleDiff / (FOV / 2)) * (height / 2);
         const screenYPos = (height / 2) + centerOffset;
-        
-        // Physical vertical center: center of short edge
-        const screenXPos = (width / 2) + yOffset - 50;
+        // x-axis is narrow side in portrait, moves vertically in rotated landscape
+        const screenXPos = (width / 2) + yOffset;
 
         return (
           <View 
             key={`2d-label-${poi.properties.id}`} 
             style={{ 
               position: 'absolute', 
-              top: screenYPos - 30, // center 60px height (horizontal bubble if rotated)
-              left: screenXPos - 60, // center 120px width
-              width: 120, 
+              top: screenYPos - 40,
+              left: screenXPos - 120,
+              width: 240, 
+              flexDirection: 'row', // [Bubble] -> [Stalk] (Right)
               alignItems: 'center',
               transform: [{ rotate: '90deg' }]
             }}
           >
-            <View style={styles.labelBubble}>
-              <Text style={styles.labelText} numberOfLines={1}>{poi.properties.name}</Text>
-              <Text style={styles.distanceText}>{Math.round(distance)}m</Text>
+            <View style={styles.premiumBubble}>
+              <View style={[styles.iconContainer, { backgroundColor: metadata.color }]}>
+                <MaterialCommunityIcons name={metadata.icon as any} size={18} color="white" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.premiumLabelText} numberOfLines={1}>{poi.properties.name}</Text>
+                <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
+              </View>
             </View>
+
+            {/* In 90deg CW rotation, 'Right' becomes 'Down' */}
+            <View style={styles.horizontalStalk} />
           </View>
         );
       } else {
-        xPos = (angleDiff / (FOV / 2)) * (width / 2) + (width / 2);
-        yPos = (height / 2) + yOffset - 50;
+        const xPos = (angleDiff / (FOV / 2)) * (width / 2) + (width / 2);
+        const yPos = (height / 2) + yOffset - 120;
 
         return (
           <View 
             key={`2d-label-${poi.properties.id}`} 
             style={{ 
               position: 'absolute', 
-              left: xPos - 60, // center 120px width
+              left: xPos - 100,
               top: yPos,
-              width: 120, 
+              width: 200, 
               alignItems: 'center' 
             }}
           >
-            <View style={styles.labelBubble}>
-              <Text style={styles.labelText} numberOfLines={1}>{poi.properties.name}</Text>
-              <Text style={styles.distanceText}>{Math.round(distance)}m</Text>
+            <View style={styles.premiumBubble}>
+              <View style={[styles.iconContainer, { backgroundColor: metadata.color }]}>
+                <MaterialCommunityIcons name={metadata.icon as any} size={18} color="white" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.premiumLabelText} numberOfLines={1}>{poi.properties.name}</Text>
+                <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
+              </View>
             </View>
+            {/* Vertical Stalk */}
+            <View style={styles.verticalStalk} />
           </View>
         );
       }
@@ -218,23 +228,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#000',
   },
-  labelBubble: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  premiumBubble: {
+    backgroundColor: 'rgba(20, 20, 20, 0.85)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
+    minWidth: 160,
+    maxWidth: 240,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  labelText: {
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  premiumLabelText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: typography.primary.bold,
   },
-  distanceText: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 10,
-    fontFamily: typography.primary.semiBold,
+  premiumDistanceText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
+    fontFamily: typography.primary.medium,
+    marginTop: 1,
+  },
+  verticalStalk: {
+    width: 2,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginTop: -2,
+  },
+  horizontalStalk: {
+    width: 40,
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginRight: -2,
   }
 });
