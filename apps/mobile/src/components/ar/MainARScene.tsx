@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber/native';
 import { Float } from '@react-three/drei/native';
+import * as THREE from 'three';
 import { getCategoryMetadata } from '../../utils/poiUtils';
 
 // Haversine distance formula in meters
@@ -32,6 +34,30 @@ const getBearing = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   return (theta * 180 / Math.PI + 360) % 360;
 };
 
+interface ARPinProps {
+  color: string;
+  name: string;
+  distance: number;
+}
+
+const ARPin: React.FC<ARPinProps> = ({ color, name, distance }) => {
+  return (
+    <group>
+      {/* Subtle Anchor Dot */}
+      <mesh>
+        <sphereGeometry args={[0.05, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      
+      {/* Outer Glow */}
+      <mesh>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
+      </mesh>
+    </group>
+  );
+};
+
 interface MainARSceneProps {
   userCoords?: number[] | null;
   heading?: number;
@@ -44,7 +70,7 @@ export const MainARScene: React.FC<MainARSceneProps> = ({ userCoords, heading = 
     if (!userCoords || pois.length === 0) return [];
 
     const [userLon, userLat] = userCoords;
-    const MAX_DISTANCE = 500; // Only show POIs within 500 meters
+    const MAX_DISTANCE = 1000; 
 
     return pois.map((poi, idx) => {
       const [poiLon, poiLat] = poi.geometry.coordinates;
@@ -56,46 +82,31 @@ export const MainARScene: React.FC<MainARSceneProps> = ({ userCoords, heading = 
       const angleDiff = bearing - heading;
       const rad = angleDiff * (Math.PI / 180);
       
-      // Calculate depth based on distance
       const scaledDistance = Math.min(Math.max(distance / 5, 2), 20); 
 
       let x = 0;
-      let y = (idx % 3) * 0.5 - 0.5; // Stagger to prevent overlaps
+      let y = (idx % 3) * 0.5 - 0.5; 
       let z = 0;
 
-      // In Three.js: -Z is forward, X is right, Y is up.
-      // If the app is locked in portrait but held horizontally (rotated 90deg CW):
-      // Physical "Right" is now Screen "Down" (+Y in Three.js terms if not rotated)
-      // Physical "Left" is now Screen "Up" (-Y in Three.js terms if not rotated)
-      // Physical "Up" is now Screen "Right" (+X)
-      // Wait, let's simplify: if we rotate the whole Camera or Group by 90deg, the logic stays the same.
-      
       if (isLandscape) {
-        // When held in landscape (rotated 90deg clockwise), 
-        // the physical "Left/Right" sweep (yaw) moves objects along the screen's long axis (Y in portrait).
-        // Since we want them to stay at 'eye level' relative to the Horizon,
-        // we map the horizontal angle to the Y axis and keep distance on Z.
         x = 0; 
         y = Math.sin(rad) * scaledDistance; 
         z = -Math.cos(rad) * scaledDistance;
       } else {
-        // Portrait: Yaw moves objects along X axis.
         x = Math.sin(rad) * scaledDistance;
         y = (idx % 3) * 0.5 - 0.5;
         z = -Math.cos(rad) * scaledDistance;
       }
 
       const metadata = getCategoryMetadata(poi.properties.category);
-      const color = metadata.color || '#3b82f6';
 
       return (
         <group key={poi.properties.id || idx} position={[x, y, z]}>
-          <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-            <mesh position={[0, 0, 0]}>
-              <sphereGeometry args={[0.2, 16, 16]} />
-              <meshStandardMaterial color={color} />
-            </mesh>
-          </Float>
+          <ARPin 
+            color={metadata.color} 
+            name={poi.properties.name} 
+            distance={distance}
+          />
         </group>
       );
     }).filter(Boolean);
