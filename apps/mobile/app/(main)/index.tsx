@@ -31,6 +31,7 @@ import { POICarousel } from '../../src/components/map/POICarousel';
 import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -49,6 +50,7 @@ function MapIndex() {
   
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedPoi = useMapStore(s => s.selectedPoi);
+  const currentRoute = useMapStore(s => s.currentRoute);
   const deselect = useMapStore(s => s.deselect);
   const selectPoi = useMapStore(s => s.selectPoi);
   const triggerRecenter = useMapStore(s => s.triggerRecenter);
@@ -56,9 +58,12 @@ function MapIndex() {
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
-  const { isVisible: isARVisible } = useCameraTilt();
+  const { isVisible: isARVisible, heading, isLandscape } = useCameraTilt();
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const poiDetailSheetRef = useRef<BottomSheet>(null);
+  
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
+  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -66,7 +71,8 @@ function MapIndex() {
 
   React.useEffect(() => {
     if (selectedPoiId) {
-      bottomSheetRef.current?.snapToIndex(1);
+      poiDetailSheetRef.current?.snapToIndex(0);
+      bottomSheetRef.current?.snapToIndex(0); // Colapsar el de búsqueda
     }
   }, [selectedPoiId]);
 
@@ -128,7 +134,7 @@ function MapIndex() {
       const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) selectPoi({ ...f.properties, geometry: f.geometry } as any);
     }
-  }, [soloPoiData, poisData, numericPoiId, selectedPoi]);
+  }, [soloPoiData, poisData, numericPoiId, selectedPoi, selectPoi]);
 
   const searchResultsData = useMemo(() => {
     if (!searchQuery.trim() || !poisData?.features) return [];
@@ -152,11 +158,15 @@ function MapIndex() {
       setSearchQuery('');
     }
     deselect();
+    poiDetailSheetRef.current?.close();
   }, [isSearching, searchQuery, deselect]);
 
-  const rRecenterButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 100 }],
-  }));
+  const rRecenterButtonStyle = useAnimatedStyle(() => {
+    const activeY = selectedPoiId ? poiSheetPosition.value : sheetPosition.value;
+    return {
+      transform: [{ translateY: activeY - SCREEN_HEIGHT - 100 }],
+    };
+  }, [selectedPoiId]);
 
   const renderSearchResults = () => (
     <View style={styles.cardContainer}>
@@ -210,7 +220,14 @@ function MapIndex() {
           savedLocations={savedData}
           onDeselect={handleMapPress}
         />
-        <AROverlay isVisible={isARVisible} onExitAR={() => {}} />
+        <AROverlay 
+          isVisible={isARVisible} 
+          onExitAR={() => {}} 
+          userCoords={userCoords}
+          heading={heading}
+          pois={poisData?.features || []}
+          isLandscape={isLandscape}
+        />
         {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />
@@ -233,50 +250,62 @@ function MapIndex() {
         </View>
       </Animated.View>
 
-      <MapBottomSheet 
-        ref={bottomSheetRef}
-        translateY={sheetPosition}
-        activeCategoryId={activeCategoryId}
-        isSearching={isSearching}
-        searchBar={
-          <SearchBar 
-            placeholder="Busca sitios..."
-            value={searchQuery}
-            onSearch={setSearchQuery} 
-            onArPress={() => router.push('/(main)/profile')} 
-            onFocus={() => {
-              setIsSearching(true);
-              bottomSheetRef.current?.snapToIndex(2);
-            }}
-          />
-        }
-        searchResults={renderSearchResults()}
-        poiCarousel={
-          <POICarousel 
-            pois={carouselPois} 
-            onSelectPoi={(poi) => selectPoi(poi)} 
-          />
-        }
-        discoveryContent={
-          <GuidesSection 
-            onSelectMarker={(coords, id) => {
-              selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
-            }}
-          />
-        }
-        onSelectCategory={(category) => {
-          if (activeCategoryId === category) {
-            setActiveCategoryId(null);
-            return;
+      {!isARVisible && (
+        <MapBottomSheet 
+          ref={bottomSheetRef}
+          translateY={sheetPosition}
+          activeCategoryId={activeCategoryId}
+          isSearching={isSearching}
+          searchBar={
+            <SearchBar 
+              placeholder="Busca sitios..."
+              value={searchQuery}
+              onSearch={setSearchQuery} 
+              onArPress={() => router.push('/(main)/profile')} 
+              onFocus={() => {
+                setIsSearching(true);
+                bottomSheetRef.current?.snapToIndex(2);
+              }}
+            />
           }
-          setActiveCategoryId(category);
-          
-          if (category === 'gate' || category === 'grandstand') {
-             const found = poisData?.features.find((f: any) => f.properties.category === category);
-             if (found) selectPoi({ ...found.properties, geometry: found.geometry } as any);
+          searchResults={renderSearchResults()}
+          poiCarousel={
+            <POICarousel 
+              pois={carouselPois} 
+              onSelectPoi={(poi) => selectPoi(poi)} 
+            />
           }
-        }}
-      />
+          discoveryContent={
+            <GuidesSection 
+              onSelectMarker={(coords, id) => {
+                selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
+              }}
+            />
+          }
+          onSelectCategory={(category: string) => {
+            if (activeCategoryId === category) {
+              setActiveCategoryId(null);
+              return;
+            }
+            setActiveCategoryId(category);
+            
+            if (category === 'gate' || category === 'grandstand') {
+               const found = poisData?.features.find((f: any) => f.properties.category === category);
+               if (found) selectPoi({ ...found.properties, geometry: found.geometry } as any);
+            }
+          }}
+        />
+      )}
+
+      {!isARVisible && (
+        <PoiDetailSheet 
+          ref={poiDetailSheetRef}
+          poi={selectedPoi}
+          route={currentRoute}
+          onClose={deselect}
+          translateY={poiSheetPosition}
+        />
+      )}
     </View>
   );
 }
