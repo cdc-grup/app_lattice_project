@@ -1,10 +1,9 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedStyle, 
-  withSpring, 
   withTiming,
   withRepeat,
   useSharedValue,
@@ -29,6 +28,9 @@ import {
 import { mapLayerStyles } from '../../styles/mapLayerStyles';
 import { theme } from '../../styles/theme';
 import { getCategoryMetadata } from '../../utils/poiUtils';
+import { typography } from '../../styles/typography';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface MapContentProps {
   userCoords: number[] | null;
@@ -88,46 +90,35 @@ const PoiMarker = React.memo(({
   isSelected, 
   metadata, 
   onPress,
-  index
+  label
 }: { 
   isSelected: boolean; 
   metadata: any; 
   onPress: () => void;
-  index: number;
+  label?: string;
 }) => {
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: withSpring(isSelected ? 1.2 : 1, { damping: 12, stiffness: 100 }) },
-      ],
-      backgroundColor: withTiming(isSelected ? 'white' : 'rgba(10, 10, 10, 0.75)', { duration: 300 }),
-      borderColor: withTiming(isSelected ? 'white' : metadata.color, { duration: 300 }),
-      borderWidth: withTiming(isSelected ? 4 : 1.5, { duration: 300 }),
-      width: isSelected ? 44 : 34,
-      height: isSelected ? 44 : 34,
-      borderRadius: isSelected ? 22 : 17,
-    };
-  }, [isSelected, metadata.color]);
-
   return (
-    <Animated.View 
-      entering={FadeInDown.delay(Math.min(index * 20, 600)).springify().damping(15)}
+    <Pressable 
+      onPress={onPress} 
       style={styles.markerContainer}
     >
-      <Animated.View 
-        onTouchStart={onPress}
-        style={[
-          styles.markerBase,
-          animatedStyle
-        ]}
-      >
+      <View style={styles.markerSymbol}>
         <MaterialCommunityIcons
           name={metadata.icon as any}
-          size={isSelected ? 22 : 18}
-          color={isSelected ? '#0A0A0A' : metadata.color}
+          size={isSelected ? 20 : 16}
+          color={isSelected ? 'white' : metadata.color}
         />
-      </Animated.View>
-    </Animated.View>
+      </View>
+      <Text 
+        style={[
+          styles.markerLabelText,
+          { color: isSelected ? 'white' : metadata.color }
+        ]} 
+        numberOfLines={1}
+      >
+        {label || metadata.label}
+      </Text>
+    </Pressable>
   );
 });
 
@@ -156,11 +147,10 @@ export const MapContent = React.memo(({
   const { data: pathNetwork } = usePathNetwork();
   
   const routeRequest = useMemo(() => {
-    // Only request routes for database POIs (number IDs)
-    if (selectedPoiId && userCoords && typeof selectedPoiId === 'number') {
+    if (selectedPoiId && userCoords && !isNaN(Number(selectedPoiId))) {
       return {
         origin: { lat: userCoords[1], lng: userCoords[0] },
-        destination: { poiId: selectedPoiId },
+        destination: { poiId: Number(selectedPoiId) },
       } as any;
     }
     return null;
@@ -182,10 +172,20 @@ export const MapContent = React.memo(({
 
   useEffect(() => {
     if (selectedCoords && camera.current && !isNavigating) {
+      // DEBUG LOG
+      console.log('[Camera] Attempting to center on:', selectedCoords);
+      
+      // TRUCO: Calculamos un punto de enfoque ligeramente al SUR del POI
+      // Esto empuja el POI hacia ARRIBA en la pantalla, pero con cuidado de no sacarlo
+      const focusCoords = [
+        selectedCoords[0], // longitud igual
+        selectedCoords[1] - 0.0006 // latitud un poco más abajo (sur) - ajuste final
+      ];
+
       camera.current.setCamera({
-        centerCoordinate: selectedCoords,
-        zoomLevel: DEFAULT_ZOOM,
-        animationDuration: SELECT_ANIMATION_DURATION,
+        centerCoordinate: focusCoords,
+        zoomLevel: 17.2,
+        animationDuration: 600,
         animationMode: 'flyTo',
       });
     }
@@ -227,7 +227,7 @@ export const MapContent = React.memo(({
 
     // 1. Standard POIs
     if (poisGeoJSON?.features) {
-      poisGeoJSON.features.forEach((feature: any, index: number) => {
+      poisGeoJSON.features.forEach((feature: any) => {
         const id = feature.properties.id;
         const isSelected = String(id) === String(selectedPoiId);
         const coords = feature.geometry.coordinates;
@@ -245,26 +245,25 @@ export const MapContent = React.memo(({
               isSelected={isSelected}
               metadata={metadata}
               onPress={() => onPoiPress(poiObject)}
-              index={index}
+              label={feature.properties.name}
             />
           </MapLibreGL.MarkerView>
         );
       });
     }
 
-    // 2. Saved Locations (Green)
+    // 2. Saved Locations
     if (savedLocations?.features) {
-      savedLocations.features.forEach((feature: any, index: number) => {
+      savedLocations.features.forEach((feature: any) => {
         const id = feature.properties.id;
         const finalId = `saved_${id}`;
         const isSelected = finalId === String(selectedPoiId);
         const coords = feature.geometry.coordinates;
         const poiObject = { ...feature.properties, id: finalId, name: feature.properties.label, geometry: feature.geometry };
         
-        // Custom metadata for saved markers (themed green)
         const savedMetadata = {
           icon: 'star',
-          color: '#30D158', // Green
+          color: '#B4D99B', 
           label: feature.properties.label
         };
 
@@ -279,7 +278,7 @@ export const MapContent = React.memo(({
               isSelected={isSelected}
               metadata={savedMetadata}
               onPress={() => onPoiPress(poiObject)}
-              index={(poisGeoJSON?.features?.length || 0) + index} // Offset delay
+              label={feature.properties.label}
             />
           </MapLibreGL.MarkerView>
         );
@@ -328,7 +327,6 @@ export const MapContent = React.memo(({
         />
       </MapLibreGL.UserLocation>
 
-      {/* Separate MarkerView for Pulsing User Location to avoid crash */}
       {locationStatus === 'granted' && userCoords && (
         <MapLibreGL.MarkerView coordinate={userCoords}>
           <PulsingUserLocation />
@@ -336,51 +334,31 @@ export const MapContent = React.memo(({
       )}
 
       {/* Network Background */}
-      <MapLibreGL.ShapeSource 
-        id="networkSource" 
-        shape={pathNetwork || EMPTY_GEOJSON}
-      >
+      <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
         <MapLibreGL.LineLayer
           id="networkLines"
-          style={{
-            ...mapLayerStyles.networkLines,
-            lineOpacity: pathNetwork ? 0.3 : 0,
-          }}
+          style={{ ...mapLayerStyles.networkLines, lineOpacity: pathNetwork ? 0.3 : 0 }}
         />
       </MapLibreGL.ShapeSource>
 
       {/* Active Route */}
-      <MapLibreGL.ShapeSource 
-        id="routeSource" 
-        shape={currentRoute || EMPTY_GEOJSON}
-      >
+      <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute || EMPTY_GEOJSON}>
         <MapLibreGL.LineLayer
           id="routeFill"
-          style={{
-            ...mapLayerStyles.routeFill,
-            lineOpacity: currentRoute ? 0.95 : 0,
-          }}
+          style={{ ...mapLayerStyles.routeFill, lineOpacity: currentRoute ? 0.95 : 0 }}
         />
         <MapLibreGL.LineLayer
           id="routeGlow"
-          style={{
-            ...mapLayerStyles.routeGlow,
-            lineOpacity: currentRoute ? 0.3 : 0,
-            lineBlur: 4,
-          }}
+          style={{ ...mapLayerStyles.routeGlow, lineOpacity: currentRoute ? 0.3 : 0, lineBlur: 4 }}
         />
       </MapLibreGL.ShapeSource>
 
-        {/* Points of Interest & Saved Locations (Animated Markers) */}
-        {renderMarkers}
+      {renderMarkers}
       </MapLibreGL.MapView>
 
-      {/* Top Navigation Bar (Google Maps Style) */}
+      {/* Top Navigation Bar */}
       {isNavigating && (
-        <Animated.View 
-          entering={FadeInDown.duration(400)}
-          style={[styles.topNavContainer, { paddingTop: insets.top + 10 }]}
-        >
+        <Animated.View entering={FadeInDown.duration(400)} style={[styles.topNavContainer, { paddingTop: insets.top + 10 }]}>
           <View style={styles.topNavContent}>
             <View style={styles.topNavLeft}>
               <MaterialCommunityIcons name="arrow-up" size={32} color="white" />
@@ -398,12 +376,9 @@ export const MapContent = React.memo(({
         </Animated.View>
       )}
 
-      {/* Bottom Navigation Bar (Google Maps Style) */}
+      {/* Bottom Navigation Bar */}
       {isNavigating && (
-        <Animated.View 
-          entering={FadeInDown.duration(400).delay(100)}
-          style={[styles.bottomNavContainer, { paddingBottom: insets.bottom + 10 }]}
-        >
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={[styles.bottomNavContainer, { paddingBottom: insets.bottom + 10 }]}>
           <View style={styles.bottomNavHeader}>
             <View style={styles.bottomNavInfo}>
               <View style={styles.durationRow}>
@@ -412,24 +387,9 @@ export const MapContent = React.memo(({
               </View>
               <Text style={styles.distanceText}>500 m • 23:03</Text>
             </View>
-            
-            <View style={styles.bottomNavActions}>
-              <View style={styles.routePreviewButton}>
-                <MaterialCommunityIcons name="gesture-double-tap" size={24} color="white" />
-              </View>
-              <Pressable 
-                onPress={() => {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  setNavigating(false);
-                }}
-                style={({ pressed }: { pressed: boolean }) => [
-                  styles.googleExitButton,
-                  pressed && { scale: 0.95, opacity: 0.9 }
-                ]}
-              >
-                <Text style={styles.exitButtonText}>Salir</Text>
-              </Pressable>
-            </View>
+            <Pressable onPress={() => setNavigating(false)} style={styles.googleExitButton}>
+              <Text style={styles.exitButtonText}>Salir</Text>
+            </Pressable>
           </View>
         </Animated.View>
       )}
@@ -438,123 +398,33 @@ export const MapContent = React.memo(({
 });
 
 const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  markerContainer: {
-    // This wrapper handles the entering animation separately from the transform style
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markerBase: {
-    justifyContent: 'center', 
-    alignItems: 'center',
-  },
-  topNavContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 10,
-    right: 10,
-  },
-  topNavContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#006B6B',
-    padding: 16,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  topNavLeft: {
-    marginRight: 16,
-  },
-  topNavCenter: {
-    flex: 1,
-  },
-  topNavInstruction: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-  },
-  topNavDestination: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  topNavRight: {
-    marginLeft: 8,
-  },
-  sparkleCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1C1C1C',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  bottomNavHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  bottomNavInfo: {
-    flex: 1,
-  },
-  durationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  durationText: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  distanceText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 16,
+  map: { flex: 1, backgroundColor: theme.colors.background },
+  markerContainer: { alignItems: 'center', justifyContent: 'center' },
+  markerSymbol: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  markerLabelText: {
+    fontSize: 10,
+    fontFamily: typography.secondary.bold,
     marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+    maxWidth: 80,
+    textAlign: 'center',
   },
-  bottomNavActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  routePreviewButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  googleExitButton: {
-    backgroundColor: '#EA4335',
-    paddingHorizontal: 24,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  exitButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  topNavContainer: { position: 'absolute', top: 0, left: 10, right: 10 },
+  topNavContent: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#006B6B', padding: 16, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  topNavLeft: { marginRight: 16 },
+  topNavCenter: { flex: 1 },
+  topNavInstruction: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
+  topNavDestination: { color: 'white', fontSize: 22, fontWeight: 'bold' },
+  topNavRight: { marginLeft: 8 },
+  sparkleCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
+  bottomNavContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#1C1C1C', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  bottomNavHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  bottomNavInfo: { flex: 1 },
+  durationRow: { flexDirection: 'row', alignItems: 'center' },
+  durationText: { color: 'white', fontSize: 28, fontWeight: 'bold' },
+  distanceText: { color: 'rgba(255,255,255,0.6)', fontSize: 16, marginTop: 2 },
+  googleExitButton: { backgroundColor: '#EA4335', paddingHorizontal: 24, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  exitButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
 });

@@ -10,8 +10,8 @@ interface MapState {
   currentRoute: RouteGeoJSON | null;
   isNavigating: boolean;
   
-  // Actions
-  selectPoi: (poi: UIPOI | { id: string | number; geometry: { coordinates: number[] } }) => void;
+  // Actions - Renamed to break cache
+  selectPoi: (poi: any) => void;
   setRoute: (route: RouteGeoJSON | null) => void;
   setNavigating: (navigating: boolean) => void;
   deselect: () => void;
@@ -26,35 +26,32 @@ export const useMapStore = create<MapState>((set) => ({
   currentRoute: null,
   isNavigating: false,
 
-  selectPoi: (poi) => {
-    const isObject = poi !== null && typeof poi === 'object';
-    const isFullPoi = isObject && 'name' in poi;
+  selectPoi: (poi: any) => {
+    // Si llegamos aquí, Metro DEBE estar usando este archivo nuevo
+    console.log('--- RECARGA FORZADA: Store Activo ---');
     
+    if (!poi) return;
+    
+    const isObj = typeof poi === 'object' && poi !== null;
+    const id = isObj ? String(poi.id || '') : String(poi);
+    const coords = isObj ? (poi.geometry?.coordinates || null) : null;
+    const fullPoi = (isObj && (poi.name || poi.label)) ? (poi as UIPOI) : null;
+
     set({
-      selectedPoiId: isObject ? String(poi.id) : String(poi),
-      selectedPoi: isFullPoi ? poi as UIPOI : null,
-      selectedCoords: isObject ? (poi as any).geometry?.coordinates : null,
+      selectedPoiId: id,
+      selectedPoi: fullPoi,
+      selectedCoords: coords,
     });
   },
 
-  setRoute: (route) => set({
-    currentRoute: route,
+  setRoute: (route) => set({ currentRoute: route }),
+  setNavigating: (nav) => set({ isNavigating: nav }),
+  deselect: () => set({
+    selectedPoiId: null,
+    selectedPoi: null,
+    selectedCoords: null,
+    currentRoute: null,
+    isNavigating: false,
   }),
-
-  setNavigating: (navigating) => set({
-    isNavigating: navigating,
-  }),
-
-  deselect: () => {
-    set({
-      selectedPoiId: null,
-      selectedPoi: null,
-      selectedCoords: null,
-      currentRoute: null,
-      isNavigating: false,
-    });
-  },
-
   triggerRecenter: () => set((state) => ({ recenterCount: state.recenterCount + 1 })),
 }));
-

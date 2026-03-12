@@ -7,14 +7,14 @@ export const mapLayerStyles = {
   } as LineLayerStyle,
 
   routeFill: {
-    lineColor: '#E10600',
+    lineColor: '#FFFFFF',
     lineWidth: 6,
     lineJoin: 'round',
     lineCap: 'round',
   } as LineLayerStyle,
 
   routeGlow: {
-    lineColor: '#E10600',
+    lineColor: '#FFFFFF',
     lineWidth: 12,
     lineJoin: 'round',
     lineCap: 'round',
