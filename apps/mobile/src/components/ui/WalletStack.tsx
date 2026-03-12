@@ -14,6 +14,7 @@ import { Ticket } from '../../types/models/auth';
 import { TicketCard } from './TicketCard';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import { Alert } from 'react-native';
+import { colors } from '../../styles/colors';
 
 const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = width - 48;
@@ -186,7 +187,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>ESTAT</Text>
                 <View style={styles.statusBadge}>
-                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? '#4CD964' : '#E10600' }]} />
+                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? colors.primary : colors.wine[500] }]} />
                   <Text style={styles.statusText}>{selectedTicket.isActive ? 'ACTIVA' : 'INACTIVA'}</Text>
                 </View>
               </View>
@@ -206,7 +207,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
             <View style={styles.separator} />
 
             <View style={styles.infoBox}>
-              <Feather name="shield" size={16} color="#4CD964" />
+              <Feather name="shield" size={16} color={colors.primary} />
               <Text style={styles.infoBoxText}>
                 Entrada vinculada correctament al teu compte. Només tu pots utilitzar aquest QR per a l'accés.
               </Text>
@@ -216,7 +217,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               style={styles.deleteOptionButton} 
               onPress={() => handleDelete(selectedTicket)}
             >
-              <Feather name="trash-2" size={18} color="#E10600" />
+              <Feather name="trash-2" size={18} color={colors.wine[500]} />
               <Text style={styles.deleteOptionText}>Eliminar Entrada</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   infoBox: {
-    backgroundColor: 'rgba(76, 217, 100, 0.1)',
+    backgroundColor: 'rgba(144, 119, 131, 0.1)',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -319,14 +320,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'rgba(74, 44, 58, 0.1)',
     borderRadius: 12,
     padding: 16,
     marginTop: 32,
     marginBottom: 20,
   },
   deleteOptionText: {
-    color: '#E10600',
+    color: colors.wine[500],
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

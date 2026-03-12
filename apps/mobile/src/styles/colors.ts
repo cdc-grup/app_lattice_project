@@ -11,10 +11,11 @@ export const colors = {
   black: '#1D1C1D',
   secondary: '#6D6A6B',
   steel: '#5C5A59', // Forged Steel
-  red: {
-    500: '#E10600',
-    600: '#C40500',
-    900: '#7F1D1D',
+  wine: {
+    500: '#4A2C3A', // Deep Wine (Base)
+    400: '#907783', // Magic Gem (Highlight)
+    600: '#3A222E', // Darker Wine
+    900: '#1C1B1C', // Very Dark
   },
   slate: {
     400: '#9CA3AF',

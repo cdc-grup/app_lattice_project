@@ -100,6 +100,7 @@ import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 function MapIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const token = useAuthStore(s => s.token);
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   
   // Selective selectors to minimize re-renders
@@ -467,4 +468,3 @@ function MapIndex() {
 
 
 export default MapIndex;
-

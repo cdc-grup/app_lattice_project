@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, Pressable, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, Alert, Modal, ActivityIndicator, StyleSheet, InteractionManager } from 'react-native';
 import * as SafeAreaContext from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
@@ -10,7 +10,9 @@ import { SettingItem } from '../../src/components/ui/SettingItem';
 import { WalletStack } from '../../src/components/ui/WalletStack';
 import { AuthLayout } from '../../src/components/ui/AuthLayout';
 import { PremiumButton } from '../../src/components/ui/PremiumButton';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ThemeGradient } from '../../src/components/ui/ThemeGradient';
+import { authStyles } from '../../src/styles/typography';
+import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 /**
@@ -40,8 +42,14 @@ function ProfileScreen() {
   }, [user]);
 
   const handleLogout = () => {
-    logout();
+    // 1. Navigate first to the welcome screen
     router.replace('/(auth)/welcome');
+    
+    // 2. Clear state ONLY after navigation is complete
+    // This prevents Fabric from trying to recycle views that are still animating
+    InteractionManager.runAfterInteractions(() => {
+      logout();
+    });
   };
 
   const savePreferences = async (prefs: { avoidStairs?: boolean, avoidGrandstands?: boolean, avoidSlopes?: boolean }) => {
@@ -72,59 +80,59 @@ function ProfileScreen() {
   };
 
   return (
-    <AuthLayout 
-      showBack 
-      onBack={() => router.replace('/(main)')}
-    >
-      <Animated.View 
-        entering={FadeInDown.duration(600)}
-        className="flex-1"
+    <View style={{ flex: 1 }}>
+      <ThemeGradient 
+        variant="premium" 
+        showBlob={true}
+      />
+      
+      <AuthLayout 
+        showBack 
+        onBack={() => router.replace('/(main)')}
+        transparent
       >
-        {/* Profile Header */}
-        <View className="pt-8 pb-10 items-center">
-          <View className="mb-6">
-            <View className="w-24 h-24 rounded-[32px] bg-white items-center justify-center shadow-2xl">
-              <Feather name="user" size={48} color="#000" />
-            </View>
+        <Animated.View 
+          entering={FadeInDown.duration(600)}
+          layout={Layout.springify()}
+          className="flex-1"
+        >
+          {/* Profile Header - Replicated Welcome Style */}
+          <View className="items-start mb-16 pt-4">
+            <Animated.View 
+              entering={FadeInDown.delay(100).duration(600)}
+              className="w-20 h-20 rounded-[28px] bg-white items-center justify-center mb-10 shadow-2xl"
+            >
+              <Feather name="user" size={40} color="#000" />
+            </Animated.View>
+            
+            <Animated.Text 
+              entering={FadeInDown.delay(200).duration(600)}
+              className="text-white mb-4"
+              style={authStyles.title}
+            >
+              {user ? user.fullName : 'El meu Perfil'}
+            </Animated.Text>
+            
+            <Animated.Text 
+              entering={FadeInDown.delay(300).duration(600)}
+              className="text-white/50 pr-8"
+              style={authStyles.subtitle}
+            >
+              {user ? user.email || `@${user.fullName.replace(/\s+/g, '').toLowerCase()}` : 'Compte de convidat'}
+            </Animated.Text>
           </View>
-          
-          <Animated.Text 
-            entering={FadeInDown.delay(200).duration(600)}
-            className="text-3xl font-bold text-white tracking-tighter mb-1"
-          >
-            {user ? user.fullName : 'Guest Account'}
-          </Animated.Text>
-          
-          <Animated.Text 
-            entering={FadeInDown.delay(300).duration(600)}
-            className="text-lg text-white/50 font-medium"
-          >
-            {user ? `@${user.fullName.replace(/\s+/g, '').toLowerCase()}` : 'Not logged in'}
-          </Animated.Text>
-          
+
           <Animated.View 
             entering={FadeInDown.delay(400).duration(600)}
-            className="w-full mt-10 px-4"
+            className="gap-y-5 mb-12"
           >
             <PremiumButton 
               onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
-              label="Editar Perfil"
-              variant="outline"
-              className="h-14"
+              label="EDITAR PERFIL"
+              variant="white"
             />
-          </Animated.View>
-        </View>
-
-        {/* Settings Section */}
-        <Animated.View 
-          entering={FadeInDown.delay(500).duration(600)}
-          className="mb-12"
-        >
-          <View className="bg-white/5 border border-white/10 rounded-[32px] overflow-hidden">
-            <SettingItem 
-              label="Billetera de Entradas"
-              icon="tag"
-              secondaryText={tickets && tickets.length > 0 ? `${tickets.length} entradas vinculadas` : 'Vincular entrada'}
+            
+            <PremiumButton 
               onPress={() => {
                 if (tickets && tickets.length > 0) {
                   setShowWallet(true);
@@ -132,40 +140,50 @@ function ProfileScreen() {
                   router.push('/scan' as any);
                 }
               }}
+              label={tickets && tickets.length > 0 ? "MIS ENTRADAS" : "VINCULAR ENTRADA"}
+              variant="glass"
+              icon="tag-outline"
             />
+          </Animated.View>
 
+          {/* Settings Section */}
+          <Animated.View 
+            entering={FadeInDown.delay(500).duration(600)}
+            className="mb-12"
+          >
+            <View className="bg-white/5 border border-white/10 rounded-[32px] overflow-hidden">
+              <View className="px-6 py-5 bg-white/5 border-b border-white/5">
+                <Text className="text-white/30 text-xs font-bold uppercase tracking-[2px]">Configuración</Text>
+              </View>
 
-            <View className="px-6 py-4 bg-white/5">
-              <Text className="text-white/30 text-xs font-bold uppercase tracking-[2px]">Preferencias</Text>
+              <SettingItem 
+                label="Rutas y Accesibilidad"
+                icon="settings"
+                secondaryText="Ajustar preferencias"
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setShowWizard(true);
+                }}
+                iconBgColor="rgba(255, 59, 48, 0.1)"
+              />
+
+              <SettingItem 
+                label="Apariencia"
+                icon="package"
+                iconBgColor="rgba(255, 255, 255, 0.1)"
+                onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
+              />
+
+              <SettingItem 
+                label="Cerrar sesión"
+                icon="log-out"
+                destructive
+                onPress={handleLogout}
+              />
             </View>
-
-            <SettingItem 
-              label="Configuración de Ruta"
-              icon="settings"
-              secondaryText="Ajustar accesibilidad"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setShowWizard(true);
-              }}
-              iconBgColor="rgba(255, 59, 48, 0.1)"
-            />
-
-            <SettingItem 
-              label="Tema"
-              icon="package"
-              iconBgColor="rgba(255, 255, 255, 0.1)"
-              onPress={() => Alert.alert('Info', 'Próximamente disponible!')}
-            />
-
-            <SettingItem 
-              label="Cerrar sesión"
-              icon="log-out"
-              destructive
-              onPress={handleLogout}
-            />
-          </View>
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
+      </AuthLayout>
 
       {/* Wallet Modal */}
       <Modal
@@ -313,11 +331,11 @@ function ProfileScreen() {
       </Modal>
 
       {isSaving && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
-    </AuthLayout>
+    </View>
   );
 }
 
