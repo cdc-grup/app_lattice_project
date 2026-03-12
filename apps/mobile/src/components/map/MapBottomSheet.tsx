@@ -1,67 +1,173 @@
 import React, { useMemo, forwardRef } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
-import { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { View, StyleSheet, Dimensions, Text, Pressable, ScrollView } from 'react-native';
+import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
-import Animated, { SharedValue, useAnimatedProps, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { SharedValue, FadeIn, FadeOut, useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMapStore } from '../../store/useMapStore';
+import { getCategoryMetadata } from '../../utils/poiUtils';
+import { typography } from '../../styles/typography';
+import { colors } from '../../styles/colors';
+import { Image } from 'expo-image';
+import * as Haptics from 'expo-haptics';
+import { SearchFilters } from './SearchFilters';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-// SafeBlurView replaces the direct AnimatedBlurView usage
 
 interface MapBottomSheetProps {
-  children: React.ReactNode;
-  header?: React.ReactNode;
+  searchBar?: React.ReactNode;
+  isSearching?: boolean;
+  searchResults?: React.ReactNode;
+  discoveryContent?: React.ReactNode;
+  poiCarousel?: React.ReactNode;
   translateY: SharedValue<number>;
-  snapPoints?: any; // kept for backwards compat but ignored
+  activeCategoryId: string | null;
+  onSelectCategory: (category: string) => void;
 }
 
-const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
-  return (
-    <SafeBlurView 
-      intensity={80} 
-      tint="dark"
-      style={[style, styles.blurBackground]}
-    >
-      <View style={styles.premiumBorder} />
-    </SafeBlurView>
-  );
-};
+const CustomBackground = ({ style }: BottomSheetBackgroundProps) => (
+  <SafeBlurView intensity={80} tint="dark" style={[style, styles.blurBackground]}>
+    <View style={styles.premiumBorder} />
+  </SafeBlurView>
+);
 
 export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({ 
-  children, 
-  header, 
+  searchBar,
+  isSearching,
+  searchResults,
+  discoveryContent,
+  poiCarousel,
   translateY,
+  activeCategoryId,
+  onSelectCategory,
 }, ref) => {
   const insets = useSafeAreaInsets();
+  const { selectedPoi, deselect, setNavigating } = useMapStore();
+  const scale = useSharedValue(1);
 
-  // Simplified snap points to match standard iOS maps behavior:
-  // 1. Minimized (SearchBar visible)
-  // 2. Medium (Half-ish screen)
-  // 3. Full Screen
-  const snapPointsCalculated = useMemo(() => [
-    insets.bottom + 84,          // Collapsed (search bar + gap)
-    SCREEN_HEIGHT * 0.48,        // Medium/Expanded (The new focus state, restricted to Photo 1 height)
-  ], [insets.bottom]);
+  const snapPoints = useMemo(() => [
+    insets.bottom + 100,         // Collapsed
+    SCREEN_HEIGHT * 0.45,        // Medium
+    SCREEN_HEIGHT - insets.top - 20 // Full
+  ], [insets.bottom, insets.top]);
+
+  const metadata = useMemo(() => 
+    selectedPoi ? getCategoryMetadata(selectedPoi.category) : null
+  , [selectedPoi]);
+
+  const driveButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const renderPoiDetail = () => {
+    if (!selectedPoi || !metadata) return null;
+
+    return (
+      <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.poiContainer}>
+        {/* POI Header - Simplified (removed close button and category label) */}
+        <View style={styles.poiHeader}>
+          <View style={styles.poiTitleContainer}>
+            <Text style={styles.poiTitle} numberOfLines={2}>{selectedPoi.name}</Text>
+          </View>
+        </View>
+
+        {/* Action Button - Using App Primary Color */}
+        <Animated.View style={[styles.driveButtonWrapper, driveButtonStyle]}>
+          <Pressable 
+            onPressIn={() => scale.value = withSpring(0.96)}
+            onPressOut={() => scale.value = withSpring(1)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setNavigating(true);
+            }}
+            style={[styles.driveButton, { backgroundColor: colors.primary }]}
+          >
+            <Feather name="navigation" size={20} color="white" />
+            <Text style={styles.driveButtonText}>IR AHORA</Text>
+          </Pressable>
+        </Animated.View>
+
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Feather name="users" size={14} color="rgba(255,255,255,0.4)" />
+            <Text style={styles.statValue}>Baja</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Feather name="clock" size={14} color="rgba(255,255,255,0.4)" />
+            <Text style={styles.statValue}>8:30 - 20:00</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Feather name="star" size={14} color="#FFD60A" />
+            <Text style={styles.statValue}>4.8</Text>
+          </View>
+        </View>
+
+        {/* Photos */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.photoList}
+        >
+          {(selectedPoi.images && selectedPoi.images.length > 0 ? selectedPoi.images : [
+            'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=800&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1471295253337-3ceaaedca402?q=80&w=800&auto=format&fit=crop'
+          ]).map((img, i) => (
+            <Image key={i} source={{ uri: img }} style={styles.photo} contentFit="cover" transition={200} />
+          ))}
+        </ScrollView>
+
+        {selectedPoi.description && (
+          <Text style={styles.description}>{selectedPoi.description}</Text>
+        )}
+      </Animated.View>
+    );
+  };
 
   return (
     <BottomSheet
       ref={ref}
       index={0}
-      snapPoints={snapPointsCalculated}
+      snapPoints={snapPoints}
       backgroundComponent={CustomBackground}
       handleIndicatorStyle={styles.handleIndicator}
-      // Pass the animated position up to let the map sync with it
       animatedPosition={translateY}
       keyboardBehavior="extend"
     >
-      {header ? <View style={styles.headerContainer}>{header}</View> : null}
       <BottomSheetScrollView 
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {children}
-        <View style={{ height: 40 }} />
+        {/* TOP BAR: Always visible discovery tools (Search & Filters) */}
+        <View style={styles.searchContainer}>
+          {searchBar}
+        </View>
+        
+        {!isSearching && (
+          <View style={styles.filtersWrapper}>
+            <SearchFilters 
+              activeCategory={activeCategoryId}
+              onSelectCategory={onSelectCategory}
+              animatedPosition={translateY}
+            />
+          </View>
+        )}
+
+        {/* Persistent Carousel when filtering, even if a POI is selected */}
+        {!isSearching && activeCategoryId && poiCarousel}
+
+        {/* BOTTOM CONTENT: Dynamic swap between Guides/Results and POI Details */}
+        <View style={styles.contentWrapper}>
+          {isSearching 
+            ? searchResults 
+            : (selectedPoi ? renderPoiDetail() : discoveryContent)
+          }
+        </View>
+
+        <View style={{ height: insets.bottom + 20 }} />
       </BottomSheetScrollView>
     </BottomSheet>
   );
@@ -69,32 +175,131 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
 
 const styles = StyleSheet.create({
   blurBackground: {
-    backgroundColor: 'rgba(10, 10, 12, 0.85)',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(10, 10, 12, 0.88)',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
   },
   handleIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    width: 40,
-    height: 5,
-    borderRadius: 2.5,
-    marginTop: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 8,
   },
-  headerContainer: {
-    paddingHorizontal: 0,
-    paddingBottom: 2,
+  scrollContent: {
+    paddingBottom: 40,
   },
-  contentContainer: {
-    paddingHorizontal: 0, // Content handles its own horizontal padding for better full-bleed support
+  searchContainer: {
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  filtersWrapper: {
+    paddingVertical: 12,
+  },
+  contentWrapper: {
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  // POI Styles
+  poiContainer: {
+    paddingTop: 8,
+  },
+  poiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  poiTitleContainer: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  poiTitle: {
+    color: 'white',
+    fontSize: 26,
+    fontFamily: typography.primary.bold,
+    letterSpacing: -0.5,
+  },
+  categoryBadgeText: {
+    fontSize: 10,
+    fontFamily: typography.primary.bold,
+    marginLeft: 4,
+    letterSpacing: 0.5,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  driveButtonWrapper: {
+    marginTop: 20,
+  },
+  driveButton: {
+    height: 54,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  driveButtonText: {
+    color: 'white',
+    fontSize: 15,
+    fontFamily: typography.primary.bold,
+    letterSpacing: 0.5,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statValue: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    fontFamily: typography.secondary.medium,
+  },
+  statDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  photoList: {
+    marginTop: 20,
+    gap: 12,
+    paddingRight: 20,
+  },
+  photo: {
+    width: 240,
+    height: 150,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  description: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 20,
+    fontFamily: typography.secondary.regular,
   },
   premiumBorder: {
     ...StyleSheet.absoluteFillObject,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     pointerEvents: 'none',
-  }
+  },
 });
-

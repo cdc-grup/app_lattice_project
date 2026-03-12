@@ -206,11 +206,11 @@ export const MapContent = React.memo(({
     }
   }, [onDeselect, storeDeselect]);
 
-  const onPoiPress = useCallback((id: string | number, coords: number[]) => {
-    console.log('[MapContent] Interaction: Marker selected:', id);
+  const onPoiPress = useCallback((poi: any) => {
+    console.log('[MapContent] Interaction: Marker selected:', poi.id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     lastSelectionTime.current = Date.now();
-    selectPoi(id, coords);
+    selectPoi(poi);
   }, [selectPoi]);
 
   const insets = useSafeAreaInsets();
@@ -232,6 +232,7 @@ export const MapContent = React.memo(({
         const isSelected = String(id) === String(selectedPoiId);
         const coords = feature.geometry.coordinates;
         const metadata = getCategoryMetadata(feature.properties.category);
+        const poiObject = { ...feature.properties, geometry: feature.geometry };
 
         markers.push(
           <MapLibreGL.MarkerView
@@ -243,7 +244,7 @@ export const MapContent = React.memo(({
             <PoiMarker 
               isSelected={isSelected}
               metadata={metadata}
-              onPress={() => onPoiPress(id, coords)}
+              onPress={() => onPoiPress(poiObject)}
               index={index}
             />
           </MapLibreGL.MarkerView>
@@ -258,6 +259,7 @@ export const MapContent = React.memo(({
         const finalId = `saved_${id}`;
         const isSelected = finalId === String(selectedPoiId);
         const coords = feature.geometry.coordinates;
+        const poiObject = { ...feature.properties, id: finalId, name: feature.properties.label, geometry: feature.geometry };
         
         // Custom metadata for saved markers (themed green)
         const savedMetadata = {
@@ -276,8 +278,8 @@ export const MapContent = React.memo(({
             <PoiMarker 
               isSelected={isSelected}
               metadata={savedMetadata}
-              onPress={() => onPoiPress(finalId, coords)}
-              index={poisGeoJSON?.features?.length || 0 + index} // Offset delay
+              onPress={() => onPoiPress(poiObject)}
+              index={(poisGeoJSON?.features?.length || 0) + index} // Offset delay
             />
           </MapLibreGL.MarkerView>
         );

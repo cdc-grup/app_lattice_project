@@ -1,7 +1,6 @@
 import React, { useMemo, useCallback, useRef } from 'react';
 import {
   View,
-  ScrollView,
   Pressable,
   Text,
   ActivityIndicator,
@@ -13,12 +12,11 @@ import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { SearchBar } from '../../src/components/SearchBar';
-import { POICard } from '../../src/components/POICard';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
 import { useSinglePOI } from '../../src/hooks/queries/useSinglePOI';
 import { useCategories } from '../../src/hooks/queries/useCategories';
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { useLocationService } from '../../src/hooks/useLocationService';
 import { useCameraTilt } from '../../src/hooks/useCameraTilt';
 import { AROverlay } from '../../src/components/ar/AROverlay';
@@ -28,13 +26,11 @@ import { useMapStore } from '../../src/store/useMapStore';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
-import { QuickActions } from '../../src/components/map/QuickActions';
-import { SearchFilters } from '../../src/components/map/SearchFilters';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
-import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
-import { DIRECT_ACCESS_CATEGORIES } from '../../src/utils/poiUtils';
+import { POICarousel } from '../../src/components/map/POICarousel';
+import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -44,104 +40,33 @@ MapLibreGL.Logger.setLogCallback((log) => {
   return false;
 });
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const styles = StyleSheet.create({
-  mapContainer: { flex: 1, backgroundColor: '#0A0A0A' },
-  map: { flex: 1 },
-  overlay: { 
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 90,
-  },
-  filtersContainer: { paddingHorizontal: 16 },
-  cardContainer: {
-    marginTop: 0,
-    marginBottom: 8,
-  },
-  searchResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    marginBottom: 8,
-  },
-  searchResultInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  searchResultIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  searchResultName: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  searchResultCat: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 12,
-    marginTop: 2,
-  },
-});
-
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 
 function MapIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const token = useAuthStore(s => s.token);
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   
-  // Selective selectors to minimize re-renders
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
+  const selectedPoi = useMapStore(s => s.selectedPoi);
   const deselect = useMapStore(s => s.deselect);
+  const selectPoi = useMapStore(s => s.selectPoi);
   const triggerRecenter = useMapStore(s => s.triggerRecenter);
-  const currentRoute = useMapStore(s => s.currentRoute);
 
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
   const { isVisible: isARVisible } = useCameraTilt();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const poiDetailSheetRef = useRef<BottomSheet>(null);
-
-  // Position for the main search sheet
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
-  // Position for the POI detail sheet
-  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearching, setIsSearching] = React.useState(false);
 
-  const selectPoi = useMapStore(s => s.selectPoi);
-
-  // Active sheet position for the location button to track
-  const activePosition = useMemo(() => {
-    return selectedPoiId ? poiSheetPosition : sheetPosition;
-  }, [selectedPoiId, poiSheetPosition, sheetPosition]);
-
-  // Handle POI selection changes
   React.useEffect(() => {
     if (selectedPoiId) {
-      // Show detail sheet, hide search sheet
-      poiDetailSheetRef.current?.snapToIndex(0);
-      bottomSheetRef.current?.close();
-    } else {
-      // Show search sheet, hide detail sheet
-      poiDetailSheetRef.current?.close();
-      bottomSheetRef.current?.snapToIndex(0);
+      bottomSheetRef.current?.snapToIndex(1);
     }
   }, [selectedPoiId]);
 
@@ -153,49 +78,38 @@ function MapIndex() {
 
   const { data: rawPoisData, isLoading } = usePOIs(activeCategory);
 
-  // Filter POIs based on the active ticket
   const poisData = useMemo(() => {
     if (!rawPoisData?.features || !activeTicket) return rawPoisData;
-
     const filteredFeatures = rawPoisData.features.filter((f: any) => {
       const { category, name } = f.properties;
-      
-      // Personalize Gates: Only show assigned gate
       if (category === 'gate' && activeTicket.gate) {
         return name.toLowerCase().includes(activeTicket.gate.toLowerCase()) || 
                activeTicket.gate.toLowerCase().includes(name.toLowerCase());
       }
-      
-      // Personalize Grandstands: Only show assigned zone
       if (category === 'grandstand' && activeTicket.zoneName) {
         return name.toLowerCase().includes(activeTicket.zoneName.toLowerCase()) || 
                activeTicket.zoneName.toLowerCase().includes(name.toLowerCase());
       }
-
-      // Show all other categories (food, medical, etc.) normally
       return true;
     });
-
     return { ...rawPoisData, features: filteredFeatures };
   }, [rawPoisData, activeTicket]);
+
+  // Filtered POIs for Carousel
+  const carouselPois = useMemo(() => {
+    if (!poisData?.features || !activeCategoryId) return [];
+    return poisData.features
+      .filter((f: any) => f.properties.category === activeCategory)
+      .map((f: any) => ({ ...f.properties, geometry: f.geometry }));
+  }, [poisData, activeCategoryId, activeCategory]);
   
-  // Use useSinglePOI hook for robust single POI fetching (fallback for filters)
-  // Fix: Don't call this if the selected ID belongs to a saved location OR if we already have it in poisData
   const { isSelectedSaved, numericPoiId } = useMemo(() => {
     if (!selectedPoiId) return { isSelectedSaved: false, numericPoiId: null };
-    
-    // Check for explicit 'saved_' prefix from MapContent
     const isPrefixed = selectedPoiId.toString().startsWith('saved_');
     const rawId = isPrefixed ? selectedPoiId.toString().replace('saved_', '') : selectedPoiId;
     const numId = Number(rawId);
-
-    // Also check if this ID (numeric) exists in savedData even if not prefixed
     const existsInSaved = savedData?.features?.some((f: any) => Number(f.properties.id) === numId) || false;
-
-    return { 
-      isSelectedSaved: isPrefixed || existsInSaved, 
-      numericPoiId: isNaN(numId) ? null : numId 
-    };
+    return { isSelectedSaved: isPrefixed || existsInSaved, numericPoiId: isNaN(numId) ? null : numId };
   }, [selectedPoiId, savedData]);
 
   const isAlreadyLoaded = useMemo(() => {
@@ -203,44 +117,27 @@ function MapIndex() {
     return poisData.features.some((f: any) => Number(f.properties.id) === numericPoiId);
   }, [numericPoiId, poisData]);
 
-  const { data: soloPoiData, isLoading: isSoloPoiLoading } = useSinglePOI(
-    (isSelectedSaved || isAlreadyLoaded) ? null : numericPoiId
+  const { data: soloPoiData } = useSinglePOI(
+    (isSelectedSaved || isAlreadyLoaded || selectedPoi) ? null : numericPoiId
   );
 
-  // Search logic
-  const searchResults = useMemo(() => {
+  React.useEffect(() => {
+    if (!selectedPoi && soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
+      selectPoi({ ...soloPoiData.properties, geometry: soloPoiData.geometry } as any);
+    } else if (!selectedPoi && poisData && numericPoiId) {
+      const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
+      if (f) selectPoi({ ...f.properties, geometry: f.geometry } as any);
+    }
+  }, [soloPoiData, poisData, numericPoiId, selectedPoi]);
+
+  const searchResultsData = useMemo(() => {
     if (!searchQuery.trim() || !poisData?.features) return [];
     const query = searchQuery.toLowerCase();
     return poisData.features.filter((f: any) => 
       f.properties.name?.toLowerCase().includes(query) ||
       f.properties.category?.toLowerCase().includes(query)
-    ).slice(0, 5); // Return top 5 matches
+    ).slice(0, 5);
   }, [searchQuery, poisData]);
-
-  const selectedPoi = useMemo(() => {
-    if (!selectedPoiId || numericPoiId === null) return null;
-    
-    console.log('[MapIndex] Resolving selection for ID:', selectedPoiId, 'Numeric:', numericPoiId);
-
-    // 1. Try to find it in the current filtered list (fastest)
-    if (poisData) {
-      const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
-      if (f) return { ...f.properties, geometry: f.geometry };
-    }
-    
-    // 2. Check in saved locations (Prioritize local saved data)
-    if (savedData) {
-      const f = savedData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
-      if (f) return { ...f.properties, name: f.properties.label, geometry: f.geometry, isSaved: true };
-    }
-
-    // 3. Fallback to the single POI fetch results
-    if (soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
-      return { ...soloPoiData.properties, geometry: soloPoiData.geometry };
-    }
-
-    return null;
-  }, [selectedPoiId, numericPoiId, poisData, soloPoiData, savedData]);
 
   const handleRecenter = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -250,25 +147,61 @@ function MapIndex() {
 
   const handleMapPress = useCallback(() => {
     Keyboard.dismiss();
-    
     if (isSearching || searchQuery !== '') {
       setIsSearching(false);
       setSearchQuery('');
-      bottomSheetRef.current?.snapToIndex(0);
     }
-    
     deselect();
   }, [isSearching, searchQuery, deselect]);
 
-  const rRecenterButtonStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: activePosition.value - SCREEN_HEIGHT - 80 }],
-    };
-  });
+  const rRecenterButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 100 }],
+  }));
+
+  const renderSearchResults = () => (
+    <View style={styles.cardContainer}>
+      {searchResultsData.length > 0 ? (
+        searchResultsData.map((f: any, index: number) => {
+          const metadata = getCategoryMetadata(f.properties.category);
+          return (
+            <Pressable 
+              key={f.properties.id}
+              onPress={() => {
+                selectPoi({ ...f.properties, geometry: f.geometry } as any);
+                setSearchQuery(''); 
+                setIsSearching(false);
+              }}
+              style={({ pressed }) => [
+                styles.searchResultItem,
+                index === searchResultsData.length - 1 && { borderBottomWidth: 0 },
+                pressed && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
+              ]}
+            >
+              <View style={styles.searchResultInfo}>
+                <View style={[styles.searchResultIcon, { backgroundColor: `${metadata.color}15` }]}>
+                  <MaterialCommunityIcons name={metadata.icon as any} size={20} color={metadata.color} />
+                </View>
+                <View className="flex-1">
+                  <Text style={styles.searchResultName} numberOfLines={1}>{f.properties.name}</Text>
+                  <Text style={styles.searchResultCat}>{metadata.label}</Text>
+                </View>
+              </View>
+            </Pressable>
+          );
+        })
+      ) : (
+        <View className="py-12 items-center">
+          <MaterialCommunityIcons name="magnify" size={48} color="rgba(255,255,255,0.1)" />
+          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, textAlign: 'center', marginTop: 12 }}>
+            No se encontraron resultados
+          </Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <View className="flex-1 overflow-hidden" style={{ backgroundColor: '#0A0A0A' }}>
-      {/* Map Content (Full Screen) */}
       <View style={StyleSheet.absoluteFill}>
         <MapContent 
           userCoords={userCoords}
@@ -277,26 +210,15 @@ function MapIndex() {
           savedLocations={savedData}
           onDeselect={handleMapPress}
         />
-        <AROverlay 
-          isVisible={isARVisible} 
-          onExitAR={() => {}}
-        />
-        {isLoading ? (
+        <AROverlay isVisible={isARVisible} onExitAR={() => {}} />
+        {isLoading && (
           <View className="absolute inset-0 items-center justify-center bg-black/20">
             <ActivityIndicator color={colors.primary} size="large" />
           </View>
-        ) : null}
+        )}
       </View>
 
-      {/* Floating Recenter Button (Synced) */}
-      <Animated.View 
-        pointerEvents="box-none" 
-        style={[
-          styles.overlay, 
-          { bottom: 0 }, 
-          rRecenterButtonStyle
-        ]}
-      >
+      <Animated.View pointerEvents="box-none" style={[styles.overlay, { bottom: 0 }, rRecenterButtonStyle]}>
         <View pointerEvents="auto" className="items-end px-4 mb-4">
           <Pressable 
             onPress={handleRecenter}
@@ -311,160 +233,62 @@ function MapIndex() {
         </View>
       </Animated.View>
 
-      {/* Main Search Bottom Sheet */}
       <MapBottomSheet 
         ref={bottomSheetRef}
         translateY={sheetPosition}
-      >
-        <View style={{ paddingBottom: 24 }}>
-          {/* Search Bar Container */}
-          <View style={{ paddingTop: 16 }}>
-            <SearchBar 
-              placeholder="Busca sitios, accesos o comida..."
-              value={searchQuery}
-              onSearch={setSearchQuery} 
-              onArPress={() => router.push('/(main)/profile')} 
-              onFocus={() => {
-                setIsSearching(true);
-                bottomSheetRef.current?.snapToIndex(1);
-              }}
-            />
-          </View>
-
-          {!isSearching && (
-            <View style={{ paddingVertical: 16 }}>
-              <SearchFilters 
-                activeCategory={activeCategoryId}
-                animatedPosition={sheetPosition}
-                onSelectCategory={(category) => {
-                  // Toggle off if same category is clicked
-                  if (activeCategoryId === category) {
-                    setActiveCategoryId(null);
-                    return;
-                  }
-                  
-                  // Set active category to filter map points
-                  setActiveCategoryId(category);
-
-                  // Only navigate/select directly if it is a Gate or Grandstand
-                  if (category === 'gate' || category === 'grandstand') {
-                    // 1. If user has a ticket, prioritize their assigned gate/grandstand
-                    if (activeTicket) {
-                      if (category === 'gate' && activeTicket.gate) {
-                        const found = poisData?.features.find((f: any) => 
-                          f.properties.category === 'gate' && 
-                          (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
-                          activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                        );
-                        if (found) {
-                          selectPoi(found.properties.id, found.geometry.coordinates);
-                          return;
-                        }
-                      }
-                      if (category === 'grandstand' && activeTicket.zoneName) {
-                        const found = poisData?.features.find((f: any) => 
-                          f.properties.category === 'grandstand' && 
-                          (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
-                          activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                        );
-                        if (found) {
-                          selectPoi(found.properties.id, found.geometry.coordinates);
-                          return;
-                        }
-                      }
-                    }
-
-                    // 2. Default behavior: Find the first POI matching this category
-                    if (poisData?.features) {
-                      const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
-                      if (foundPoi) {
-                        selectPoi(foundPoi.properties.id, foundPoi.geometry.coordinates);
-                      }
-                    }
-                  }
-                  // For 'restaurant', 'shop', 'medical', we do nothing else
-                  // Setting activeCategoryId is enough to filter the map via usePOIs hook
-                }}
-              />
-            </View>
-          )}
-
-          {/* Results or Guides Section Container */}
-          <View className="px-4" style={{ marginTop: isSearching ? 16 : 0 }}>
-            {isSearching || searchQuery.trim() !== '' ? (
-              // Search Results
-              <View style={styles.cardContainer}>
-                {searchResults.length > 0 ? (
-                  searchResults.map((f: any, index: number) => {
-                    const metadata = getCategoryMetadata(f.properties.category);
-                    return (
-                      <Pressable 
-                        key={f.properties.id}
-                        onPress={() => {
-                          selectPoi(f.properties.id, f.geometry.coordinates);
-                          setSearchQuery(''); 
-                          setIsSearching(false);
-                        }}
-                        style={({ pressed }) => [
-                          styles.searchResultItem,
-                          index === searchResults.length - 1 && { borderBottomWidth: 0 },
-                          pressed && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
-                        ]}
-                      >
-                        <View style={styles.searchResultInfo}>
-                          <View style={[styles.searchResultIcon, { backgroundColor: `${metadata.color}15` }]}>
-                            <MaterialCommunityIcons name={metadata.icon as any} size={20} color={metadata.color} />
-                          </View>
-                          <View className="flex-1">
-                            <Text style={styles.searchResultName} numberOfLines={1}>{f.properties.name}</Text>
-                            <Text style={styles.searchResultCat}>{metadata.label}</Text>
-                          </View>
-                        </View>
-                      </Pressable>
-                    );
-                  })
-                ) : (
-                  <View className="py-6 items-center">
-                    {searchQuery.trim() !== '' ? (
-                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No se encontraron resultados</Text>
-                    ) : (
-                      <View className="items-center px-10">
-                        <MaterialCommunityIcons name="magnify" size={48} color="rgba(255,255,255,0.1)" />
-                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14, textAlign: 'center', marginTop: 12 }}>
-                          Escribe para buscar sitios, entradas o servicios
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                )}
-              </View>
-            ) : (
-              // Default Guides Section
-              <View>
-                <GuidesSection 
-                  onSelectMarker={(coords, id) => {
-                    selectPoi(`saved_${id}`, coords);
-                  }}
-                />
-              </View>
-            )}
-            
-            <View style={{ height: 20 }} />
-          </View>
-        </View>
-      </MapBottomSheet>
-
-      {/* POI Detail Bottom Sheet */}
-      <PoiDetailSheet 
-        ref={poiDetailSheetRef}
-        poi={selectedPoi}
-        route={currentRoute}
-        onClose={deselect}
-        translateY={poiSheetPosition}
+        activeCategoryId={activeCategoryId}
+        isSearching={isSearching}
+        searchBar={
+          <SearchBar 
+            placeholder="Busca sitios..."
+            value={searchQuery}
+            onSearch={setSearchQuery} 
+            onArPress={() => router.push('/(main)/profile')} 
+            onFocus={() => {
+              setIsSearching(true);
+              bottomSheetRef.current?.snapToIndex(2);
+            }}
+          />
+        }
+        searchResults={renderSearchResults()}
+        poiCarousel={
+          <POICarousel 
+            pois={carouselPois} 
+            onSelectPoi={(poi) => selectPoi(poi)} 
+          />
+        }
+        discoveryContent={
+          <GuidesSection 
+            onSelectMarker={(coords, id) => {
+              selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
+            }}
+          />
+        }
+        onSelectCategory={(category) => {
+          if (activeCategoryId === category) {
+            setActiveCategoryId(null);
+            return;
+          }
+          setActiveCategoryId(category);
+          
+          if (category === 'gate' || category === 'grandstand') {
+             const found = poisData?.features.find((f: any) => f.properties.category === category);
+             if (found) selectPoi({ ...found.properties, geometry: found.geometry } as any);
+          }
+        }}
       />
     </View>
   );
 }
 
+const styles = StyleSheet.create({
+  overlay: { position: 'absolute', left: 0, right: 0, zIndex: 90 },
+  cardContainer: { marginTop: 8 },
+  searchResultItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4 },
+  searchResultInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  searchResultIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+  searchResultName: { color: 'white', fontSize: 16, fontFamily: 'Inter-Bold', letterSpacing: -0.2 },
+  searchResultCat: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 13, marginTop: 2 },
+});
 
 export default MapIndex;

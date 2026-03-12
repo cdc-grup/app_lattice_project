@@ -1,61 +1,16 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import React from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSavedLocations } from '../../hooks/queries/useSavedLocations';
 import { colors } from '../../styles/colors';
-import { typography, pageStyles } from '../../styles/typography';
-import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { SafeBlurView } from '../ui/SafeBlurView';
-
-const GuideItem = ({ title, coords, onPress, isLast }: { title: string, coords: [number, number], onPress?: () => void, isLast?: boolean }) => {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
-  return (
-    <Pressable 
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress?.();
-      }}
-      onPressIn={() => scale.value = withSpring(0.98)}
-      onPressOut={() => scale.value = withSpring(1)}
-      style={({ pressed }) => [
-        styles.markerItem,
-        !isLast && styles.markerItemBorder,
-      ]}
-    >
-      <Animated.View style={[styles.markerInfo, animatedStyle]}>
-        <View style={styles.iconWrapper}>
-          <Feather name="map-pin" size={18} color="#FF453A" />
-        </View>
-        <View style={styles.nameContainer}>
-          <Text style={styles.markerName} numberOfLines={1}>
-            {title || 'Marcador sin nombre'}
-          </Text>
-          <Text style={styles.markerCoords}>
-            {coords[1].toFixed(5)}, {coords[0].toFixed(5)}
-          </Text>
-        </View>
-        <Feather name="chevron-right" size={14} color="rgba(255, 255, 255, 0.2)" />
-      </Animated.View>
-    </Pressable>
-  );
-};
+import { typography } from '../../styles/typography';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 interface GuidesSectionProps {
   onSelectMarker: (coords: [number, number], id: number) => void;
 }
 
 export const GuidesSection = ({ onSelectMarker }: GuidesSectionProps) => {
-  const { data: savedData, isLoading } = useSavedLocations();
-
-  const displayItems = useMemo(() => {
-    if (!savedData?.features) return [];
-    return savedData.features.slice(0, 3);
-  }, [savedData]);
+  const { isLoading } = useSavedLocations();
 
   if (isLoading) {
     return (
@@ -65,153 +20,54 @@ export const GuidesSection = ({ onSelectMarker }: GuidesSectionProps) => {
     );
   }
 
+  // Favorites section removed as requested. 
+  // This component can now be used for future "Guides" or "Recommendations"
+  // For now, we return null or a placeholder to keep it scalable.
   return (
     <View style={styles.container}>
-      <View style={styles.listContent}>
-        {displayItems.length > 0 ? (
-          <View style={styles.cardContainer}>
-            {displayItems.map((feature: any, index: number) => (
-              <GuideItem 
-                key={feature.properties.id}
-                title={feature.properties.label} 
-                coords={feature.geometry.coordinates}
-                onPress={() => onSelectMarker(feature.geometry.coordinates, feature.properties.id)}
-                isLast={index === displayItems.length - 1}
-              />
-            ))}
-          </View>
-        ) : (
-          <Animated.View 
-            entering={FadeInUp.delay(200).duration(800).springify()}
-            style={styles.emptyContainer}
-          >
-            <Feather name="star" size={32} color="#FFD60A" />
-            <Text style={styles.emptyTitle}>Tus Sitios Favoritos</Text>
-            <Text style={styles.emptySubtitle}>
-              Guarda entradas, zonas de descanso o puntos de encuentro para tenerlos siempre a mano.
-            </Text>
-            <Pressable 
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
-              style={({ pressed }) => [
-                styles.emptyButton,
-                pressed && { opacity: 0.8, scale: 0.98 }
-              ]}
-            >
-              <Text style={styles.emptyButtonText}>Empezar a guardar</Text>
-            </Pressable>
-          </Animated.View>
-        )}
-      </View>
+      <Animated.View 
+        entering={FadeInUp.delay(200).duration(800).springify()}
+        style={styles.emptyContainer}
+      >
+        <Text style={styles.emptyTitle}>Explora el Recinto</Text>
+        <Text style={styles.emptySubtitle}>
+          Encuentra los mejores puntos de interés, servicios y accesos filtrando por categorías.
+        </Text>
+      </Animated.View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 10,
   },
   loadingContainer: {
     height: 100,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  seeAll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  seeAllText: {
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 12,
-    fontFamily: typography.secondary.bold,
-    marginRight: 2,
-  },
-  cardContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden',
-  },
-  listContent: {
-    gap: 0,
-  },
-  markerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  markerItemBorder: {
-    borderBottomWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  markerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  nameContainer: {
-    flex: 1,
-  },
-  markerName: {
-    color: 'white',
-    fontSize: 15,
-    fontFamily: typography.primary.bold,
-    letterSpacing: -0.2,
-  },
-  markerCoords: {
-    color: 'rgba(255, 255, 255, 0.3)',
-    fontSize: 11,
-    marginTop: 1,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
   emptyContainer: {
-    paddingVertical: 24,
-    borderRadius: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+    borderRadius: 24,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
   },
   emptyTitle: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: typography.primary.bold,
-    marginTop: 16,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   emptySubtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: typography.secondary.medium,
     textAlign: 'center',
-    marginTop: 8,
-    paddingHorizontal: 40,
-    lineHeight: 18,
-  },
-  emptyButton: {
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-  },
-  emptyButtonText: {
-    color: '#000',
-    fontSize: 14,
-    fontFamily: typography.primary.bold,
+    marginTop: 10,
+    lineHeight: 20,
   },
 });

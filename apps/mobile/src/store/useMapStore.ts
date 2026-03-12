@@ -1,16 +1,17 @@
 import { create } from 'zustand';
-
 import { RouteGeoJSON } from '../types';
+import { UIPOI } from '../types/models/poi';
 
 interface MapState {
   selectedPoiId: string | null;
+  selectedPoi: UIPOI | null;
   selectedCoords: number[] | null;
   recenterCount: number;
   currentRoute: RouteGeoJSON | null;
   isNavigating: boolean;
   
   // Actions
-  selectPoi: (id: string | number, coords: number[]) => void;
+  selectPoi: (poi: UIPOI | { id: string | number; geometry: { coordinates: number[] } }) => void;
   setRoute: (route: RouteGeoJSON | null) => void;
   setNavigating: (navigating: boolean) => void;
   deselect: () => void;
@@ -19,15 +20,22 @@ interface MapState {
 
 export const useMapStore = create<MapState>((set) => ({
   selectedPoiId: null,
+  selectedPoi: null,
   selectedCoords: null,
   recenterCount: 0,
   currentRoute: null,
   isNavigating: false,
 
-  selectPoi: (id, coords) => set({
-    selectedPoiId: String(id),
-    selectedCoords: coords,
-  }),
+  selectPoi: (poi) => {
+    const isObject = poi !== null && typeof poi === 'object';
+    const isFullPoi = isObject && 'name' in poi;
+    
+    set({
+      selectedPoiId: isObject ? String(poi.id) : String(poi),
+      selectedPoi: isFullPoi ? poi as UIPOI : null,
+      selectedCoords: isObject ? (poi as any).geometry?.coordinates : null,
+    });
+  },
 
   setRoute: (route) => set({
     currentRoute: route,
@@ -40,6 +48,7 @@ export const useMapStore = create<MapState>((set) => ({
   deselect: () => {
     set({
       selectedPoiId: null,
+      selectedPoi: null,
       selectedCoords: null,
       currentRoute: null,
       isNavigating: false,
