@@ -28,10 +28,13 @@ import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { POICarousel } from '../../src/components/map/POICarousel';
-import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
+import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
+import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
+import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
+import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
 
 // Configure MapLibre
 MapLibreGL.setAccessToken(null);
@@ -66,8 +69,11 @@ function MapIndex() {
   const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
+  const saveLocationMutation = useSaveLocation();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearching, setIsSearching] = React.useState(false);
+  const [showSaveModal, setShowSaveModal] = React.useState(false);
+  const [showSavedManager, setShowSavedManager] = React.useState(false);
 
   React.useEffect(() => {
     if (selectedPoiId) {
@@ -276,11 +282,15 @@ function MapIndex() {
             />
           }
           discoveryContent={
-            <GuidesSection 
-              onSelectMarker={(coords, id) => {
-                selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
-              }}
-            />
+            <View>
+              <GuidesSection 
+                onSeeAll={() => setShowSavedManager(true)}
+                onSelectMarker={(coords, id) => {
+                  selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
+                }}
+              />
+              <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
+            </View>
           }
           onSelectCategory={(category: string) => {
             if (activeCategoryId === category) {
@@ -289,14 +299,44 @@ function MapIndex() {
             }
             setActiveCategoryId(category);
             
-            if (category === 'gate' || category === 'grandstand') {
-               const found = poisData?.features.find((f: any) => f.properties.category === category);
-               if (found) selectPoi({ ...found.properties, geometry: found.geometry } as any);
+            // 1. If user has a ticket, prioritize their assigned gate/grandstand
+            if (activeTicket) {
+              if (category === 'gate' && activeTicket.gate) {
+                const found = poisData?.features.find((f: any) => 
+                  f.properties.category === 'gate' && 
+                  (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) || 
+                  activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                );
+                if (found) {
+                  selectPoi({ ...found.properties, geometry: found.geometry } as any);
+                  return;
+                }
+              }
+              if (category === 'grandstand' && activeTicket.zoneName) {
+                const found = poisData?.features.find((f: any) => 
+                  f.properties.category === 'grandstand' && 
+                  (f.properties.name.toLowerCase().includes(activeTicket.zoneName!.toLowerCase()) || 
+                  activeTicket.zoneName!.toLowerCase().includes(f.properties.name.toLowerCase()))
+                );
+                if (found) {
+                  selectPoi({ ...found.properties, geometry: found.geometry } as any);
+                  return;
+                }
+              }
+            }
+
+            // 2. Default behavior: Find the first POI matching this category
+            if (poisData?.features) {
+              const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
+              if (foundPoi) {
+                selectPoi({ ...foundPoi.properties, geometry: foundPoi.geometry } as any);
+              }
             }
           }}
         />
       )}
 
+      {/* POI Detail Bottom Sheet */}
       {!isARVisible && (
         <PoiDetailSheet 
           ref={poiDetailSheetRef}
@@ -306,6 +346,30 @@ function MapIndex() {
           translateY={poiSheetPosition}
         />
       )}
+
+      <SaveLocationModal 
+        isVisible={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        isLoading={saveLocationMutation.isPending}
+        onSave={(name) => {
+          const coords = userCoords || [2.261, 41.570];
+          saveLocationMutation.mutate({
+            label: name,
+            latitude: coords[1],
+            longitude: coords[0]
+          }, {
+            onSuccess: () => {
+              setShowSaveModal(false);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+          });
+        }}
+      />
+
+      <SavedLocationsManager 
+        isVisible={showSavedManager}
+        onClose={() => setShowSavedManager(false)}
+      />
     </View>
   );
 }

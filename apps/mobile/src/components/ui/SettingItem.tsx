@@ -27,8 +27,8 @@ export const SettingItem = React.memo(({
   secondaryText,
   iconBgColor
 }: SettingItemProps) => {
-  const iconColor = destructive ? colors.wine[500] : (iconBgColor ? 'white' : colors.primary);
-  const bgColor = iconBgColor || (destructive ? 'rgba(74, 44, 58, 0.1)' : 'rgba(144, 119, 131, 0.1)');
+  const iconColor = destructive ? colors.red[500] : (iconBgColor ? 'white' : colors.primary);
+  const bgColor = iconBgColor || (destructive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(225, 6, 0, 0.1)');
 
   return (
     <Pressable 
@@ -44,10 +44,7 @@ export const SettingItem = React.memo(({
           <Feather name={icon} size={20} color={iconColor} />
         </View>
         <View className="flex-1">
-          <Text 
-            className={`text-base font-medium ${destructive ? 'font-bold' : 'text-white'}`}
-            style={destructive ? { color: colors.wine[500] } : undefined}
-          >
+          <Text className={`text-base font-medium ${destructive ? 'text-red-500 font-bold' : 'text-white'}`}>
             {label}
           </Text>
           {secondaryText ? (
@@ -64,7 +61,7 @@ export const SettingItem = React.memo(({
           thumbColor={'#ffffff'}
         />
       ) : (
-        <Feather name="chevron-right" size={24} color={destructive ? colors.wine[500] : "#9ca3af"} />
+        <Feather name="chevron-right" size={24} color={destructive ? colors.red[500] : "#9ca3af"} />
       )}
     </Pressable>
   );
