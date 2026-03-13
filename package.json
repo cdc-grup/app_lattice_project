@@ -5,12 +5,7 @@
   "description": "App Lattice: Fullstack project with Express, Expo, and PostgreSQL",
   "author": "Kore",
   "license": "MIT",
-  "packageManager": "npm@10.9.4",
-  "workspaces": [
-    "apps/*",
-    "apps/server/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@10.0.0",
   "scripts": {
     "android": "turbo run android --filter=@app/mobile",
     "build": "turbo build --filter=!//",

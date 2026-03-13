@@ -73,17 +73,17 @@ export const SearchBar = React.memo(({
           <View style={[
             styles.searchContainer,
             {
-              width: 43,
-              height: 43,
-              marginLeft: 12,
-              borderRadius: 24,
+              width: 48,
+              height: 48,
+              marginLeft: 10,
+              borderRadius: 20, // Increased from 16 for more rounded look
               alignItems: 'center',
               justifyContent: 'center',
               opacity: pressed ? 0.8 : 1,
-              transform: [{ scale: pressed ? 0.92 : 1 }],
+              transform: [{ scale: pressed ? 0.95 : 1 }],
             }
           ]}>
-            <Feather name="user" size={20} color="rgba(255, 255, 255, 0.5)" />
+            <Feather name="user" size={22} color="rgba(255, 255, 255, 0.6)" />
           </View>
         )}
       </Pressable>
@@ -93,8 +93,8 @@ export const SearchBar = React.memo(({
 
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.08)', 
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
 });

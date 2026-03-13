@@ -48,7 +48,7 @@ interface PoiDetailSheetProps {
 const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
   return (
     <SafeBlurView 
-      intensity={80} 
+      intensity={100} 
       tint="dark"
       style={[style, styles.blurBackground]}
     >
@@ -156,9 +156,9 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             <View className="flex-row items-center mb-1">
               <View 
                 className="px-2 py-0.5 rounded-full flex-row items-center mr-2"
-                style={{ backgroundColor: `${metadata.color}20` }}
+                style={{ backgroundColor: `${metadata.color}15` }}
               >
-                <MaterialCommunityIcons name={metadata.icon as any} size={12} color={metadata.color} />
+                <MaterialCommunityIcons name={metadata.icon as any} size={11} color={metadata.color} />
                 <Text style={[styles.categoryBadgeText, { color: metadata.color }]}>
                   {metadata.label.toUpperCase()}
                 </Text>
@@ -172,9 +172,9 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                 Haptics.selectionAsync();
                 onClose();
               }} 
-              style={({ pressed }) => [styles.headerIcon, styles.closeIcon, pressed && { opacity: 0.7 }]}
+              style={({ pressed }) => [styles.headerIcon, pressed && { opacity: 0.7 }]}
             >
-              <Feather name="x" size={20} color="white" />
+              <Feather name="x" size={20} color="rgba(255, 255, 255, 0.5)" />
             </Pressable>
           </View>
         </View>
@@ -192,17 +192,17 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   setNavigating(true);
                 }}
-                style={[styles.driveButton, { backgroundColor: metadata.color }]}
+                style={styles.driveButton}
               >
                 <View style={styles.driveButtonContent}>
-                  <View style={styles.driveButtonIconContainer}>
-                    <Feather name="navigation" size={24} color="white" />
+                  <View style={[styles.driveButtonIconContainer, { backgroundColor: `${metadata.color}25` }]}>
+                    <Feather name="navigation" size={22} color={metadata.color} />
                   </View>
                   <View style={styles.driveButtonTextContainer}>
                     <Text style={styles.driveButtonTitle}>ESTA A {formattedDistance}</Text>
                     <Text style={styles.driveButtonSubtitle}>Indicaciones • {formattedDuration}</Text>
                   </View>
-                  <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.7)" style={{ marginLeft: 'auto' }} />
+                  <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.2)" style={{ marginLeft: 'auto' }} />
                 </View>
               </Pressable>
             </Animated.View>
@@ -211,11 +211,11 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             entering={FadeInUp.delay(300).duration(800).springify()}
             style={styles.statsRow}
           >
-            <SafeBlurView intensity={20} style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: `${poi.crowdLevel === 'low' ? '#30D15820' : '#FF950020'}` }]}>
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: `${poi.crowdLevel === 'low' ? '#30D15815' : '#FF950015'}` }]}>
                 <Feather 
                   name="users" 
-                  size={16} 
+                  size={15} 
                   color={poi.crowdLevel === 'low' ? '#30D158' : '#FF9500'} 
                 />
               </View>
@@ -223,23 +223,23 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
               <Text style={[styles.statValue, { color: poi.crowdLevel === 'low' ? '#30D158' : '#FF9500' }]}>
                 {poi.crowdLevel === 'low' ? 'Baja' : 'Media'}
               </Text>
-            </SafeBlurView>
+            </View>
 
-            <SafeBlurView intensity={20} style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#A2C2E120' }]}>
-                <Feather name="clock" size={16} color="#A2C2E1" />
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+                <Feather name="clock" size={15} color="rgba(255,255,255,0.5)" />
               </View>
               <Text style={styles.statLabel}>Apertura</Text>
               <Text style={styles.statValue}>8:30 AM</Text>
-            </SafeBlurView>
+            </View>
 
-            <SafeBlurView intensity={20} style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: '#C197D620' }]}>
-                <Feather name="star" size={16} color="#C197D6" />
+            <View style={styles.statCard}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+                <Feather name="star" size={15} color="rgba(255,255,255,0.5)" />
               </View>
               <Text style={styles.statLabel}>Popular</Text>
               <Text style={styles.statValue}>4.8 / 5</Text>
-            </SafeBlurView>
+            </View>
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(400).duration(800).springify()}>
@@ -288,11 +288,11 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
 
 const styles = StyleSheet.create({
   blurBackground: {
-    backgroundColor: 'rgba(10, 10, 12, 0.85)',
+    backgroundColor: 'rgba(10, 10, 12, 0.98)', // Highly opaque
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
   },
   handleIndicator: {
@@ -315,15 +315,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: typography.primary.bold,
     marginLeft: 4,
     letterSpacing: 0.5,
   },
   title: {
-    color: 'white',
+    color: 'rgba(255, 255, 255, 0.75)', // Dimmmed title (from 0.9 to 0.75)
     ...pageStyles.title,
-    fontSize: 28, // Matches PoiDetailSheet specific needs
+    fontSize: 26, 
+    letterSpacing: -0.5,
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.4)',
@@ -335,24 +336,23 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   headerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeIcon: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   descriptionText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 15,
-    lineHeight: 24,
+    color: 'rgba(255, 255, 255, 0.4)', // More subtle description
+    fontSize: 14,
+    lineHeight: 22,
     marginTop: 20,
     fontFamily: typography.secondary.regular,
   },
@@ -360,60 +360,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 24,
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 10,
   },
   statCard: {
     flex: 1,
     padding: 12,
-    borderRadius: 24,
+    borderRadius: 16,
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
   },
   statIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   statLabel: {
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255,255,255,0.25)', // More subtle labels
     fontSize: 10,
     fontFamily: typography.secondary.bold,
     marginBottom: 2,
   },
   statValue: {
-    color: 'white',
-    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.7)', // More subtle values
+    fontSize: 12,
     fontFamily: typography.primary.bold,
   },
   driveButton: {
-    borderRadius: 18,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)', // Very subtle background
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)', // More defined border
     overflow: 'hidden',
     width: '100%',
-    paddingVertical: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 12,
     marginTop: 12,
   },
   driveButtonContent: {
-    height: 72,
+    height: 70,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
   },
   driveButtonIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.12)',
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -421,14 +418,14 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
   driveButtonTitle: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.35)',
+    fontSize: 9,
     fontFamily: typography.primary.bold,
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   driveButtonSubtitle: {
-    color: 'white',
-    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 18,
     fontFamily: typography.primary.bold,
     marginTop: -2,
   },
@@ -438,7 +435,7 @@ const styles = StyleSheet.create({
   photoContainer: {
     width: 280,
     height: 180,
-    borderRadius: 28,
+    borderRadius: 24,
     marginRight: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
