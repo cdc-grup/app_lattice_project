@@ -114,6 +114,7 @@ export const MapContent = React.memo(({
   const zoomValue = useSharedValue(DEFAULT_ZOOM);
   
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
+  const selectedPoi = useMapStore(s => s.selectedPoi);
   const selectedCoords = useMapStore(s => s.selectedCoords);
   const recenterCount = useMapStore(s => s.recenterCount);
   const currentRoute = useMapStore(s => s.currentRoute);
@@ -176,6 +177,14 @@ export const MapContent = React.memo(({
     selectPoi(poi);
   }, [selectPoi]);
 
+  // Handle Layer Press
+  const onSourcePress = (event: any) => {
+    const feature = event.features[0];
+    if (feature) {
+      onPoiPress({ ...feature.properties, geometry: feature.geometry });
+    }
+  };
+
   // Venue Marker Visibility Logic
   const rVenueStyle = useAnimatedStyle(() => {
     const opacity = interpolate(zoomValue.value, [12.0, 13.8], [1, 0], Extrapolate.CLAMP);
@@ -187,59 +196,39 @@ export const MapContent = React.memo(({
     };
   });
 
-  const renderMarkers = useMemo(() => {
-    const markers: React.ReactNode[] = [];
-
-    if (poisGeoJSON?.features) {
-      poisGeoJSON.features.forEach((feature: any) => {
-        const id = feature.properties.id;
-        const isSelected = String(id) === String(selectedPoiId);
-        const metadata = getCategoryMetadata(feature.properties.category);
-        const isImportant = ['gate', 'grandstand', 'medical'].includes(feature.properties.category);
-
-        markers.push(
-          <MapLibreGL.MarkerView
-            key={`poi-${id}`}
-            coordinate={feature.geometry.coordinates}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <PoiMarker 
-              isSelected={isSelected}
-              isImportant={isImportant}
-              metadata={metadata}
-              onPress={() => onPoiPress({ ...feature.properties, geometry: feature.geometry })}
-              label={feature.properties.name}
-              zoomValue={zoomValue}
-            />
-          </MapLibreGL.MarkerView>
-        );
-      });
+  // Selection Marker Rendering (Single, High-Performance)
+  const renderSelectionMarker = useMemo(() => {
+    if (!selectedPoiId || !selectedCoords) return null;
+    
+    // Check if it's a POI or a saved location to get metadata
+    let metadata;
+    let name = "";
+    
+    if (String(selectedPoiId).startsWith('saved_')) {
+      metadata = { icon: 'star', color: '#FFD60A' };
+      name = selectedPoi?.name || "";
+    } else {
+      const feature = poisGeoJSON?.features?.find((f: any) => String(f.properties.id) === String(selectedPoiId));
+      metadata = getCategoryMetadata(feature?.properties?.category);
+      name = feature?.properties?.name || "";
     }
 
-    if (savedLocations?.features) {
-      savedLocations.features.forEach((feature: any) => {
-        const id = feature.properties.id;
-        markers.push(
-          <MapLibreGL.MarkerView
-            key={`saved-${id}`}
-            coordinate={feature.geometry.coordinates}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <PoiMarker 
-              isSelected={`saved_${id}` === String(selectedPoiId)}
-              isImportant={false}
-              metadata={{ icon: 'star', color: '#FFD60A', label: feature.properties.label }}
-              onPress={() => onPoiPress({ ...feature.properties, id: `saved_${id}`, name: feature.properties.label, geometry: feature.geometry })}
-              label={feature.properties.label}
-              zoomValue={zoomValue}
-            />
-          </MapLibreGL.MarkerView>
-        );
-      });
-    }
-
-    return markers;
-  }, [poisGeoJSON, savedLocations, selectedPoiId, onPoiPress]);
+    return (
+      <MapLibreGL.MarkerView
+        coordinate={selectedCoords}
+        anchor={{ x: 0.5, y: 0.5 }}
+      >
+        <PoiMarker 
+          isSelected={true}
+          isImportant={true}
+          metadata={metadata}
+          onPress={() => {}} // No-op as it's already selected
+          label={name}
+          zoomValue={zoomValue}
+        />
+      </MapLibreGL.MarkerView>
+    );
+  }, [selectedPoiId, selectedCoords, poisGeoJSON, zoomValue, selectedPoi]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -275,6 +264,44 @@ export const MapContent = React.memo(({
           </Animated.View>
         </MapLibreGL.MarkerView>
 
+        <MapLibreGL.ShapeSource 
+          id="poisSource" 
+          shape={poisGeoJSON || EMPTY_GEOJSON}
+          onPress={onSourcePress}
+        >
+          <MapLibreGL.CircleLayer 
+            id="poiCircles" 
+            style={mapLayerStyles.poiCircles} 
+            minZoomLevel={12.8}
+            filter={['!=', ['get', 'id'], selectedPoiId || '']}
+          />
+          <MapLibreGL.SymbolLayer 
+            id="poiLabels" 
+            style={mapLayerStyles.poiLabels} 
+            minZoomLevel={15.8}
+            filter={['!=', ['get', 'id'], selectedPoiId || '']}
+          />
+        </MapLibreGL.ShapeSource>
+
+        <MapLibreGL.ShapeSource 
+          id="savedSource" 
+          shape={savedLocations || EMPTY_GEOJSON}
+          onPress={onSourcePress}
+        >
+          <MapLibreGL.CircleLayer 
+            id="savedCircles" 
+            style={mapLayerStyles.savedPoiCircles} 
+            minZoomLevel={12.8}
+            filter={['!=', ['get', 'id'], selectedPoiId || '']}
+          />
+          <MapLibreGL.SymbolLayer 
+            id="savedLabels" 
+            style={mapLayerStyles.poiLabels} 
+            minZoomLevel={15.8}
+            filter={['!=', ['get', 'id'], selectedPoiId || '']}
+          />
+        </MapLibreGL.ShapeSource>
+
         <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
           <MapLibreGL.LineLayer id="networkLines" style={{ ...mapLayerStyles.networkLines, lineOpacity: 0.15 }} />
         </MapLibreGL.ShapeSource>
@@ -286,7 +313,7 @@ export const MapContent = React.memo(({
           </MapLibreGL.ShapeSource>
         )}
 
-        {renderMarkers}
+        {renderSelectionMarker}
       </MapLibreGL.MapView>
     </View>
   );
