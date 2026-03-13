@@ -72,7 +72,7 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
           </View>
         </View>
 
-        {/* Action Button - Using App Primary Color */}
+        {/* Action Button - Matching input/filter style */}
         <Animated.View style={[styles.driveButtonWrapper, driveButtonStyle]}>
           <Pressable 
             onPressIn={() => scale.value = withSpring(0.96)}
@@ -81,7 +81,7 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               setNavigating(true);
             }}
-            style={[styles.driveButton, { backgroundColor: colors.primary }]}
+            style={styles.driveButton}
           >
             <Feather name="navigation" size={20} color="white" />
             <Text style={styles.driveButtonText}>IR AHORA</Text>
@@ -249,6 +249,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   driveButtonText: {
     color: 'white',
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 16,

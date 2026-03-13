@@ -251,6 +251,8 @@ const styles = StyleSheet.create({
   goBtn: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     gap: 6,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   deleteBtn: {
     backgroundColor: 'rgba(255, 59, 48, 0.15)',

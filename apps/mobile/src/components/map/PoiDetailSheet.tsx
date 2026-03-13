@@ -226,7 +226,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
                 <Feather name="clock" size={15} color="rgba(255,255,255,0.5)" />
               </View>
               <Text style={styles.statLabel}>Apertura</Text>
@@ -234,7 +234,7 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
+              <View style={[styles.statIconCircle, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
                 <Feather name="star" size={15} color="rgba(255,255,255,0.5)" />
               </View>
               <Text style={styles.statLabel}>Popular</Text>
@@ -367,9 +367,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
   },
   statIconCircle: {
@@ -393,9 +391,9 @@ const styles = StyleSheet.create({
   },
   driveButton: {
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)', // Very subtle background
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)', // More defined border
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     overflow: 'hidden',
     width: '100%',
     marginTop: 12,
