@@ -6,6 +6,11 @@
   "author": "Kore",
   "license": "MIT",
   "packageManager": "pnpm@10.0.0",
+  "workspaces": [
+    "apps/*",
+    "apps/server/*",
+    "packages/*"
+  ],
   "scripts": {
     "android": "turbo run android --filter=@app/mobile",
     "build": "turbo build --filter=!//",

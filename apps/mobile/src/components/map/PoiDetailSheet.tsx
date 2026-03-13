@@ -62,10 +62,10 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
   route,
   onClose,
   translateY 
-}, ref) => {
+}: PoiDetailSheetProps, ref) => {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
-  const setNavigating = useMapStore(s => s.setNavigating);
+  const setNavigating = useMapStore((s: any) => s.setNavigating);
   const { data: savedData } = useSavedLocations();
   const saveLocation = useSaveLocation();
   const deleteLocation = useDeleteSavedLocation();

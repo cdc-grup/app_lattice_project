@@ -41,7 +41,7 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
   translateY,
   activeCategoryId,
   onSelectCategory,
-}, ref) => {
+}: MapBottomSheetProps, ref) => {
   const insets = useSafeAreaInsets();
   const { selectedPoi, deselect, setNavigating } = useMapStore();
   const scale = useSharedValue(1);
