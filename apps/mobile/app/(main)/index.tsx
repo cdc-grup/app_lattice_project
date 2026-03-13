@@ -31,7 +31,6 @@ import { POICarousel } from '../../src/components/map/POICarousel';
 import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
 import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
 import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
@@ -53,7 +52,6 @@ function MapIndex() {
   
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedPoi = useMapStore(s => s.selectedPoi);
-  const currentRoute = useMapStore(s => s.currentRoute);
   const deselect = useMapStore(s => s.deselect);
   const selectPoi = useMapStore(s => s.selectPoi);
   const triggerRecenter = useMapStore(s => s.triggerRecenter);
@@ -66,10 +64,7 @@ function MapIndex() {
   const isARVisible = isCameraARVisible || manualAR;
 
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const poiDetailSheetRef = useRef<BottomSheet>(null);
-  
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
-  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
   const saveLocationMutation = useSaveLocation();
@@ -80,8 +75,7 @@ function MapIndex() {
 
   React.useEffect(() => {
     if (selectedPoiId) {
-      poiDetailSheetRef.current?.snapToIndex(0);
-      bottomSheetRef.current?.snapToIndex(0); // Colapsar el de búsqueda
+      bottomSheetRef.current?.snapToIndex(1);
     }
   }, [selectedPoiId]);
 
@@ -143,7 +137,7 @@ function MapIndex() {
       const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) selectPoi({ ...f.properties, geometry: f.geometry } as any);
     }
-  }, [soloPoiData, poisData, numericPoiId, selectedPoi, selectPoi]);
+  }, [soloPoiData, poisData, numericPoiId, selectedPoi]);
 
   const searchResultsData = useMemo(() => {
     if (!searchQuery.trim() || !poisData?.features) return [];
@@ -167,15 +161,11 @@ function MapIndex() {
       setSearchQuery('');
     }
     deselect();
-    poiDetailSheetRef.current?.close();
   }, [isSearching, searchQuery, deselect]);
 
-  const rRecenterButtonStyle = useAnimatedStyle(() => {
-    const activeY = selectedPoiId ? poiSheetPosition.value : sheetPosition.value;
-    return {
-      transform: [{ translateY: activeY - SCREEN_HEIGHT - 100 }],
-    };
-  }, [selectedPoiId]);
+  const rRecenterButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetPosition.value - SCREEN_HEIGHT - 100 }],
+  }));
 
   const renderSearchResults = () => (
     <View style={styles.cardContainer}>
@@ -351,17 +341,6 @@ function MapIndex() {
               }
             }
           }}
-        />
-      )}
-
-      {/* POI Detail Bottom Sheet */}
-      {!isARVisible && (
-        <PoiDetailSheet 
-          ref={poiDetailSheetRef}
-          poi={selectedPoi}
-          route={currentRoute}
-          onClose={deselect}
-          translateY={poiSheetPosition}
         />
       )}
 
