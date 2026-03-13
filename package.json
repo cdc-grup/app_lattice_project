@@ -1,33 +1,36 @@
 {
-  "name": "lattice-project",
+  "name": "@app/monorepo",
   "version": "1.0.0",
-  "packageManager": "npm@10.9.4",
   "private": true,
-  "description": "Fullstack project with Express, Expo and PostgreSQL",
-  "scripts": {
-    "build": "turbo build --filter=!//",
-    "dev": "turbo dev --filter=!//",
-    "lint": "turbo lint --filter=!//",
-    "test": "turbo test --filter=!//",
-    "db:generate": "turbo run db:generate --filter=!//",
-    "db:migrate": "turbo run db:migrate --filter=!//",
-    "db:clean": "turbo run db:clean --filter=!//",
-    "db:seed-montmelo": "turbo run db:seed-montmelo --filter=!//",
-    "db:seed-pedralbes": "turbo run db:seed-pedralbes --filter=!//",
-    "db:studio": "turbo run db:studio --filter=!//",
-    "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "dev:lan": "npm run dev:lan --workspace=lattice"                                                                                               
-  },
+  "description": "App Lattice: Fullstack project with Express, Expo, and PostgreSQL",
+  "author": "Kore",
+  "license": "MIT",
+  "packageManager": "npm@10.9.4",
   "workspaces": [
     "apps/*",
     "apps/server/*",
     "packages/*"
   ],
+  "scripts": {
+    "android": "turbo run android --filter=@app/mobile",
+    "build": "turbo build --filter=!//",
+    "db:clean": "turbo run db:clean --filter=!//",
+    "db:generate": "turbo run db:generate --filter=!//",
+    "db:migrate": "turbo run db:migrate --filter=!//",
+    "db:seed-montmelo": "turbo run db:seed-montmelo --filter=!//",
+    "db:seed-pedralbes": "turbo run db:seed-pedralbes --filter=!//",
+    "db:studio": "turbo run db:studio --filter=!//",
+    "dev": "turbo dev --filter=!//",
+    "dev:lan": "npm run dev:lan --workspace=@app/mobile",
+    "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "ios": "turbo run ios --filter=@app/mobile",
+    "lint": "turbo lint --filter=!//",
+    "test": "turbo test --filter=!//"
+  },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",
     "eslint": "^9.39.2",
@@ -40,20 +43,14 @@
     "jest": "^29.7.0",
     "lucide-react-native": "^0.575.0",
     "prettier": "^3.8.1",
+    "supertest": "^7.0.0",
     "turbo": "^2.4.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0",
-    "vitest": "^4.0.18",
-    "supertest": "^7.0.0",
-    "@types/supertest": "^6.0.2"
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "eslint-plugin-react-hooks": "^5.2.0",
-    "expo": "~54.0.33",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
-  },
-  "dependencies": {
     "expo": "~54.0.33",
     "react": "19.1.0",
     "react-native": "0.81.5"

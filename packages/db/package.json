@@ -1,20 +1,21 @@
 {
   "name": "@app/db",
   "version": "1.0.0",
-  "description": "Shared database schema and connection logic",
+  "private": true,
+  "description": "App Lattice Database Library",
   "main": "src/index.ts",
   "type": "module",
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
+    "db:check": "tsx src/check-db.ts",
+    "db:clean": "tsx src/db-clean.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/migrate.ts",
+    "db:qrs": "tsx src/generate-qrs.ts",
     "db:seed-montmelo": "tsx src/seed-montmelo.ts",
     "db:seed-pedralbes": "tsx src/seed-pedralbes.ts",
-    "db:clean": "tsx src/db-clean.ts",
-    "db:studio": "drizzle-kit studio",
-    "db:check": "tsx src/check-db.ts",
-    "db:qrs": "tsx src/generate-qrs.ts"
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

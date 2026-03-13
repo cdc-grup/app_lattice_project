@@ -45,6 +45,7 @@ interface MapContentProps {
   sheetPosition: SharedValue<number>;
 }
 
+// Fluid Marker component
 const PoiMarker = React.memo(({ 
   isSelected, 
   metadata, 
@@ -61,23 +62,12 @@ const PoiMarker = React.memo(({
   isImportant: boolean;
 }) => {
   const rMarkerStyle = useAnimatedStyle(() => {
-    // Icons fade and scale based on zoom
-    const fadeStart = isImportant ? 13.0 : 14.2;
+    // Stage 1: Scale and fade icons
+    const fadeStart = isImportant ? 12.8 : 14.0;
     const fadeEnd = isImportant ? 14.5 : 15.5;
     
-    const opacity = interpolate(
-      zoomValue.value,
-      [fadeStart, fadeEnd],
-      [0, 1],
-      Extrapolate.CLAMP
-    );
-
-    const scale = interpolate(
-      zoomValue.value,
-      [fadeStart, fadeEnd],
-      [0.5, 1],
-      Extrapolate.CLAMP
-    );
+    const opacity = interpolate(zoomValue.value, [fadeStart, fadeEnd], [0, 1], Extrapolate.CLAMP);
+    const scale = interpolate(zoomValue.value, [fadeStart, fadeEnd], [0.4, 1], Extrapolate.CLAMP);
 
     return {
       opacity: isSelected ? 1 : opacity,
@@ -86,13 +76,8 @@ const PoiMarker = React.memo(({
   });
 
   const rLabelStyle = useAnimatedStyle(() => {
-    // Labels disappear much earlier for a professional look
-    const opacity = interpolate(
-      zoomValue.value,
-      [15.8, 16.5],
-      [0, 1],
-      Extrapolate.CLAMP
-    );
+    // Stage 2: Fade labels out much faster for a clean look
+    const opacity = interpolate(zoomValue.value, [15.8, 16.5], [0, 1], Extrapolate.CLAMP);
     return { opacity };
   });
 
@@ -107,10 +92,7 @@ const PoiMarker = React.memo(({
           />
         </View>
         {!isSelected && label && (
-          <Animated.Text 
-            style={[styles.markerLabelText, rLabelStyle]} 
-            numberOfLines={1}
-          >
+          <Animated.Text style={[styles.markerLabelText, rLabelStyle]} numberOfLines={1}>
             {label}
           </Animated.Text>
         )}
@@ -196,18 +178,8 @@ export const MapContent = React.memo(({
 
   // Venue Marker Visibility Logic
   const rVenueStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(
-      zoomValue.value,
-      [12.0, 13.8],
-      [1, 0],
-      Extrapolate.CLAMP
-    );
-    const scale = interpolate(
-      zoomValue.value,
-      [12.0, 13.8],
-      [1, 0.7],
-      Extrapolate.CLAMP
-    );
+    const opacity = interpolate(zoomValue.value, [12.0, 13.8], [1, 0], Extrapolate.CLAMP);
+    const scale = interpolate(zoomValue.value, [12.0, 13.8], [1, 0.7], Extrapolate.CLAMP);
     return {
       opacity,
       transform: [{ scale }],
