@@ -135,11 +135,13 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
       backgroundComponent={CustomBackground}
       handleIndicatorStyle={styles.handleIndicator}
       animatedPosition={translateY}
-      keyboardBehavior="extend"
+      keyboardBehavior="fillParent"
+      keyboardBlurBehavior="restore"
     >
       <BottomSheetScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* TOP BAR: Always visible discovery tools (Search & Filters) */}
         <View style={styles.searchContainer}>
@@ -167,7 +169,8 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
           }
         </View>
 
-        <View style={{ height: insets.bottom + 20 }} />
+        {/* Dynamic spacer to allow scrolling above the keyboard */}
+        <View style={{ height: isSearching ? 400 : insets.bottom + 20 }} />
       </BottomSheetScrollView>
     </BottomSheet>
   );

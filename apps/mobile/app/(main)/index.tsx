@@ -28,11 +28,9 @@ import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { POICarousel } from '../../src/components/map/POICarousel';
-import { useSavedLocations, useSaveLocation } from '../../src/hooks/queries/useSavedLocations';
+import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SaveLocationModal } from '../../src/components/map/SaveLocationModal';
-import { SheetFooterActions } from '../../src/components/map/SheetFooterActions';
 import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
 
 // Configure MapLibre
@@ -67,10 +65,8 @@ function MapIndex() {
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
-  const saveLocationMutation = useSaveLocation();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearching, setIsSearching] = React.useState(false);
-  const [showSaveModal, setShowSaveModal] = React.useState(false);
   const [showSavedManager, setShowSavedManager] = React.useState(false);
 
   React.useEffect(() => {
@@ -149,10 +145,28 @@ function MapIndex() {
   }, [searchQuery, poisData]);
 
   const handleRecenter = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    await requestPermission();
-    triggerRecenter();
-  }, [requestPermission, triggerRecenter]);
+    console.log('[Recenter] 1. Button pressed');
+    try {
+      console.log('[Recenter] 2. Triggering Haptics');
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      if (locationStatus === 'granted') {
+        console.log('[Recenter] 3. Already granted, skipping request');
+        triggerRecenter();
+        return;
+      }
+
+      console.log('[Recenter] 4. Requesting permission...');
+      const granted = await requestPermission();
+      console.log('[Recenter] 5. Permission result:', granted);
+      
+      if (granted) {
+        triggerRecenter();
+      }
+    } catch (err) {
+      console.error('[Recenter] FATAL ERROR:', err);
+    }
+  }, [locationStatus, requestPermission, triggerRecenter]);
 
   const handleMapPress = useCallback(() => {
     Keyboard.dismiss();
@@ -176,6 +190,7 @@ function MapIndex() {
             <Pressable 
               key={f.properties.id}
               onPress={() => {
+                Keyboard.dismiss();
                 selectPoi({ ...f.properties, geometry: f.geometry } as any);
                 setSearchQuery(''); 
                 setIsSearching(false);
@@ -218,6 +233,7 @@ function MapIndex() {
           poisGeoJSON={poisData}
           savedLocations={savedData}
           onDeselect={handleMapPress}
+          sheetPosition={sheetPosition}
         />
         <AROverlay 
           isVisible={isARVisible} 
@@ -297,7 +313,6 @@ function MapIndex() {
                   selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
                 }}
               />
-              <SheetFooterActions onFixPin={() => setShowSaveModal(true)} />
             </View>
           }
           onSelectCategory={(category: string) => {
@@ -343,25 +358,6 @@ function MapIndex() {
           }}
         />
       )}
-
-      <SaveLocationModal 
-        isVisible={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        isLoading={saveLocationMutation.isPending}
-        onSave={(name) => {
-          const coords = userCoords || [2.261, 41.570];
-          saveLocationMutation.mutate({
-            label: name,
-            latitude: coords[1],
-            longitude: coords[0]
-          }, {
-            onSuccess: () => {
-              setShowSaveModal(false);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            }
-          });
-        }}
-      />
 
       <SavedLocationsManager 
         isVisible={showSavedManager}

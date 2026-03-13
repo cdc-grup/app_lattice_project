@@ -8,6 +8,11 @@ import Animated, {
   withRepeat,
   useSharedValue,
   FadeInDown,
+  useAnimatedReaction,
+  runOnJS,
+  SharedValue,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -22,7 +27,6 @@ import {
   EMPTY_GEOJSON, 
   MAP_CENTER, 
   DEFAULT_ZOOM,
-  SELECT_ANIMATION_DURATION,
   FLY_ANIMATION_DURATION
 } from '../../constants/mapConstants';
 import { mapLayerStyles } from '../../styles/mapLayerStyles';
@@ -38,87 +42,80 @@ interface MapContentProps {
   poisGeoJSON: any;
   savedLocations?: any;
   onDeselect?: () => void;
+  sheetPosition: SharedValue<number>;
 }
-
-const PulsingUserLocation = React.memo(() => {
-  const pulse = useSharedValue(1);
-  
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withTiming(1.6, { duration: 1500 }),
-      -1,
-      true
-    );
-  }, []);
-
-  const rPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-    opacity: withTiming(0.4 / pulse.value),
-  }));
-
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View 
-        style={[
-          {
-            position: 'absolute',
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: 'rgba(255, 255, 255, 0.4)',
-          },
-          rPulseStyle
-        ]}
-      />
-      <View style={{
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: 'white',
-        borderWidth: 2,
-        borderColor: '#0A0A0A',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 3,
-      }} />
-    </View>
-  );
-});
 
 const PoiMarker = React.memo(({ 
   isSelected, 
   metadata, 
   onPress,
-  label
+  label,
+  zoomValue,
+  isImportant
 }: { 
   isSelected: boolean; 
   metadata: any; 
   onPress: () => void;
   label?: string;
+  zoomValue: SharedValue<number>;
+  isImportant: boolean;
 }) => {
+  const rMarkerStyle = useAnimatedStyle(() => {
+    // Icons fade and scale based on zoom
+    const fadeStart = isImportant ? 13.0 : 14.2;
+    const fadeEnd = isImportant ? 14.5 : 15.5;
+    
+    const opacity = interpolate(
+      zoomValue.value,
+      [fadeStart, fadeEnd],
+      [0, 1],
+      Extrapolate.CLAMP
+    );
+
+    const scale = interpolate(
+      zoomValue.value,
+      [fadeStart, fadeEnd],
+      [0.5, 1],
+      Extrapolate.CLAMP
+    );
+
+    return {
+      opacity: isSelected ? 1 : opacity,
+      transform: [{ scale: isSelected ? 1.15 : scale }],
+    };
+  });
+
+  const rLabelStyle = useAnimatedStyle(() => {
+    // Labels disappear much earlier for a professional look
+    const opacity = interpolate(
+      zoomValue.value,
+      [15.8, 16.5],
+      [0, 1],
+      Extrapolate.CLAMP
+    );
+    return { opacity };
+  });
+
   return (
-    <Pressable 
-      onPress={onPress} 
-      style={styles.markerContainer}
-    >
-      <View style={styles.markerSymbol}>
-        <MaterialCommunityIcons
-          name={metadata.icon as any}
-          size={isSelected ? 20 : 16}
-          color={isSelected ? 'white' : metadata.color}
-        />
-      </View>
-      <Text 
-        style={[
-          styles.markerLabelText,
-          { color: isSelected ? 'white' : metadata.color }
-        ]} 
-        numberOfLines={1}
-      >
-        {label || metadata.label}
-      </Text>
-    </Pressable>
+    <Animated.View style={rMarkerStyle}>
+      <Pressable onPress={onPress} style={styles.markerContainer}>
+        <View style={[styles.markerSymbol, { backgroundColor: isSelected ? metadata.color : 'white' }]}>
+          <MaterialCommunityIcons
+            name={metadata.icon as any}
+            size={isSelected ? 20 : 16}
+            color={isSelected ? 'white' : metadata.color}
+          />
+        </View>
+        {!isSelected && label && (
+          <Animated.Text 
+            style={[styles.markerLabelText, rLabelStyle]} 
+            numberOfLines={1}
+          >
+            {label}
+          </Animated.Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 });
 
@@ -127,158 +124,142 @@ export const MapContent = React.memo(({
   locationStatus, 
   poisGeoJSON,
   savedLocations,
-  onDeselect
+  onDeselect,
+  sheetPosition
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
+  const insets = useSafeAreaInsets();
+  const zoomValue = useSharedValue(DEFAULT_ZOOM);
   
-  // State from Store
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedCoords = useMapStore(s => s.selectedCoords);
   const recenterCount = useMapStore(s => s.recenterCount);
   const currentRoute = useMapStore(s => s.currentRoute);
   const isNavigating = useMapStore(s => s.isNavigating);
   const selectPoi = useMapStore(s => s.selectPoi);
-  const setNavigating = useMapStore(s => s.setNavigating);
   const storeDeselect = useMapStore(s => s.deselect);
 
-  const lastSelectionTime = useRef(0);
+  const syncCamera = useCallback((y: number) => {
+    if (camera.current && selectedCoords && !isNavigating) {
+      camera.current.setCamera({
+        centerCoordinate: selectedCoords,
+        padding: {
+          paddingBottom: SCREEN_HEIGHT - y + 20,
+          paddingTop: insets.top + 60,
+          paddingLeft: 20,
+          paddingRight: 20,
+        },
+        animationDuration: 0,
+      });
+    }
+  }, [selectedCoords, isNavigating, insets.top]);
 
-  // Queries
+  useAnimatedReaction(() => sheetPosition.value, (y) => runOnJS(syncCamera)(y), [syncCamera]);
+
   const { data: pathNetwork } = usePathNetwork();
-  
   const routeRequest = useMemo(() => {
     if (selectedPoiId && userCoords && !isNaN(Number(selectedPoiId))) {
-      return {
-        origin: { lat: userCoords[1], lng: userCoords[0] },
-        destination: { poiId: Number(selectedPoiId) },
-      } as any;
+      return { origin: { lat: userCoords[1], lng: userCoords[0] }, destination: { poiId: Number(selectedPoiId) } };
     }
     return null;
   }, [selectedPoiId, userCoords]);
-
   useRoute(routeRequest);
 
-  // Camera Management
   useEffect(() => {
-    if (recenterCount > 0 && userCoords && camera.current) {
+    if (recenterCount > 0 && camera.current && userCoords) {
       camera.current.setCamera({
         centerCoordinate: userCoords,
         zoomLevel: DEFAULT_ZOOM,
         animationDuration: FLY_ANIMATION_DURATION,
         animationMode: 'flyTo',
+        padding: { paddingBottom: 120, paddingTop: 60, paddingLeft: 20, paddingRight: 20 }
       });
     }
   }, [recenterCount, userCoords]);
 
   useEffect(() => {
     if (selectedCoords && camera.current && !isNavigating) {
-      // DEBUG LOG
-      console.log('[Camera] Attempting to center on:', selectedCoords);
-      
-      // TRUCO: Calculamos un punto de enfoque ligeramente al SUR del POI
-      // Esto empuja el POI hacia ARRIBA en la pantalla, pero con cuidado de no sacarlo
-      const focusCoords = [
-        selectedCoords[0], // longitud igual
-        selectedCoords[1] - 0.0006 // latitud un poco más abajo (sur) - ajuste final
-      ];
-
       camera.current.setCamera({
-        centerCoordinate: focusCoords,
-        zoomLevel: 17.2,
+        centerCoordinate: selectedCoords,
+        zoomLevel: 17.5,
         animationDuration: 600,
         animationMode: 'flyTo',
+        padding: { paddingBottom: 350, paddingTop: 60, paddingLeft: 20, paddingRight: 20 }
       });
     }
   }, [selectedCoords, isNavigating]);
 
-  // Event Handlers
-  const onMapPress = useCallback(() => {
-    const now = Date.now();
-    if (now - lastSelectionTime.current < 400) return;
-    
-    console.log('[MapContent] Interaction: Map deselection');
-    Haptics.selectionAsync();
-    
-    if (onDeselect) {
-      onDeselect();
-    } else {
-      storeDeselect();
-    }
-  }, [onDeselect, storeDeselect]);
-
   const onPoiPress = useCallback((poi: any) => {
-    console.log('[MapContent] Interaction: Marker selected:', poi.id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    lastSelectionTime.current = Date.now();
     selectPoi(poi);
   }, [selectPoi]);
 
-  const insets = useSafeAreaInsets();
+  // Venue Marker Visibility Logic
+  const rVenueStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      zoomValue.value,
+      [12.0, 13.8],
+      [1, 0],
+      Extrapolate.CLAMP
+    );
+    const scale = interpolate(
+      zoomValue.value,
+      [12.0, 13.8],
+      [1, 0.7],
+      Extrapolate.CLAMP
+    );
+    return {
+      opacity,
+      transform: [{ scale }],
+      pointerEvents: zoomValue.value < 13.8 ? 'auto' : 'none',
+    };
+  });
 
-  const destinationName = useMemo(() => {
-    if (!selectedPoiId || !poisGeoJSON?.features) return 'Destino';
-    const poi = poisGeoJSON.features.find((f: any) => String(f.properties.id) === String(selectedPoiId));
-    return poi?.properties.name || 'Destino';
-  }, [selectedPoiId, poisGeoJSON]);
-
-  // Render Helpers
   const renderMarkers = useMemo(() => {
     const markers: React.ReactNode[] = [];
 
-    // 1. Standard POIs
     if (poisGeoJSON?.features) {
       poisGeoJSON.features.forEach((feature: any) => {
         const id = feature.properties.id;
         const isSelected = String(id) === String(selectedPoiId);
-        const coords = feature.geometry.coordinates;
         const metadata = getCategoryMetadata(feature.properties.category);
-        const poiObject = { ...feature.properties, geometry: feature.geometry };
+        const isImportant = ['gate', 'grandstand', 'medical'].includes(feature.properties.category);
 
         markers.push(
           <MapLibreGL.MarkerView
             key={`poi-${id}`}
-            id={`poi-marker-${id}`}
-            coordinate={coords}
+            coordinate={feature.geometry.coordinates}
             anchor={{ x: 0.5, y: 0.5 }}
           >
             <PoiMarker 
               isSelected={isSelected}
+              isImportant={isImportant}
               metadata={metadata}
-              onPress={() => onPoiPress(poiObject)}
+              onPress={() => onPoiPress({ ...feature.properties, geometry: feature.geometry })}
               label={feature.properties.name}
+              zoomValue={zoomValue}
             />
           </MapLibreGL.MarkerView>
         );
       });
     }
 
-    // 2. Saved Locations
     if (savedLocations?.features) {
       savedLocations.features.forEach((feature: any) => {
         const id = feature.properties.id;
-        const finalId = `saved_${id}`;
-        const isSelected = finalId === String(selectedPoiId);
-        const coords = feature.geometry.coordinates;
-        const poiObject = { ...feature.properties, id: finalId, name: feature.properties.label, geometry: feature.geometry };
-        
-        const savedMetadata = {
-          icon: 'star',
-          color: '#B4D99B', 
-          label: feature.properties.label
-        };
-
         markers.push(
           <MapLibreGL.MarkerView
-            key={finalId}
-            id={`saved-marker-${id}`}
-            coordinate={coords}
+            key={`saved-${id}`}
+            coordinate={feature.geometry.coordinates}
             anchor={{ x: 0.5, y: 0.5 }}
           >
             <PoiMarker 
-              isSelected={isSelected}
-              metadata={savedMetadata}
-              onPress={() => onPoiPress(poiObject)}
+              isSelected={`saved_${id}` === String(selectedPoiId)}
+              isImportant={false}
+              metadata={{ icon: 'star', color: '#FFD60A', label: feature.properties.label }}
+              onPress={() => onPoiPress({ ...feature.properties, id: `saved_${id}`, name: feature.properties.label, geometry: feature.geometry })}
               label={feature.properties.label}
+              zoomValue={zoomValue}
             />
           </MapLibreGL.MarkerView>
         );
@@ -296,103 +277,45 @@ export const MapContent = React.memo(({
         logoEnabled={false}
         attributionEnabled={false}
         compassEnabled={false}
-        onPress={onMapPress}
+        onPress={onDeselect || storeDeselect}
+        onRegionIsChanging={(f) => {
+          zoomValue.value = f.properties.zoomLevel;
+        }}
       >
         <MapLibreGL.Camera
           ref={camera}
-          minZoomLevel={12}
-          defaultSettings={{
-            centerCoordinate: MAP_CENTER,
-            zoomLevel: DEFAULT_ZOOM,
-          }}
+          minZoomLevel={11}
+          defaultSettings={{ centerCoordinate: MAP_CENTER, zoomLevel: DEFAULT_ZOOM }}
           followUserLocation={isNavigating}
-          followUserMode={(isNavigating ? 'compass' : 'normal') as any}
+          followUserMode={isNavigating ? 'compass' : 'normal'}
           followZoomLevel={18}
           followPitch={45}
         />
 
-      <MapLibreGL.UserLocation 
-        visible={locationStatus === 'granted'} 
-        renderMode="normal" 
-      >
-        <MapLibreGL.SymbolLayer
-          id="userHeadingIndicator"
-          style={{
-            iconImage: 'arrow', 
-            iconSize: 0.5,
-            iconRotate: ['get', 'heading'],
-            iconAllowOverlap: true,
-            iconIgnorePlacement: true,
-          }}
-        />
-      </MapLibreGL.UserLocation>
-
-      {locationStatus === 'granted' && userCoords && (
-        <MapLibreGL.MarkerView coordinate={userCoords}>
-          <PulsingUserLocation />
+        <MapLibreGL.MarkerView coordinate={MAP_CENTER}>
+          <Animated.View style={[styles.venueMarkerContainer, rVenueStyle]}>
+            <View style={styles.venueIconCircle}>
+              <MaterialCommunityIcons name="school" size={32} color="white" />
+            </View>
+            <View style={styles.venueTag}>
+              <Text style={styles.venueText}>INSTITUT PEDRALBES</Text>
+            </View>
+          </Animated.View>
         </MapLibreGL.MarkerView>
-      )}
 
-      {/* Network Background */}
-      <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
-        <MapLibreGL.LineLayer
-          id="networkLines"
-          style={{ ...mapLayerStyles.networkLines, lineOpacity: pathNetwork ? 0.3 : 0 }}
-        />
-      </MapLibreGL.ShapeSource>
+        <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
+          <MapLibreGL.LineLayer id="networkLines" style={{ ...mapLayerStyles.networkLines, lineOpacity: 0.15 }} />
+        </MapLibreGL.ShapeSource>
 
-      {/* Active Route */}
-      <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute || EMPTY_GEOJSON}>
-        <MapLibreGL.LineLayer
-          id="routeFill"
-          style={{ ...mapLayerStyles.routeFill, lineOpacity: currentRoute ? 0.95 : 0 }}
-        />
-        <MapLibreGL.LineLayer
-          id="routeGlow"
-          style={{ ...mapLayerStyles.routeGlow, lineOpacity: currentRoute ? 0.3 : 0, lineBlur: 4 }}
-        />
-      </MapLibreGL.ShapeSource>
+        {isNavigating && currentRoute && (
+          <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute}>
+            <MapLibreGL.LineLayer id="routeFill" style={mapLayerStyles.routeFill} />
+            <MapLibreGL.LineLayer id="routeGlow" style={{ ...mapLayerStyles.routeGlow, lineBlur: 4 }} />
+          </MapLibreGL.ShapeSource>
+        )}
 
-      {renderMarkers}
+        {renderMarkers}
       </MapLibreGL.MapView>
-
-      {/* Top Navigation Bar */}
-      {isNavigating && (
-        <Animated.View entering={FadeInDown.duration(400)} style={[styles.topNavContainer, { paddingTop: insets.top + 10 }]}>
-          <View style={styles.topNavContent}>
-            <View style={styles.topNavLeft}>
-              <MaterialCommunityIcons name="arrow-up" size={32} color="white" />
-            </View>
-            <View style={styles.topNavCenter}>
-              <Text style={styles.topNavInstruction}>Hacia</Text>
-              <Text style={styles.topNavDestination} numberOfLines={1}>{destinationName}</Text>
-            </View>
-            <View style={styles.topNavRight}>
-              <View style={styles.sparkleCircle}>
-                <MaterialCommunityIcons name={"sparkles" as any} size={20} color="#006B6B" />
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      )}
-
-      {/* Bottom Navigation Bar */}
-      {isNavigating && (
-        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={[styles.bottomNavContainer, { paddingBottom: insets.bottom + 10 }]}>
-          <View style={styles.bottomNavHeader}>
-            <View style={styles.bottomNavInfo}>
-              <View style={styles.durationRow}>
-                <Text style={styles.durationText}>7 min</Text>
-                <MaterialCommunityIcons name="walk" size={24} color="#007AFF" style={{ marginLeft: 8 }} />
-              </View>
-              <Text style={styles.distanceText}>500 m • 23:03</Text>
-            </View>
-            <Pressable onPress={() => setNavigating(false)} style={styles.googleExitButton}>
-              <Text style={styles.exitButtonText}>Salir</Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-      )}
     </View>
   );
 });
@@ -400,31 +323,10 @@ export const MapContent = React.memo(({
 const styles = StyleSheet.create({
   map: { flex: 1, backgroundColor: theme.colors.background },
   markerContainer: { alignItems: 'center', justifyContent: 'center' },
-  markerSymbol: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  markerLabelText: {
-    fontSize: 10,
-    fontFamily: typography.secondary.bold,
-    marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-    maxWidth: 80,
-    textAlign: 'center',
-  },
-  topNavContainer: { position: 'absolute', top: 0, left: 10, right: 10 },
-  topNavContent: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#006B6B', padding: 16, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  topNavLeft: { marginRight: 16 },
-  topNavCenter: { flex: 1 },
-  topNavInstruction: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
-  topNavDestination: { color: 'white', fontSize: 22, fontWeight: 'bold' },
-  topNavRight: { marginLeft: 8 },
-  sparkleCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
-  bottomNavContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#1C1C1C', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  bottomNavHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bottomNavInfo: { flex: 1 },
-  durationRow: { flexDirection: 'row', alignItems: 'center' },
-  durationText: { color: 'white', fontSize: 28, fontWeight: 'bold' },
-  distanceText: { color: 'rgba(255,255,255,0.6)', fontSize: 16, marginTop: 2 },
-  googleExitButton: { backgroundColor: '#EA4335', paddingHorizontal: 24, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  exitButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  markerSymbol: { width: 34, height: 32, borderRadius: 14, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 5 },
+  markerLabelText: { fontSize: 10, fontFamily: typography.secondary.bold, marginTop: 6, color: 'white', textShadowColor: 'black', textShadowRadius: 2, textShadowOffset: { width: 0, height: 1 } },
+  venueMarkerContainer: { alignItems: 'center', justifyContent: 'center' },
+  venueIconCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E10600', alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: 'white', shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, shadowRadius: 12, elevation: 15 },
+  venueTag: { backgroundColor: 'white', paddingHorizontal: 18, paddingVertical: 8, borderRadius: 16, marginTop: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
+  venueText: { color: '#0A0A0A', fontSize: 14, fontFamily: typography.primary.bold, letterSpacing: 0.5 },
 });
