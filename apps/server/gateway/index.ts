@@ -108,8 +108,8 @@ if (basePath && basePath !== '/') {
   app.use('/', router);
 }
 
-app.listen(PORT, () => {
-  console.log(`[Gateway] running on port ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`[Gateway] running on port ${PORT} (accessible at http://0.0.0.0:${PORT})`);
   console.log(`[Gateway] Base Path: ${basePath}`);
   console.log(`[Gateway] Routing /auth, /users -> ${AUTH_SERVICE_URL}`);
   console.log(`[Gateway] Routing /pois, /locations, /navigation -> ${GEO_SERVICE_URL}`);
