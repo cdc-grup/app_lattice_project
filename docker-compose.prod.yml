@@ -9,9 +9,6 @@ services:
     restart: always
     depends_on:
       - gateway
-    networks:
-      - default
-      - red_proyectos
 
   gateway:
     container_name: lattice-gateway
