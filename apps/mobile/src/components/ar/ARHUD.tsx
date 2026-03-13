@@ -116,7 +116,7 @@ export const ARHUD: React.FC<ARHUDProps> = ({ onExit, isScanning = true, isLands
           </View>
         </View>
 
-        {/* Side Controls - Scale/Zoom controls concept */}
+        {/* Side Controls - Concept */}
         <View 
           style={[
             styles.sideControls, 

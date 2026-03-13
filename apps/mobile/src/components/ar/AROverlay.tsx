@@ -113,9 +113,13 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
       let yOffset = (idx % 2) * 50 - 25; 
       
       if (isLandscape) {
+        // When physically landscape but OS is portrait (rotated 90deg CW)
+        // The camera view is filling the screen [width x height]
+        // Our UI will be rotated 90deg.
+        // angleDiff maps to 'vertical' movement on the portrait screen (which is horizontal movement for the user)
         const centerOffset = (angleDiff / (FOV / 2)) * (height / 2);
         const screenYPos = (height / 2) + centerOffset;
-        // x-axis is narrow side in portrait, moves vertically in rotated landscape
+        // distance/elevation maps to 'horizontal' movement on portrait screen
         const screenXPos = (width / 2) + yOffset;
 
         return (
@@ -126,7 +130,7 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
               top: screenYPos - 40,
               left: screenXPos - 120,
               width: 240, 
-              flexDirection: 'row', // [Bubble] -> [Stalk] (Right)
+              flexDirection: 'row',
               alignItems: 'center',
               transform: [{ rotate: '90deg' }]
             }}
@@ -140,12 +144,11 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
                 <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
               </View>
             </View>
-
-            {/* In 90deg CW rotation, 'Right' becomes 'Down' */}
             <View style={styles.horizontalStalk} />
           </View>
         );
       } else {
+        // Standard Portrait
         const xPos = (angleDiff / (FOV / 2)) * (width / 2) + (width / 2);
         const yPos = (height / 2) + yOffset - 120;
 
@@ -169,7 +172,6 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
                 <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
               </View>
             </View>
-            {/* Vertical Stalk */}
             <View style={styles.verticalStalk} />
           </View>
         );

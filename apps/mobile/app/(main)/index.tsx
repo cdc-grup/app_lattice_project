@@ -61,7 +61,10 @@ function MapIndex() {
   const { data: categories } = useCategories();
   const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
 
-  const { isVisible: isARVisible, heading, isLandscape } = useCameraTilt();
+  const { isVisible: isCameraARVisible, heading, isLandscape } = useCameraTilt();
+  const [manualAR, setManualAR] = React.useState(false);
+  const isARVisible = isCameraARVisible || manualAR;
+
   const bottomSheetRef = useRef<BottomSheet>(null);
   const poiDetailSheetRef = useRef<BottomSheet>(null);
   
@@ -228,7 +231,7 @@ function MapIndex() {
         />
         <AROverlay 
           isVisible={isARVisible} 
-          onExitAR={() => {}} 
+          onExitAR={() => setManualAR(false)} 
           userCoords={userCoords}
           heading={heading}
           pois={poisData?.features || []}
@@ -242,7 +245,22 @@ function MapIndex() {
       </View>
 
       <Animated.View pointerEvents="box-none" style={[styles.overlay, { bottom: 0 }, rRecenterButtonStyle]}>
-        <View pointerEvents="auto" className="items-end px-4 mb-4">
+        <View pointerEvents="auto" className="flex-row items-center justify-end px-4 mb-4 gap-3">
+          <Pressable 
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setManualAR(!manualAR);
+            }}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.7 : 1,
+              transform: [{ scale: pressed ? 0.92 : 1 }],
+              backgroundColor: manualAR ? colors.primary : 'rgba(0,0,0,0.6)'
+            })}
+            className="w-12 h-12 items-center justify-center rounded-full border border-white/5 shadow-lg"
+          >
+            <MaterialCommunityIcons name="augmented-reality" size={26} color="white" />
+          </Pressable>
+
           <Pressable 
             onPress={handleRecenter}
             style={({ pressed }) => ({
