@@ -14,7 +14,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
-import Animated, { FadeIn, FadeOut, ScaleInCenter } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -56,7 +56,7 @@ export const SaveLocationModal = ({
         </Pressable>
 
         <Animated.View 
-          entering={ScaleInCenter} 
+          entering={ZoomIn} 
           exiting={FadeOut}
           style={styles.modalView}
         >

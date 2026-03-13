@@ -27,7 +27,7 @@ export const SettingItem = React.memo(({
   secondaryText,
   iconBgColor
 }: SettingItemProps) => {
-  const iconColor = destructive ? colors.red[500] : (iconBgColor ? 'white' : colors.primary);
+  const iconColor = destructive ? "#FF3B30" : (iconBgColor ? 'white' : colors.primary);
   const bgColor = iconBgColor || (destructive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(225, 6, 0, 0.1)');
 
   return (
@@ -61,7 +61,7 @@ export const SettingItem = React.memo(({
           thumbColor={'#ffffff'}
         />
       ) : (
-        <Feather name="chevron-right" size={24} color={destructive ? colors.red[500] : "#9ca3af"} />
+        <Feather name="chevron-right" size={24} color={destructive ? "#FF3B30" : "#9ca3af"} />
       )}
     </Pressable>
   );

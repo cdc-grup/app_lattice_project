@@ -369,6 +369,9 @@ function MapIndex() {
       <SavedLocationsManager 
         isVisible={showSavedManager}
         onClose={() => setShowSavedManager(false)}
+        onSelectMarker={(coords, id) => {
+          selectPoi({ id: `saved_${id}`, name: 'Ubicación guardada', geometry: { coordinates: coords } } as any);
+        }}
       />
     </View>
   );

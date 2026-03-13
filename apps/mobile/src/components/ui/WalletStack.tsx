@@ -8,7 +8,8 @@ import Animated, {
   useSharedValue,
   interpolate,
   Extrapolate,
-  FadeIn
+  FadeIn,
+  SharedValue
 } from 'react-native-reanimated';
 import { Ticket } from '../../types/models/auth';
 import { TicketCard } from './TicketCard';
@@ -16,8 +17,6 @@ import { useAuthStore } from '../../hooks/useAuthStore';
 import { Alert } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const CARD_WIDTH = width - 48;
-const CARD_HEIGHT = CARD_WIDTH * 1.5;
 const STACK_OFFSET = 60;
 const EXPANDED_OFFSET = 180;
 
@@ -31,7 +30,7 @@ interface WalletItemProps {
   totalTickets: number;
   isExpanded: boolean;
   selectedTicketId: string | number | null;
-  expandProgress: Animated.SharedValue<number>;
+  expandProgress: SharedValue<number>;
   handleSelectTicket: (ticket: Ticket) => void;
   toggleExpand: () => void;
 }
