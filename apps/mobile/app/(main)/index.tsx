@@ -26,6 +26,7 @@ import { useMapStore } from '../../src/store/useMapStore';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { MapContent } from '../../src/components/map/MapContent';
 import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
+import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { POICarousel } from '../../src/components/map/POICarousel';
 import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
@@ -64,6 +65,9 @@ function MapIndex() {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
 
+  const poiDetailSheetRef = useRef<BottomSheet>(null);
+  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
+
   const { data: savedData } = useSavedLocations();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [isSearching, setIsSearching] = React.useState(false);
@@ -71,7 +75,10 @@ function MapIndex() {
 
   React.useEffect(() => {
     if (selectedPoiId) {
-      bottomSheetRef.current?.snapToIndex(1);
+      poiDetailSheetRef.current?.snapToIndex(0);
+      bottomSheetRef.current?.snapToIndex(0); // Baja el buscador para dejar espacio
+    } else {
+      poiDetailSheetRef.current?.close();
     }
   }, [selectedPoiId]);
 
@@ -365,6 +372,14 @@ function MapIndex() {
         onSelectMarker={(coords, id) => {
           selectPoi({ id: `saved_${id}`, name: 'Ubicación guardada', geometry: { coordinates: coords } } as any);
         }}
+      />
+
+      <PoiDetailSheet 
+        ref={poiDetailSheetRef}
+        poi={selectedPoi}
+        route={null} 
+        onClose={deselect}
+        translateY={poiSheetPosition}
       />
     </View>
   );
