@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     name: Deploy to Self-Hosted Runner
@@ -13,6 +17,12 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Pre-build Cleanup
+        run: |
+          echo "🧹 Cleaning up disk space before build..."
+          docker system prune -af --volumes || true
+          docker builder prune -af || true
 
       - name: Create .env file
         run: |
