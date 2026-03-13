@@ -12,7 +12,7 @@
     "packages/*"
   ],
   "scripts": {
-    "android": "turbo run android --filter=@app/mobile",
+    "android": "pnpm --filter @app/mobile android",
     "build": "turbo build --filter=!//",
     "db:clean": "turbo run db:clean --filter=!//",
     "db:generate": "turbo run db:generate --filter=!//",
@@ -21,13 +21,13 @@
     "db:seed-pedralbes": "turbo run db:seed-pedralbes --filter=!//",
     "db:studio": "turbo run db:studio --filter=!//",
     "dev": "turbo dev --filter=!//",
-    "dev:home": "npm run dev:home --workspace=@app/mobile",
-    "dev:lan": "npm run dev:lan --workspace=@app/mobile",
+    "dev:home": "pnpm --filter @app/mobile dev:home",
+    "dev:lan": "pnpm --filter @app/mobile dev:lan",
     "dev:zrok": "./apps/mobile/zrok-tunnel.sh",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "ios": "turbo run ios --filter=@app/mobile",
+    "ios": "pnpm --filter @app/mobile ios",
     "lint": "turbo lint --filter=!//",
-    "mobile": "turbo run dev --filter=@app/mobile",
+    "mobile": "pnpm --filter @app/mobile dev",
     "test": "turbo test --filter=!//"
   },
   "devDependencies": {
