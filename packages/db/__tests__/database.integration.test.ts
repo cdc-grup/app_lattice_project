@@ -6,13 +6,30 @@ import pg from 'pg';
 import path from 'path';
 import { users } from '../src/schema.js';
 import { eq } from 'drizzle-orm';
+import { execSync } from 'child_process';
+
+const isDockerRunning = () => {
+  try {
+    execSync('docker info', { stdio: 'ignore' });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 describe('Database Integration Tests', () => {
   let container: StartedPostgreSqlContainer;
   let pool: pg.Pool;
   let db: any;
 
+  const hasDocker = isDockerRunning();
+
   beforeAll(async () => {
+    if (!hasDocker) {
+      console.warn('⚠️ Docker is not running. Skipping Database Integration Tests.');
+      return;
+    }
+
     // 1. Start Postgres Container
     container = await new PostgreSqlContainer('postgres:16-alpine').start();
 
@@ -32,6 +49,8 @@ describe('Database Integration Tests', () => {
   });
 
   it('should insert and retrieve a user', async () => {
+    if (!hasDocker) return;
+    
     const newUser = {
       email: 'test@example.com',
       passwordHash: 'hashed_password',
@@ -50,6 +69,8 @@ describe('Database Integration Tests', () => {
   });
 
   it('should enforce unique email constraint', async () => {
+    if (!hasDocker) return;
+
     const user = {
       email: 'unique@example.com',
       passwordHash: 'hash',

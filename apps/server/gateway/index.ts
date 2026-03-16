@@ -43,7 +43,7 @@ const createServiceProxy = (target: string, label: string, paths: string[]) => {
     target,
     changeOrigin: true,
     pathFilter: (path: string) => {
-      return paths.some(p => path.startsWith(p) || path.startsWith(`${API_PREFIX}${p}`));
+      return paths.some((p) => path.startsWith(p) || path.startsWith(`${API_PREFIX}${p}`));
     },
     pathRewrite: (path: string) => {
       let newPath = path;
@@ -65,19 +65,31 @@ const createServiceProxy = (target: string, label: string, paths: string[]) => {
       proxyRes: (proxyRes: any, req: any, res: any) => {
         if (process.env.NODE_ENV !== 'test') {
           if (proxyRes.statusCode && proxyRes.statusCode >= 400) {
-            console.warn(`[Gateway -> ${label}] Error Response: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);
+            console.warn(
+              `[Gateway -> ${label}] Error Response: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`
+            );
           } else {
-            console.log(`[Gateway -> ${label}] Success: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);
+            console.log(
+              `[Gateway -> ${label}] Success: ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`
+            );
           }
         }
-      }
-    }
+      },
+    },
   });
 };
 
 // Mount Service Proxies
 router.use(createServiceProxy(AUTH_SERVICE_URL, 'Auth', ['/auth', '/users']));
-router.use(createServiceProxy(GEO_SERVICE_URL, 'Geo', ['/pois', '/locations', '/navigation', '/map', '/saved']));
+router.use(
+  createServiceProxy(GEO_SERVICE_URL, 'Geo', [
+    '/pois',
+    '/locations',
+    '/navigation',
+    '/map',
+    '/saved',
+  ])
+);
 router.use(createServiceProxy(SOCIAL_SERVICE_URL, 'Social', ['/groups', '/telemetry']));
 
 // Fallback for unhandled API routes
@@ -85,17 +97,19 @@ router.use('*', (req: Request, res: Response) => {
   if (process.env.NODE_ENV !== 'test') {
     console.log(`[Gateway] 404 Fallback reached for: ${req.method} ${req.originalUrl}`);
   }
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Route not found at Gateway level',
     requestedUrl: req.originalUrl,
     routerPath: req.url,
-    basePath
+    basePath,
   });
 });
 
 if (basePath && basePath !== '/') {
   app.use(basePath, router);
-  app.use('*', (req: Request, res: Response) => res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' }));
+  app.use('*', (req: Request, res: Response) =>
+    res.status(404).json({ error: 'Route not found at Global level. Missing /lattice prefix?' })
+  );
 } else {
   app.use('/', router);
 }

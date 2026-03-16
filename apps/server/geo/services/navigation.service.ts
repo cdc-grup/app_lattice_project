@@ -32,45 +32,49 @@ async function resolveCoords(input: { lat?: number; lng?: number; poiId?: number
   if (input.poiId) {
     const [poi] = await db
       .select({
-        location: sql<string>`ST_AsText(location)`
+        location: sql<string>`ST_AsText(location)`,
       })
       .from(pointsOfInterest)
       .where(eq(pointsOfInterest.id, input.poiId));
-    
+
     if (!poi) throw new Error(`POI with ID ${input.poiId} not found`);
     const match = poi.location.match(/POINT\((.+) (.+)\)/);
     if (!match) throw new Error('Invalid POI location format in database');
     return { lng: parseFloat(match[1]), lat: parseFloat(match[2]) };
   }
-  
+
   if (input.lat !== undefined && input.lng !== undefined) {
     return { lat: input.lat, lng: input.lng };
   }
-  
+
   throw new Error('Invalid origin/destination: coords or poiId required');
 }
 
 /**
  * Builds the adjacency list for the routing graph.
  */
-function buildAdjacencyList(nodes: any[], edges: any[], options: { avoidStairs?: boolean }): AdjacencyList {
+function buildAdjacencyList(
+  nodes: any[],
+  edges: any[],
+  options: { avoidStairs?: boolean }
+): AdjacencyList {
   const graph: AdjacencyList = {};
-  nodes.forEach(n => graph[n.id] = []);
-  
-  edges.forEach(e => {
+  nodes.forEach((n) => (graph[n.id] = []));
+
+  edges.forEach((e) => {
     if (options.avoidStairs && e.hasStairs) return;
 
     let weight = e.distance;
     if (e.crowdLevel === 'high') weight *= 1.5;
     if (e.crowdLevel === 'blocked') weight *= 10;
 
-    graph[e.sourceNodeId].push({ 
-      target: e.targetNodeId, 
-      weight, 
-      hasStairs: !!e.hasStairs 
+    graph[e.sourceNodeId].push({
+      target: e.targetNodeId,
+      weight,
+      hasStairs: !!e.hasStairs,
     });
   });
-  
+
   return graph;
 }
 
@@ -81,14 +85,14 @@ async function reconstructPath(pathNodes: number[]) {
   const resultNodes = await db
     .select({
       id: nodes.id,
-      location: sql<string>`ST_AsGeoJSON(location)`
+      location: sql<string>`ST_AsGeoJSON(location)`,
     })
     .from(nodes)
     .where(sql`${nodes.id} IN (${sql.join(pathNodes, sql`, `)})`);
 
-  const nodeMap = new Map(resultNodes.map(n => [n.id, JSON.parse(n.location)]));
-  
-  return pathNodes.map(id => {
+  const nodeMap = new Map(resultNodes.map((n) => [n.id, JSON.parse(n.location)]));
+
+  return pathNodes.map((id) => {
     const nodeData = nodeMap.get(id);
     if (!nodeData) {
       console.error(`[NavigationService] Node ${id} missing from resolved results`);
@@ -135,7 +139,7 @@ export async function findRoute(
   const previous: Record<number, number | null> = {};
   const queue: number[] = [];
 
-  allNodes.forEach(node => {
+  allNodes.forEach((node) => {
     distances[node.id] = Infinity;
     previous[node.id] = null;
     queue.push(node.id);
@@ -177,11 +181,11 @@ export async function findRoute(
     type: 'Feature',
     geometry: {
       type: 'LineString',
-      coordinates
+      coordinates,
     },
     properties: {
       distance: distances[endNode.id],
-      durationEstimate: Math.round(distances[endNode.id] / 1.4) // 1.4 m/s avg walking speed
-    }
+      durationEstimate: Math.round(distances[endNode.id] / 1.4), // 1.4 m/s avg walking speed
+    },
   };
 }

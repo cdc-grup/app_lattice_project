@@ -45,15 +45,15 @@ interface MapContentProps {
   sheetPosition: SharedValue<number>;
 }
 
-export const MapContent = React.memo(({ 
+export const MapContent = React.memo(function MapContent({ 
   userCoords, 
   poisGeoJSON,
   savedLocations,
   onDeselect,
-}: MapContentProps) => {
+}: MapContentProps) {
   const camera = useRef<MapLibreGL.CameraRef>(null);
   const insets = useSafeAreaInsets();
-  
+
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedCoords = useMapStore(s => s.selectedCoords);
   const recenterCount = useMapStore(s => s.recenterCount);
@@ -86,7 +86,7 @@ export const MapContent = React.memo(({
         padding: { paddingBottom: 150, paddingTop: 60, paddingLeft: 20, paddingRight: 20 }
       });
     }
-  }, [recenterCount]);
+  }, [recenterCount, userCoords]);
 
   useEffect(() => {
     if (selectedCoords && camera.current && !isNavigating) {
@@ -108,7 +108,7 @@ export const MapContent = React.memo(({
   const handlePoiPress = useCallback((data: any) => {
     // Normalization: Android passes an event with .features, iOS passes the feature object directly
     const feature = data.features ? data.features[0] : data;
-    
+
     if (!feature?.properties) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -217,6 +217,8 @@ export const MapContent = React.memo(({
     </View>
   );
 });
+
+MapContent.displayName = 'MapContent';
 
 const styles = StyleSheet.create({
   map: { flex: 1, backgroundColor: theme.colors.background },

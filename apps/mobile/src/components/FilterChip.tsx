@@ -12,7 +12,7 @@ interface FilterChipProps {
   onPress?: () => void;
 }
 
-export const FilterChip = React.memo(({ label, icon, active = false, onPress }: FilterChipProps) => {
+export const FilterChip = React.memo(function FilterChip({ label, icon, active = false, onPress }: FilterChipProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -34,6 +34,8 @@ export const FilterChip = React.memo(({ label, icon, active = false, onPress }: 
     </Pressable>
   );
 });
+
+FilterChip.displayName = 'FilterChip';
 
 const styles = StyleSheet.create({
   activeShadow: {

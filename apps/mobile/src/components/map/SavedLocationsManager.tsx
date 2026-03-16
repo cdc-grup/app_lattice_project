@@ -13,7 +13,6 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useSavedLocations, useDeleteSavedLocation } from '../../hooks/queries/useSavedLocations';
 import * as SafeAreaContext from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { colors } from '../../styles/colors';
 import { typography, pageStyles } from '../../styles/typography';
 import * as Haptics from 'expo-haptics';

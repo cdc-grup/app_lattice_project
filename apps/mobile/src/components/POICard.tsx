@@ -17,7 +17,7 @@ interface POICardProps {
   noFloat?: boolean;
 }
 
-export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect, noFloat }: POICardProps) => {
+export const POICard = React.memo(function POICard({ poi, onClose, onNavigate, onSelect, noFloat }: POICardProps) {
   if (!poi) return null;
 
   const metadata = getCategoryMetadata(poi.category);
@@ -66,6 +66,8 @@ export const POICard = React.memo(({ poi, onClose, onNavigate, onSelect, noFloat
     </Pressable>
   );
 });
+
+POICard.displayName = 'POICard';
 
 const styles = StyleSheet.create({
   card: {

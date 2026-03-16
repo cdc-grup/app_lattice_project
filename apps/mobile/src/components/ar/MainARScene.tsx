@@ -1,7 +1,4 @@
-import React, { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber/native';
-import { Float } from '@react-three/drei/native';
-import * as THREE from 'three';
+import React, { useMemo } from 'react';
 import { getCategoryMetadata } from '../../utils/poiUtils';
 
 // Haversine distance formula in meters
@@ -45,13 +42,16 @@ const ARPin: React.FC<ARPinProps> = ({ color, name, distance }) => {
     <group>
       {/* Subtle Anchor Dot */}
       <mesh>
+        {/* eslint-disable-next-line react/no-unknown-property */}
         <sphereGeometry args={[0.05, 16, 16]} />
         <meshBasicMaterial color="#ffffff" />
       </mesh>
       
       {/* Outer Glow */}
       <mesh>
+        {/* eslint-disable-next-line react/no-unknown-property */}
         <sphereGeometry args={[0.15, 16, 16]} />
+        {/* eslint-disable-next-line react/no-unknown-property */}
         <meshBasicMaterial color="#ffffff" transparent opacity={0.2} />
       </mesh>
     </group>
@@ -101,6 +101,7 @@ export const MainARScene: React.FC<MainARSceneProps> = ({ userCoords, heading = 
       const metadata = getCategoryMetadata(poi.properties.category);
 
       return (
+        /* eslint-disable-next-line react/no-unknown-property */
         <group key={poi.properties.id || idx} position={[x, y, z]}>
           <ARPin 
             color={metadata.color} 

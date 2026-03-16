@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useRef } from 'react';
+import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import {
   View,
   Pressable,
@@ -31,7 +31,6 @@ import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { POICarousel } from '../../src/components/map/POICarousel';
 import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
 import { getCategoryMetadata } from '../../src/utils/poiUtils';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SavedLocationsManager } from '../../src/components/map/SavedLocationsManager';
 
 // Configure MapLibre
@@ -46,7 +45,6 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 function MapIndex() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { coords: userCoords, status: locationStatus, requestPermission } = useLocationService();
   
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
@@ -56,10 +54,10 @@ function MapIndex() {
   const triggerRecenter = useMapStore(s => s.triggerRecenter);
 
   const { data: categories } = useCategories();
-  const [activeCategoryId, setActiveCategoryId] = React.useState<string | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
   const { isVisible: isCameraARVisible, heading, isLandscape } = useCameraTilt();
-  const [manualAR, setManualAR] = React.useState(false);
+  const [manualAR, setManualAR] = useState(false);
   const isARVisible = isCameraARVisible || manualAR;
 
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -69,11 +67,11 @@ function MapIndex() {
   const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [isSearching, setIsSearching] = React.useState(false);
-  const [showSavedManager, setShowSavedManager] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSavedManager, setShowSavedManager] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedPoiId) {
       poiDetailSheetRef.current?.snapToIndex(0);
       bottomSheetRef.current?.snapToIndex(0); // Baja el buscador para dejar espacio
@@ -133,14 +131,14 @@ function MapIndex() {
     (isSelectedSaved || isAlreadyLoaded || selectedPoi) ? null : numericPoiId
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!selectedPoi && soloPoiData && Number(soloPoiData.properties.id) === numericPoiId) {
       selectPoi({ ...soloPoiData.properties, geometry: soloPoiData.geometry } as any);
     } else if (!selectedPoi && poisData && numericPoiId) {
       const f = poisData.features.find((f: any) => Number(f.properties.id) === numericPoiId);
       if (f) selectPoi({ ...f.properties, geometry: f.geometry } as any);
     }
-  }, [soloPoiData, poisData, numericPoiId, selectedPoi]);
+  }, [soloPoiData, poisData, numericPoiId, selectedPoi, selectPoi]);
 
   const searchResultsData = useMemo(() => {
     if (!searchQuery.trim() || !poisData?.features) return [];

@@ -190,8 +190,11 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userC
         <>
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <Canvas>
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <ambientLight intensity={Math.PI / 2} />
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
               <MainARScene 
                 userCoords={userCoords}

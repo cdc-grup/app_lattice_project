@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Dimensions, Pressable, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, TouchableOpacity, ScrollView , Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedStyle, 
@@ -14,9 +14,8 @@ import Animated, {
 import { Ticket } from '../../types/models/auth';
 import { TicketCard } from './TicketCard';
 import { useAuthStore } from '../../hooks/useAuthStore';
-import { Alert } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 const STACK_OFFSET = 60;
 const EXPANDED_OFFSET = 180;
 
@@ -137,7 +136,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               } else {
                 Alert.alert("Error", "No s'ha pogut eliminar l'entrada.");
               }
-            } catch (error) {
+            } catch {
               Alert.alert("Error", "Hi ha hagut un problema al connectar amb el servidor.");
             }
           }
@@ -207,7 +206,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
             <View style={styles.infoBox}>
               <Feather name="shield" size={16} color="#4CD964" />
               <Text style={styles.infoBoxText}>
-                Entrada vinculada correctament al teu compte. Només tu pots utilitzar aquest QR per a l'accés.
+                Entrada vinculada correctament al teu compte. Només tu pots utilitzar aquest QR per a l&apos;accés.
               </Text>
             </View>
 

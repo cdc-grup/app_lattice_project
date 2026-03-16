@@ -1,16 +1,11 @@
 import React, { useMemo, forwardRef } from 'react';
-import { View, StyleSheet, Dimensions, Text, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { SharedValue, FadeIn, FadeOut, useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+import { SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useMapStore } from '../../store/useMapStore';
-import { getCategoryMetadata } from '../../utils/poiUtils';
 import { typography } from '../../styles/typography';
 import { colors } from '../../styles/colors';
-import { Image } from 'expo-image';
-import * as Haptics from 'expo-haptics';
 import { SearchFilters } from './SearchFilters';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -95,6 +90,8 @@ export const MapBottomSheet = forwardRef<BottomSheet, MapBottomSheetProps>(({
     </BottomSheet>
   );
 });
+
+MapBottomSheet.displayName = 'MapBottomSheet';
 
 const styles = StyleSheet.create({
   blurBackground: {

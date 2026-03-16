@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -80,7 +80,7 @@ export default function WelcomeScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const syncTicket = useSyncTicket();
 
-  const handleHaveTicket = async () => {
+  const handleHaveTicket = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (!permission?.granted) {
       const result = await requestPermission();
@@ -90,7 +90,7 @@ export default function WelcomeScreen() {
       }
     }
     setIsScanning(true);
-  };
+  }, [permission, requestPermission]);
 
   const handleBarcodeScanned = ({ data }: { data: string }) => {
     setIsScanning(false);

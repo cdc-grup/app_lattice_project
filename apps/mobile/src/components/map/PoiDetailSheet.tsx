@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react
 import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { SharedValue, FadeIn } from 'react-native-reanimated';
+import { SharedValue } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UIPOI } from '../../types/models/poi';
@@ -151,6 +151,8 @@ export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>
     </BottomSheet>
   );
 });
+
+PoiDetailSheet.displayName = 'PoiDetailSheet';
 
 const styles = StyleSheet.create({
   blurBackground: {
