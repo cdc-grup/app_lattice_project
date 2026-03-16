@@ -29,8 +29,9 @@ To ensure a smooth development process and perfect integration with AI agents, w
 
 1.  **Install**: `npm install` at the root.
 2.  **Infrastructure**: `docker compose up -d` to start PostgreSQL and PostGIS.
-3.  **Mobile Build**: `npm run android -w lattice` (Run this at least once to create the Development Build).
+3.  **Mobile Build**: `npm run android -w mobile` (Run this at least once to create the Development Build).
 4.  **Development**: `npm run dev` to start all services (API + Mobile) simultaneously.
+5.  **Remote Tunneling**: `npm run dev:zrok -w mobile` to expose the local API via a secure tunnel (zrok).
 
 ## 🛠️ Available Commands (Root)
 
@@ -65,6 +66,8 @@ More details in the **[Testing Guide](docs/guides/testing.md)**.
 We have recently improved the maintainability of the mobile application:
 
 - **Logic Extraction:** Map controls and location services have been decoupled from the main view (`MapScreen`) using custom hooks (`useLocationService`, `useMapControls`).
+- **High-Performance Maps:** Transitioned to native MapLibre layers (`ShapeSource`, `CircleLayer`, `SymbolLayer`) for rendering thousands of points at 60fps, bypassing the overhead of standard markers.
+- **Orientation-Aware AR:** The AR engine now supports landscape mode with a hybrid 2D/3D projection system for stable, professional labels regardless of device orientation.
 - **Typography Unification:** Titles and fonts have been unified across the auth flow using a centralized `authStyles` SSOT in `typography.ts`, following the **[Design System](docs/guides/design-system.md)**.
 
 ### 🗄️ Database Management
