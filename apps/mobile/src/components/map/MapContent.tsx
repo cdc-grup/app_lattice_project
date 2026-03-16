@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions, Platform } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import { SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,7 +39,6 @@ export const MapContent = React.memo(({
 }: MapContentProps) => {
   const camera = useRef<MapLibreGL.CameraRef>(null);
   const insets = useSafeAreaInsets();
-  const lastPressTime = useRef<number>(0);
   
   const selectedPoiId = useMapStore(s => s.selectedPoiId);
   const selectedCoords = useMapStore(s => s.selectedCoords);
@@ -49,7 +48,7 @@ export const MapContent = React.memo(({
   const selectPoi = useMapStore(s => s.selectPoi);
   const storeDeselect = useMapStore(s => s.deselect);
 
-  // Optimized selection GeoJSON - This is the key for instant updates
+  // Optimized selection GeoJSON
   const selectionGeoJSON = useMemo(() => {
     if (!selectedCoords) return EMPTY_GEOJSON;
     return {
@@ -63,11 +62,14 @@ export const MapContent = React.memo(({
   }, [selectedCoords, selectedPoiId]);
 
   const routeRequest = useMemo(() => {
-    if (selectedPoiId && userCoords && !isNaN(Number(selectedPoiId))) {
-      return { origin: { lat: userCoords[1], lng: userCoords[0] }, destination: { poiId: Number(selectedPoiId) } };
+    if (selectedPoiId && userCoords && !isNaN(Number(selectedPoiId)) && !isNavigating) {
+      // Round coordinates to reduce API calls
+      const lat = Math.round(userCoords[1] * 10000) / 10000;
+      const lng = Math.round(userCoords[0] * 10000) / 10000;
+      return { origin: { lat, lng }, destination: { poiId: Number(selectedPoiId) } };
     }
     return null;
-  }, [selectedPoiId, userCoords]);
+  }, [selectedPoiId, userCoords, isNavigating]);
   
   useRoute(routeRequest);
   const { data: pathNetwork } = usePathNetwork();
@@ -102,27 +104,25 @@ export const MapContent = React.memo(({
     }
   }, [selectedCoords, isNavigating, insets.top]);
 
-  // HIGH PERFORMANCE PRESS HANDLERS
-  const handleMapPress = useCallback(() => {
-    if (Date.now() - lastPressTime.current < 150) return;
-    if (onDeselect) onDeselect();
-    else storeDeselect();
-  }, [onDeselect, storeDeselect]);
-
-  const onSourcePress = useCallback((event: any) => {
-    lastPressTime.current = Date.now();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); // Instant feedback
-    
-    const feature = event.features[0];
-    if (feature) {
-      selectPoi({
-        id: feature.properties.id,
-        name: feature.properties.name,
-        category: feature.properties.category,
-        geometry: feature.geometry
-      });
-    }
+  const handlePoiPress = useCallback((feature: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    selectPoi({
+      id: feature.properties.id,
+      name: feature.properties.name,
+      category: feature.properties.category,
+      geometry: feature.geometry
+    });
   }, [selectPoi]);
+
+  // Combined POIs for easier mapping
+  const allMarkers = useMemo(() => {
+    const pois = poisGeoJSON?.features || [];
+    const saved = savedLocations?.features?.map((f: any) => ({
+      ...f,
+      properties: { ...f.properties, id: `saved_${f.properties.id}`, name: f.properties.label }
+    })) || [];
+    return [...pois, ...saved];
+  }, [poisGeoJSON, savedLocations]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -132,7 +132,7 @@ export const MapContent = React.memo(({
         logoEnabled={false}
         attributionEnabled={false}
         compassEnabled={false}
-        onPress={handleMapPress}
+        onPress={onDeselect || storeDeselect}
       >
         <MapLibreGL.Camera
           ref={camera}
@@ -144,52 +144,61 @@ export const MapContent = React.memo(({
           followPitch={45}
         />
 
-        {/* 1. POIs Source (Native layer, no filtering) */}
-        <MapLibreGL.ShapeSource 
-          id="poisSource" 
-          shape={poisGeoJSON || EMPTY_GEOJSON}
-          onPress={onSourcePress}
-          hitbox={{ width: 44, height: 44 }}
-        >
+        {/* NATIVE INTERACTION LAYER */}
+        {allMarkers.map((f: any) => {
+          const id = f.properties.id;
+          const coords = f.geometry.coordinates;
+          
+          if (Platform.OS === 'android') {
+            return (
+              <MapLibreGL.PointAnnotation
+                key={`poi-android-${id}`}
+                id={`poi-pt-${id}`}
+                coordinate={coords}
+                onSelected={() => handlePoiPress(f)}
+              >
+                <View style={styles.hitbox} />
+              </MapLibreGL.PointAnnotation>
+            );
+          } else {
+            return (
+              <MapLibreGL.MarkerView
+                key={`poi-ios-${id}`}
+                id={`poi-mv-${id}`}
+                coordinate={coords}
+              >
+                <View 
+                  onStartShouldSetResponder={() => true}
+                  onResponderRelease={() => handlePoiPress(f)}
+                  style={styles.hitbox} 
+                />
+              </MapLibreGL.MarkerView>
+            );
+          }
+        })}
+
+        {/* VISUAL LAYERS (Fast rendering) */}
+        <MapLibreGL.ShapeSource id="poisSource" shape={poisGeoJSON || EMPTY_GEOJSON}>
           <MapLibreGL.CircleLayer id="poiCircles" style={mapLayerStyles.poiCircles} minZoomLevel={12.8} />
           <MapLibreGL.SymbolLayer id="poiLabels" style={mapLayerStyles.poiLabels} minZoomLevel={15.8} />
         </MapLibreGL.ShapeSource>
 
-        {/* 2. Saved Source */}
-        <MapLibreGL.ShapeSource 
-          id="savedSource" 
-          shape={savedLocations || EMPTY_GEOJSON}
-          onPress={onSourcePress}
-          hitbox={{ width: 44, height: 44 }}
-        >
+        <MapLibreGL.ShapeSource id="savedSource" shape={savedLocations || EMPTY_GEOJSON}>
           <MapLibreGL.CircleLayer id="savedCircles" style={mapLayerStyles.savedPoiCircles} minZoomLevel={12.8} />
           <MapLibreGL.SymbolLayer id="savedLabels" style={mapLayerStyles.poiLabels} minZoomLevel={15.8} />
         </MapLibreGL.ShapeSource>
 
-        {/* 3. SELECTION SOURCE (Separate for instant rendering) */}
         <MapLibreGL.ShapeSource id="selectionSource" shape={selectionGeoJSON}>
           <MapLibreGL.CircleLayer 
             id="selectedPoiHighlight" 
-            style={{ 
-              circleRadius: 22, 
-              circleColor: 'white', 
-              circleOpacity: 0.2,
-              circleStrokeWidth: 2,
-              circleStrokeColor: 'white'
-            }} 
+            style={{ circleRadius: 22, circleColor: 'white', circleOpacity: 0.2, circleStrokeWidth: 2, circleStrokeColor: 'white' }} 
           />
           <MapLibreGL.CircleLayer 
             id="selectedPoiInner" 
-            style={{ 
-              circleRadius: 18, 
-              circleColor: colors.primary, // Using Magic Gem instead of Red
-              circleStrokeWidth: 2,
-              circleStrokeColor: 'white'
-            }} 
+            style={{ circleRadius: 18, circleColor: colors.primary, circleStrokeWidth: 2, circleStrokeColor: 'white' }} 
           />
         </MapLibreGL.ShapeSource>
 
-        {/* 4. Path Network & Routes */}
         <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
           <MapLibreGL.LineLayer id="networkLines" style={{ ...mapLayerStyles.networkLines, lineOpacity: 0.15 }} />
         </MapLibreGL.ShapeSource>
@@ -207,4 +216,5 @@ export const MapContent = React.memo(({
 
 const styles = StyleSheet.create({
   map: { flex: 1, backgroundColor: theme.colors.background },
+  hitbox: { width: 44, height: 44, backgroundColor: 'transparent' },
 });
