@@ -7,8 +7,8 @@ Lattice is a premium mobile application designed to enhance the spectator experi
 - **Mobile Framework:** Expo (React Native)
   - **Environment:** Custom Development Builds (required for MMKV, Reanimated, R3F).
 - **Map Engine:** MapLibre GL (`@maplibre/maplibre-react-native`).
-  - **Optimization:** SurfaceView for maximum GPU performance on Android.
-- **Augmented Reality:** React Three Fiber (R3F) for modern, cross-platform AR scenes.
+  - **Optimization:** SurfaceView and **Native Layer Rendering** (`ShapeSource`) for maximum GPU performance on Android.
+- **Augmented Reality:** React Three Fiber (R3F) with **Orientation-Aware Hybrid Projection** for stable labels in any orientation.
 - **Backend:** Node.js (Express) within a microservices architecture.
 - **Database:** PostgreSQL with PostGIS extension.
 - **Real-time:** Socket.io with MessagePack for binary compression.
