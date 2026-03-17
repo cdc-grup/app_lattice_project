@@ -84,7 +84,7 @@ const createAuthStore: StateCreator<AuthState, [['zustand/persist', unknown]]> =
     try {
       const parsed = JSON.parse(ticketCode);
       if (parsed.code) finalCode = parsed.code;
-    } catch (e) {
+    } catch {
       // Use raw code
     }
 

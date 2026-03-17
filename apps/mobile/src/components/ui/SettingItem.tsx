@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Switch } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
-import { theme } from '../../styles/theme';
 
 interface SettingItemProps {
   label: string;
@@ -16,7 +15,7 @@ interface SettingItemProps {
   iconBgColor?: string;
 }
 
-export const SettingItem = React.memo(({ 
+export const SettingItem = React.memo(function SettingItem({ 
   label, 
   icon, 
   value, 
@@ -26,7 +25,7 @@ export const SettingItem = React.memo(({
   destructive = false,
   secondaryText,
   iconBgColor
-}: SettingItemProps) => {
+}: SettingItemProps) {
   const iconColor = destructive ? "#FF3B30" : (iconBgColor ? 'white' : colors.primary);
   const bgColor = iconBgColor || (destructive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(225, 6, 0, 0.1)');
 
@@ -66,3 +65,5 @@ export const SettingItem = React.memo(({
     </Pressable>
   );
 });
+
+SettingItem.displayName = 'SettingItem';

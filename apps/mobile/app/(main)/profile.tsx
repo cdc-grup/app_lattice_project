@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, Pressable, Alert, Modal, ActivityIndicator, StyleSheet, InteractionManager } from 'react-native';
+import { View, Text, Pressable, Alert, Modal, ActivityIndicator, InteractionManager } from 'react-native';
 import * as SafeAreaContext from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/hooks/useAuthStore';

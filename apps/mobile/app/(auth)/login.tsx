@@ -7,7 +7,7 @@ import {
   Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { useAuthStore } from '../../src/hooks/useAuthStore';

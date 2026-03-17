@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography } from '../../styles/typography';
 import { colors } from '../../styles/colors';
 import * as Haptics from 'expo-haptics';
-import { SafeBlurView } from '../ui/SafeBlurView';
 
 interface FilterChipProps {
   icon: any;

@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, TextInput, Pressable, StyleSheet, Text } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '../styles/colors';
 import { typography } from '../styles/typography';
-import { SafeBlurView } from './ui/SafeBlurView';
 import * as Haptics from 'expo-haptics';
 
 interface SearchBarProps {
@@ -14,13 +12,13 @@ interface SearchBarProps {
   onFocus?: () => void;
 }
 
-export const SearchBar = React.memo(({
+export const SearchBar = React.memo(function SearchBar({
   placeholder = 'Buscador...',
   value,
   onSearch,
   onArPress,
   onFocus,
-}: SearchBarProps) => {
+}: SearchBarProps) {
   return (
     <View className="flex-row items-center px-4">
       {/* Search Input Container */}
@@ -90,6 +88,8 @@ export const SearchBar = React.memo(({
     </View>
   );
 });
+
+SearchBar.displayName = 'SearchBar';
 
 const styles = StyleSheet.create({
   searchContainer: { 

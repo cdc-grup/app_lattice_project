@@ -3,9 +3,9 @@ import { getCategoryIcon, getCategoryColor } from '../poiUtils';
 describe('poiUtils', () => {
   describe('getCategoryIcon', () => {
     it('should return correct icon for known categories', () => {
-      expect(getCategoryIcon('restaurant')).toBe('coffee');
-      expect(getCategoryIcon('wc')).toBe('user');
-      expect(getCategoryIcon('medical')).toBe('plus-square');
+      expect(getCategoryIcon('restaurant')).toBe('food-fork-drink');
+      expect(getCategoryIcon('wc')).toBe('toilet');
+      expect(getCategoryIcon('medical')).toBe('medical-bag');
     });
 
     it('should return default icon for unknown categories', () => {
@@ -18,10 +18,13 @@ describe('poiUtils', () => {
   });
 
   describe('getCategoryColor', () => {
-    it('should return neutral color for all categories', () => {
-      expect(getCategoryColor('restrooms')).toBe('#FF9500');
-      expect(getCategoryColor('medical')).toBe('#374151');
-      expect(getCategoryColor('unknown')).toBe('#374151');
+    it('should return correct color for specific categories', () => {
+      expect(getCategoryColor('toilet')).toBe('#9BD9D9');
+      expect(getCategoryColor('medical')).toBe('#D99B9B');
+    });
+
+    it('should return default color for unknown categories', () => {
+      expect(getCategoryColor('unknown')).toBe('#8E8E93');
     });
   });
 });

@@ -27,13 +27,13 @@ export const register = async (req: Request, res: Response) => {
         const updatedUser = await db
           .update(users)
           .set({
-             passwordHash: password,
-             fullName: fullName || existingUser.fullName,
-             hasTicket: ticket_code ? true : existingUser.hasTicket
+            passwordHash: password,
+            fullName: fullName || existingUser.fullName,
+            hasTicket: ticket_code ? true : existingUser.hasTicket,
           })
           .where(eq(users.id, existingUser.id))
           .returning();
-          
+
         const user = updatedUser[0];
 
         if (ticket_code) {
@@ -159,11 +159,11 @@ export const claimTicket = async (req: Request, res: Response) => {
   if (!ticket_code) {
     return res.status(400).json({
       error: {
-        code: "MISSING_QR",
-        message: "Ticket code is required",
-        user_friendly_message: "Falta el codi QR del ticket.",
-        status: 400
-      }
+        code: 'MISSING_QR',
+        message: 'Ticket code is required',
+        user_friendly_message: 'Falta el codi QR del ticket.',
+        status: 400,
+      },
     });
   }
 
@@ -171,20 +171,26 @@ export const claimTicket = async (req: Request, res: Response) => {
   try {
     const parsed = JSON.parse(ticket_code);
     if (parsed.code) finalCode = parsed.code;
-  } catch (e) {}
+  } catch {
+    /* ignore */
+  }
 
   try {
-    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, finalCode)).limit(1);
+    const ticketResult = await db
+      .select()
+      .from(tickets)
+      .where(eq(tickets.code, finalCode))
+      .limit(1);
     const ticket = ticketResult[0];
 
     if (!ticket) {
       return res.status(404).json({
         error: {
-          code: "TICKET_NOT_FOUND",
-          message: "Ticket not found",
-          user_friendly_message: "Aquesta entrada no existeix.",
-          status: 404
-        }
+          code: 'TICKET_NOT_FOUND',
+          message: 'Ticket not found',
+          user_friendly_message: 'Aquesta entrada no existeix.',
+          status: 404,
+        },
       });
     }
 
@@ -192,36 +198,36 @@ export const claimTicket = async (req: Request, res: Response) => {
       if (authHeader && authHeader.startsWith('Bearer mock_jwt_token_for_')) {
         const userIdStr = authHeader.replace('Bearer mock_jwt_token_for_', '');
         const userId = parseInt(userIdStr, 10);
-        
+
         if (ticket.userId === userId) {
           const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
           return res.json({
             success: true,
-            message: "Ticket already associated with your account",
+            message: 'Ticket already associated with your account',
             ticket_info: ticket,
-            tickets: userTickets
+            tickets: userTickets,
           });
         }
       }
 
       return res.status(400).json({
         error: {
-          code: "TICKET_ALREADY_CLAIMED",
-          message: "Ticket is already claimed by another user",
-          user_friendly_message: "Aquesta entrada ja està associada a un altre usuari.",
-          status: 400
-        }
+          code: 'TICKET_ALREADY_CLAIMED',
+          message: 'Ticket is already claimed by another user',
+          user_friendly_message: 'Aquesta entrada ja està associada a un altre usuari.',
+          status: 400,
+        },
       });
     }
 
     if (!ticket.isActive) {
       return res.status(400).json({
         error: {
-          code: "TICKET_INACTIVE",
-          message: "Ticket is inactive",
-          user_friendly_message: "Aquesta entrada no està activa.",
-          status: 400
-        }
+          code: 'TICKET_INACTIVE',
+          message: 'Ticket is inactive',
+          user_friendly_message: 'Aquesta entrada no està activa.',
+          status: 400,
+        },
       });
     }
 
@@ -236,11 +242,11 @@ export const claimTicket = async (req: Request, res: Response) => {
         if (!user || user.email !== ticket.ownerEmail) {
           return res.status(403).json({
             error: {
-              code: "EMAIL_MISMATCH",
-              message: "This ticket belongs to another email address",
-              user_friendly_message: "Aquesta entrada pertany a un altre correu electrònic.",
-              status: 403
-            }
+              code: 'EMAIL_MISMATCH',
+              message: 'This ticket belongs to another email address',
+              user_friendly_message: 'Aquesta entrada pertany a un altre correu electrònic.',
+              status: 403,
+            },
           });
         }
       }
@@ -252,18 +258,18 @@ export const claimTicket = async (req: Request, res: Response) => {
 
       return res.json({
         success: true,
-        message: "Ticket claimed successfully",
+        message: 'Ticket claimed successfully',
         ticket_info: { ...ticket, userId },
-        tickets: userTickets
+        tickets: userTickets,
       });
     } else {
       return res.status(400).json({
         error: {
-          code: "REQUIRES_ACCOUNT",
-          message: "You must be logged in to claim this ticket",
+          code: 'REQUIRES_ACCOUNT',
+          message: 'You must be logged in to claim this ticket',
           user_friendly_message: "Si us plau, inicia sessió o registra't per associar l'entrada.",
-          status: 400
-        }
+          status: 400,
+        },
       });
     }
   } catch (error) {
@@ -273,7 +279,7 @@ export const claimTicket = async (req: Request, res: Response) => {
 };
 
 export const ticketSync = async (req: Request, res: Response) => {
-  const { qr_code_data, device_id } = req.body;
+  const { qr_code_data } = req.body;
 
   if (!qr_code_data) {
     return res.status(400).json({
@@ -296,7 +302,9 @@ export const ticketSync = async (req: Request, res: Response) => {
         ticketCode = parsedData.code;
         email = parsedData.email;
       }
-    } catch (e) {}
+    } catch (e) {
+      /* ignore */
+    }
 
     if (ticketCode === 'INVALID_TICKET') {
       return res.status(400).json({
@@ -312,26 +320,33 @@ export const ticketSync = async (req: Request, res: Response) => {
     let user = userResult[0];
 
     if (!user) {
-      const insertedUser = await db.insert(users).values({
-        email,
-        passwordHash: 'auto_generated_pass',
-        fullName: email.split('@')[0],
-        hasTicket: true,
-      }).returning();
+      const insertedUser = await db
+        .insert(users)
+        .values({
+          email,
+          passwordHash: 'auto_generated_pass',
+          fullName: email.split('@')[0],
+          hasTicket: true,
+        })
+        .returning();
       user = insertedUser[0];
     } else {
       await db.update(users).set({ hasTicket: true }).where(eq(users.id, user.id));
       user.hasTicket = true;
     }
 
-    const existingTicket = await db.select().from(tickets).where(eq(tickets.code, ticketCode)).limit(1);
+    const existingTicket = await db
+      .select()
+      .from(tickets)
+      .where(eq(tickets.code, ticketCode))
+      .limit(1);
     let ticketInfo;
 
     if (existingTicket.length > 0) {
-       await db.update(tickets).set({ userId: user.id }).where(eq(tickets.code, ticketCode));
-       ticketInfo = existingTicket[0];
+      await db.update(tickets).set({ userId: user.id }).where(eq(tickets.code, ticketCode));
+      ticketInfo = existingTicket[0];
     } else {
-       ticketInfo = {
+      ticketInfo = {
         gate: 'Porta 3',
         zoneName: 'Tribuna G',
         seatRow: '12',
@@ -398,7 +413,7 @@ export const updateMe = async (req: Request, res: Response) => {
       .where(eq(users.id, userId))
       .returning();
 
-    const { passwordHash, ...safeUser } = updatedUser[0];
+    const { passwordHash: _passwordHash, ...safeUser } = updatedUser[0];
     res.json(safeUser);
   } catch (error) {
     res.status(500).json({ error: String(error) });
@@ -413,7 +428,7 @@ export const getMe = async (req: Request, res: Response) => {
   try {
     const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (userResult.length > 0) {
-      const { passwordHash, ...safeUser } = userResult[0];
+      const { passwordHash: _passwordHash, ...safeUser } = userResult[0];
       res.json(safeUser);
     } else {
       res.status(404).json({ error: 'User not found' });
@@ -427,23 +442,29 @@ export const unclaimTicket = async (req: Request, res: Response) => {
   const { ticket_code } = req.body;
   const authHeader = req.headers.authorization;
   const userId = parseInt(authHeader!.replace('Bearer mock_jwt_token_for_', ''), 10);
-  
+
   let finalCode = ticket_code;
   try {
     const parsed = JSON.parse(ticket_code);
     if (parsed.code) finalCode = parsed.code;
-  } catch (e) {}
+  } catch {
+    /* ignore */
+  }
 
   try {
-    const ticketResult = await db.select().from(tickets).where(eq(tickets.code, finalCode)).limit(1);
+    const ticketResult = await db
+      .select()
+      .from(tickets)
+      .where(eq(tickets.code, finalCode))
+      .limit(1);
     const ticket = ticketResult[0];
 
     if (!ticket) {
       const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
       return res.json({
         success: true,
-        message: "Ticket removed (not found in DB)",
-        tickets: userTickets
+        message: 'Ticket removed (not found in DB)',
+        tickets: userTickets,
       });
     }
 
@@ -451,32 +472,32 @@ export const unclaimTicket = async (req: Request, res: Response) => {
       const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
       return res.json({
         success: true,
-        message: "Ticket already removed",
-        tickets: userTickets
+        message: 'Ticket already removed',
+        tickets: userTickets,
       });
     }
 
     if (Number(ticket.userId) !== Number(userId)) {
       return res.status(403).json({
         error: {
-          code: "FORBIDDEN",
-          message: "You do not own this ticket",
-          status: 403
-        }
+          code: 'FORBIDDEN',
+          message: 'You do not own this ticket',
+          status: 403,
+        },
       });
     }
 
     await db.update(tickets).set({ userId: null }).where(eq(tickets.code, finalCode));
     const userTickets = await db.select().from(tickets).where(eq(tickets.userId, userId));
-    
+
     if (userTickets.length === 0) {
       await db.update(users).set({ hasTicket: false }).where(eq(users.id, userId));
     }
 
     return res.json({
       success: true,
-      message: "Ticket removed successfully",
-      tickets: userTickets
+      message: 'Ticket removed successfully',
+      tickets: userTickets,
     });
   } catch (error) {
     console.error('Unclaim Error:', error);

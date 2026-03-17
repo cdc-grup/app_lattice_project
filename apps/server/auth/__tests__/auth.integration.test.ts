@@ -5,7 +5,7 @@ import * as dbLib from '@app/db';
 
 // Mock the entire DB library
 vi.mock('@app/db', async () => {
-  const actual = await vi.importActual('@app/db') as any;
+  const actual = (await vi.importActual('@app/db')) as any;
   return {
     ...actual,
     db: {
@@ -69,10 +69,13 @@ describe('Auth Service Integration Tests', () => {
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
       (dbLib.db.select as any).mockReturnValue({ from: mockFrom });
-      
+
       // Mock ticket fetch at the end of login
-      (dbLib.db.select as any).mockImplementationOnce(() => ({ from: mockFrom })) // First for user
-                             .mockImplementationOnce(() => ({ from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }) })); // Second for tickets
+      (dbLib.db.select as any)
+        .mockImplementationOnce(() => ({ from: mockFrom })) // First for user
+        .mockImplementationOnce(() => ({
+          from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
+        })); // Second for tickets
 
       const response = await request(app).post('/login').send({
         email: 'kore@example.com',
@@ -101,12 +104,14 @@ describe('Auth Service Integration Tests', () => {
         .mockReturnValueOnce({ from: mockTicketFrom });
 
       // 3. Mock insert
-      const mockReturning = vi.fn().mockResolvedValue([{ 
-        id: 2, 
-        email: 'new@test.com', 
-        fullName: 'New User', 
-        hasTicket: false 
-      }]);
+      const mockReturning = vi.fn().mockResolvedValue([
+        {
+          id: 2,
+          email: 'new@test.com',
+          fullName: 'New User',
+          hasTicket: false,
+        },
+      ]);
       const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
       (dbLib.db.insert as any).mockReturnValue({ values: mockValues });
 
@@ -123,7 +128,9 @@ describe('Auth Service Integration Tests', () => {
     });
 
     it('should return 400 if user already exists', async () => {
-      const mockLimit = vi.fn().mockResolvedValue([{ id: 1, email: 'exists@test.com', passwordHash: 'hash' }]);
+      const mockLimit = vi
+        .fn()
+        .mockResolvedValue([{ id: 1, email: 'exists@test.com', passwordHash: 'hash' }]);
       const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
       const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
       (dbLib.db.select as any).mockReturnValue({ from: mockFrom });

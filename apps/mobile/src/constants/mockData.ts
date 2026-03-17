@@ -1,5 +1,3 @@
-import { UIPOI } from '../types/models/poi';
-
 export const MOCK_POIS: any[] = [
   {
     id: '1',
