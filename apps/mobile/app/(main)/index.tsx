@@ -308,14 +308,28 @@ function MapIndex() {
           }
           onFocusSearch={() => setIsSearching(true)}
           searchResults={renderSearchResults()}
-          poiCarousel={<POICarousel pois={carouselPois} onSelectPoi={(poi) => selectPoi(poi)} />}
-          discoveryContent={
-            <GuidesSection
-              onSeeAll={() => setShowSavedManager(true)}
-              onSelectMarker={(coords, id) => {
-                selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
-              }}
+          poiCarousel={
+            <POICarousel 
+              pois={carouselPois} 
+              onSelectPoi={(poi) => selectPoi(poi)} 
+              userCoords={userCoords}
             />
+          }
+          discoveryContent={
+            <View>
+              <POICarousel 
+                title="Cerca de ti"
+                pois={rawPoisData?.features?.map((f: any) => ({ ...f.properties, geometry: f.geometry })) || []}
+                onSelectPoi={(poi) => selectPoi(poi)}
+                userCoords={userCoords}
+              />
+              <GuidesSection
+                onSeeAll={() => setShowSavedManager(true)}
+                onSelectMarker={(coords, id) => {
+                  selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
+                }}
+              />
+            </View>
           }
           onSelectCategory={(category: string) => {
             if (activeCategoryId === category) {
@@ -324,15 +338,14 @@ function MapIndex() {
             }
             setActiveCategoryId(category);
             if (poisData?.features) {
-              const foundPoi = poisData.features.find(
-                (f: any) => f.properties.category === category
-              );
+              const foundPoi = poisData.features.find((f: any) => f.properties.category === category);
               if (foundPoi)
                 selectPoi({ ...foundPoi.properties, geometry: foundPoi.geometry } as any);
             }
           }}
         />
       )}
+
 
       <SavedLocationsManager
         isVisible={showSavedManager}
