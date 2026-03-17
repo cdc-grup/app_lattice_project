@@ -7,7 +7,7 @@ Welcome to the official repository. This application is a full-stack solution bu
 
 ## 🗺️ Documentation Map
 
-To ensure a smooth development process and perfect integration with AI agents, we maintain a "Source of Truth" in the following directories:
+To ensure a smooth development process and perfect integration with AI agents, we maintain a "Source of Truth" in the following directories;
 
 ### 🧠 Project Context (AI-Ready)
 
