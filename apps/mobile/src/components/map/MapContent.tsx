@@ -188,11 +188,7 @@ export const MapContent = React.memo(function MapContent({
         compassEnabled={false}
         onPress={onDeselect || storeDeselect}
       >
-        <MapLibreGL.UserLocation
-          visible={true}
-          animated={true}
-          showsUserHeadingIndicator={true}
-        />
+        <MapLibreGL.UserLocation visible={true} animated={true} showsUserHeadingIndicator={true} />
         <MapLibreGL.Camera
           ref={camera}
           minZoomLevel={11}

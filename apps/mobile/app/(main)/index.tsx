@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import {
   View,
   Pressable,
@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import BottomSheet from '@gorhom/bottom-sheet';
 import { SearchBar } from '../../src/components/SearchBar';
 import { colors } from '../../src/styles/colors';
 import { usePOIs } from '../../src/hooks/queries/usePOIs';
@@ -25,9 +24,7 @@ import * as Haptics from 'expo-haptics';
 import { useMapStore } from '../../src/store/useMapStore';
 import { useAuthStore } from '../../src/hooks/useAuthStore';
 import { MapContent } from '../../src/components/map/MapContent';
-import { MapBottomSheet } from '../../src/components/map/MapBottomSheet';
-import { PoiDetailSheet } from '../../src/components/map/PoiDetailSheet';
-import { NavigationInfo } from '../../src/components/map/NavigationInfo';
+import { MapSheetManager } from '../../src/components/map/MapSheetManager';
 import { GuidesSection } from '../../src/components/map/GuidesSection';
 import { POICarousel } from '../../src/components/map/POICarousel';
 import { useSavedLocations } from '../../src/hooks/queries/useSavedLocations';
@@ -54,7 +51,6 @@ function MapIndex() {
 
   const selectedPoiId = useMapStore((s) => s.selectedPoiId);
   const selectedPoi = useMapStore((s) => s.selectedPoi);
-  const isNavigating = useMapStore((s) => s.isNavigating);
   const deselect = useMapStore((s) => s.deselect);
   const selectPoi = useMapStore((s) => s.selectPoi);
   const triggerRecenter = useMapStore((s) => s.triggerRecenter);
@@ -66,31 +62,12 @@ function MapIndex() {
   const [manualAR, setManualAR] = useState(false);
   const isARVisible = isCameraARVisible || manualAR;
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
   const sheetPosition = useSharedValue(SCREEN_HEIGHT);
-
-  const poiDetailSheetRef = useRef<BottomSheet>(null);
-  const poiSheetPosition = useSharedValue(SCREEN_HEIGHT);
 
   const { data: savedData } = useSavedLocations();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showSavedManager, setShowSavedManager] = useState(false);
-
-  useEffect(() => {
-    if (isNavigating) {
-      poiDetailSheetRef.current?.close();
-      bottomSheetRef.current?.close();
-      return;
-    }
-
-    if (selectedPoiId) {
-      poiDetailSheetRef.current?.snapToIndex(0);
-      bottomSheetRef.current?.snapToIndex(0); // Baja el buscador para dejar espacio
-    } else {
-      poiDetailSheetRef.current?.close();
-    }
-  }, [selectedPoiId, isNavigating]);
 
   const activeTicket = useAuthStore((s: any) => s.activeTicket);
   const activeCategory = useMemo(() => {
@@ -173,26 +150,16 @@ function MapIndex() {
   }, [searchQuery, poisData]);
 
   const handleRecenter = useCallback(async () => {
-    console.log('[Recenter] 1. Button pressed');
     try {
-      console.log('[Recenter] 2. Triggering Haptics');
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
       if (locationStatus === 'granted') {
-        console.log('[Recenter] 3. Already granted, skipping request');
         triggerRecenter();
         return;
       }
-
-      console.log('[Recenter] 4. Requesting permission...');
       const granted = await requestPermission();
-      console.log('[Recenter] 5. Permission result:', granted);
-
-      if (granted) {
-        triggerRecenter();
-      }
+      if (granted) triggerRecenter();
     } catch (err) {
-      console.error('[Recenter] FATAL ERROR:', err);
+      console.error('[Recenter] Error:', err);
     }
   }, [locationStatus, requestPermission, triggerRecenter]);
 
@@ -325,9 +292,7 @@ function MapIndex() {
       </Animated.View>
 
       {!isARVisible && (
-        <MapBottomSheet
-          ref={bottomSheetRef}
-          translateY={sheetPosition}
+        <MapSheetManager
           activeCategoryId={activeCategoryId}
           isSearching={isSearching}
           searchBar={
@@ -338,21 +303,19 @@ function MapIndex() {
               onArPress={() => router.push('/(main)/profile')}
               onFocus={() => {
                 setIsSearching(true);
-                bottomSheetRef.current?.snapToIndex(2);
               }}
             />
           }
+          onFocusSearch={() => setIsSearching(true)}
           searchResults={renderSearchResults()}
           poiCarousel={<POICarousel pois={carouselPois} onSelectPoi={(poi) => selectPoi(poi)} />}
           discoveryContent={
-            <View>
-              <GuidesSection
-                onSeeAll={() => setShowSavedManager(true)}
-                onSelectMarker={(coords, id) => {
-                  selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
-                }}
-              />
-            </View>
+            <GuidesSection
+              onSeeAll={() => setShowSavedManager(true)}
+              onSelectMarker={(coords, id) => {
+                selectPoi({ id: `saved_${id}`, geometry: { coordinates: coords } } as any);
+              }}
+            />
           }
           onSelectCategory={(category: string) => {
             if (activeCategoryId === category) {
@@ -360,47 +323,12 @@ function MapIndex() {
               return;
             }
             setActiveCategoryId(category);
-
-            // 1. If user has a ticket, prioritize their assigned gate/grandstand
-            if (activeTicket) {
-              if (category === 'gate' && activeTicket.gate) {
-                const found = poisData?.features.find(
-                  (f: any) =>
-                    f.properties.category === 'gate' &&
-                    (f.properties.name.toLowerCase().includes(activeTicket.gate!.toLowerCase()) ||
-                      activeTicket.gate!.toLowerCase().includes(f.properties.name.toLowerCase()))
-                );
-                if (found) {
-                  selectPoi({ ...found.properties, geometry: found.geometry } as any);
-                  return;
-                }
-              }
-              if (category === 'grandstand' && activeTicket.zoneName) {
-                const found = poisData?.features.find(
-                  (f: any) =>
-                    f.properties.category === 'grandstand' &&
-                    (f.properties.name
-                      .toLowerCase()
-                      .includes(activeTicket.zoneName!.toLowerCase()) ||
-                      activeTicket
-                        .zoneName!.toLowerCase()
-                        .includes(f.properties.name.toLowerCase()))
-                );
-                if (found) {
-                  selectPoi({ ...found.properties, geometry: found.geometry } as any);
-                  return;
-                }
-              }
-            }
-
-            // 2. Default behavior: Find the first POI matching this category
             if (poisData?.features) {
               const foundPoi = poisData.features.find(
                 (f: any) => f.properties.category === category
               );
-              if (foundPoi) {
+              if (foundPoi)
                 selectPoi({ ...foundPoi.properties, geometry: foundPoi.geometry } as any);
-              }
             }
           }}
         />
@@ -417,17 +345,6 @@ function MapIndex() {
           } as any);
         }}
       />
-
-      <PoiDetailSheet
-        ref={poiDetailSheetRef}
-        poi={selectedPoi}
-        onClose={() => {
-          if (!isNavigating) deselect();
-        }}
-        translateY={poiSheetPosition}
-      />
-
-      <NavigationInfo />
     </View>
   );
 }

@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import { RouteGeoJSON } from '../types';
 import { UIPOI } from '../types/models/poi';
 
+export enum MapUIState {
+  EXPLORING = 'EXPLORING',
+  POI_DETAIL = 'POI_DETAIL',
+  NAVIGATING = 'NAVIGATING',
+}
+
 interface RouteMetadata {
   distance: number;
   duration: number;
@@ -9,23 +15,26 @@ interface RouteMetadata {
 }
 
 interface MapState {
+  uiState: MapUIState;
   selectedPoiId: string | null;
   selectedPoi: UIPOI | null;
   selectedCoords: number[] | null;
   recenterCount: number;
   currentRoute: RouteGeoJSON | null;
   routeMetadata: RouteMetadata | null;
-  isNavigating: boolean;
+  isNavigating: boolean; // Keep for backward compatibility/simplicity where needed
 
-  // Actions - Renamed to break cache
+  // Actions
   selectPoi: (poi: any) => void;
   setRoute: (route: RouteGeoJSON | null, metadata?: RouteMetadata | null) => void;
   setNavigating: (navigating: boolean) => void;
   deselect: () => void;
   triggerRecenter: () => void;
+  setUIState: (state: MapUIState) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
+  uiState: MapUIState.EXPLORING,
   selectedPoiId: null,
   selectedPoi: null,
   selectedCoords: null,
@@ -43,10 +52,11 @@ export const useMapStore = create<MapState>((set) => ({
     const fullPoi = isObj && (poi.name || poi.label) ? (poi as UIPOI) : null;
 
     set({
+      uiState: MapUIState.POI_DETAIL,
       selectedPoiId: id,
       selectedPoi: fullPoi,
       selectedCoords: coords,
-      isNavigating: false, // Reset navigation when selecting a new POI
+      isNavigating: false,
     });
   },
 
@@ -59,13 +69,24 @@ export const useMapStore = create<MapState>((set) => ({
           ? {
               distance: route.properties.distance,
               duration: route.properties.durationEstimate,
-              destinationName: '', // Will be filled by the caller if needed
+              destinationName: '',
             }
           : null),
     }),
-  setNavigating: (nav) => set({ isNavigating: nav }),
+
+  setNavigating: (nav) =>
+    set((state) => ({
+      isNavigating: nav,
+      uiState: nav
+        ? MapUIState.NAVIGATING
+        : state.selectedPoiId
+          ? MapUIState.POI_DETAIL
+          : MapUIState.EXPLORING,
+    })),
+
   deselect: () =>
     set({
+      uiState: MapUIState.EXPLORING,
       selectedPoiId: null,
       selectedPoi: null,
       selectedCoords: null,
@@ -73,5 +94,8 @@ export const useMapStore = create<MapState>((set) => ({
       routeMetadata: null,
       isNavigating: false,
     }),
+
   triggerRecenter: () => set((state) => ({ recenterCount: state.recenterCount + 1 })),
+
+  setUIState: (uiState) => set({ uiState }),
 }));
