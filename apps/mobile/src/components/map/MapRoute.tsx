@@ -6,7 +6,7 @@ interface MapRouteProps {
   route: RouteGeoJSON | null;
 }
 
-export const MapRoute = React.memo(({ route }: MapRouteProps) => {
+export const MapRoute = React.memo(function MapRoute({ route }: MapRouteProps) {
   if (!route) return null;
 
   return (
@@ -35,3 +35,5 @@ export const MapRoute = React.memo(({ route }: MapRouteProps) => {
     </MapLibreGL.ShapeSource>
   );
 });
+
+MapRoute.displayName = 'MapRoute';

@@ -1,4 +1,4 @@
-name: Deploy Backend to Production
+name: Pipeline - CI/CD
 
 on:
   push:
@@ -12,21 +12,51 @@ on:
       - 'turbo.json'
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Deploy to Self-Hosted Runner
-    runs-on: self-hosted
+  quality:
+    name: Lint, TypeCheck & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type Check
+        run: pnpm build
+
+      - name: Run All Tests
+        run: pnpm test
+
+  deploy:
+    name: Deploy to Production
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: self-hosted
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Pre-build Cleanup
         run: |
-          echo "🧹 Cleaning up disk space before build..."
           docker system prune -af --volumes || true
           docker builder prune -af || true
 

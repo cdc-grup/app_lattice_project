@@ -21,18 +21,18 @@ const QuickAction = ({ icon, label, sublabel, onPress, color }: QuickActionProps
       style={({ pressed }) => [
         styles.actionButton,
         { 
-          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-          borderColor: pressed ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+          backgroundColor: pressed ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+          borderColor: pressed ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.15)',
           transform: [{ scale: pressed ? 0.94 : 1 }],
         }
       ]}
       className="items-center justify-center mb-2"
     >
-      <Feather name={icon as any} size={22} color={color} />
+      <Feather name={icon as any} size={24} color={color} />
     </Pressable>
     <Text style={styles.actionLabel} numberOfLines={1}>{label}</Text>
     {sublabel ? (
-      <Text style={[styles.actionSublabel, { color: `${color}80` }]} numberOfLines={1}>{sublabel}</Text>
+      <Text style={[styles.actionSublabel, { color: `${color}90` }]} numberOfLines={1}>{sublabel}</Text>
     ) : null}
   </View>
 );
@@ -42,7 +42,7 @@ export const QuickActions = () => {
     <View style={styles.container}>
       <View className="flex-row items-center mb-4">
         <Text style={styles.sectionTitle}>Favoritos</Text>
-        <Feather name="chevron-right" size={14} color="rgba(255, 255, 255, 0.2)" className="ml-1 mt-0.5" />
+        <Feather name="chevron-right" size={14} color="rgba(255, 255, 255, 0.3)" className="ml-1 mt-0.5" />
       </View>
       <ScrollView 
         horizontal 
@@ -67,7 +67,7 @@ export const QuickActions = () => {
         <QuickAction 
           icon="plus" 
           label="Añadir" 
-          color="rgba(255, 255, 255, 0.6)"
+          color="rgba(255, 255, 255, 0.7)"
           onPress={() => console.log('Add pressed')} 
         />
       </ScrollView>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   sectionTitle: {
-    color: 'white',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.5,
@@ -95,19 +95,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   actionButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    width: 60,
+    height: 60,
+    borderRadius: 20, // Increased to 20px
+    borderWidth: 1.5,
   },
   actionLabel: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     fontWeight: '500',
   },
   actionSublabel: {
-    color: 'rgba(255, 255, 255, 0.3)',
+    color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 10,
     marginTop: 1,
   },

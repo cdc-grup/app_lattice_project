@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, TextInput, Pressable, StyleSheet, Text } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '../styles/colors';
 import { typography } from '../styles/typography';
-import { SafeBlurView } from './ui/SafeBlurView';
 import * as Haptics from 'expo-haptics';
 
 interface SearchBarProps {
@@ -14,13 +12,13 @@ interface SearchBarProps {
   onFocus?: () => void;
 }
 
-export const SearchBar = React.memo(({
+export const SearchBar = React.memo(function SearchBar({
   placeholder = 'Buscador...',
   value,
   onSearch,
   onArPress,
   onFocus,
-}: SearchBarProps) => {
+}: SearchBarProps) {
   return (
     <View className="flex-row items-center px-4">
       {/* Search Input Container */}
@@ -73,17 +71,17 @@ export const SearchBar = React.memo(({
           <View style={[
             styles.searchContainer,
             {
-              width: 43,
-              height: 43,
-              marginLeft: 12,
-              borderRadius: 24,
+              width: 48,
+              height: 48,
+              marginLeft: 10,
+              borderRadius: 20, // Increased from 16 for more rounded look
               alignItems: 'center',
               justifyContent: 'center',
               opacity: pressed ? 0.8 : 1,
-              transform: [{ scale: pressed ? 0.92 : 1 }],
+              transform: [{ scale: pressed ? 0.95 : 1 }],
             }
           ]}>
-            <Feather name="user" size={20} color="rgba(255, 255, 255, 0.5)" />
+            <Feather name="user" size={22} color="rgba(255, 255, 255, 0.6)" />
           </View>
         )}
       </Pressable>
@@ -91,10 +89,12 @@ export const SearchBar = React.memo(({
   );
 });
 
+SearchBar.displayName = 'SearchBar';
+
 const styles = StyleSheet.create({
   searchContainer: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.08)', 
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
 });

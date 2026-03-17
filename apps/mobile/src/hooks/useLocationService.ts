@@ -29,7 +29,7 @@ export const useLocationService = (): LocationState => {
             if (lastKnown) {
               setUserCoords([lastKnown.coords.longitude, lastKnown.coords.latitude]);
             }
-          } catch (e) {
+          } catch {
             // Silently handle if last location is unavailable
           }
 

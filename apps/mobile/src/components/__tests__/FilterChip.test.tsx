@@ -3,11 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { describe, it, expect, jest } from '@jest/globals';
 import { FilterChip } from '../FilterChip';
 
-// Mocking icons to avoid rendering issues in tests
-jest.mock('@expo/vector-icons', () => ({
-  MaterialCommunityIcons: 'Icon',
-}));
-
 describe('FilterChip', () => {
   it('renders correctly with label', () => {
     const { getByText } = render(

@@ -1,36 +1,48 @@
-# Testing & Quality Assurance
+# Testing & Quality Assurance - Lattice
 
-Protocol for ensuring the reliability of Lattice in hostile high-density environments.
+Protocolo para garantizar la fiabilidad del sistema en el monorepo.
 
-## 1. Automated Testing Suite
+## 1. Pipeline de CI/CD
+Hemos unificado la calidad y el despliegue en un solo flujo (`.github/workflows/deploy-backend.yml`). 
+- **Quality Gate:** Antes de cada despliegue o PR, se ejecuta automáticamente: `Lint -> TypeCheck -> Tests`.
+- **Despliegue Automático:** Solo si la fase de Quality pasa con éxito y estamos en `main`.
 
-### Unit & Logic Tests
-- **Framework:** Vitest.
-- **Focus:** Algorithms, data transformations, and custom hooks.
-- **Command:** `npm test` (root) or `npm run test:logic -w mobile`.
+## 2. Ejecución de Tests
+Puedes ejecutar los tests desde la raíz del proyecto usando `pnpm`:
 
-### Component & UI Tests
-- **Framework:** Jest + React Native Testing Library.
-- **Focus:** Component rendering, user interaction, and state transitions.
-- **Command:** `npm run test:components -w mobile`.
+| Comando | Descripción |
+| :--- | :--- |
+| `pnpm test` | Ejecuta todos los tests del monorepo (Lógica y UI). |
+| `pnpm lint` | Verifica el estilo de código en todo el proyecto. |
+| `pnpm build` | Valida que TypeScript no tenga errores de tipos. |
+| `pnpm turbo lint -- --fix` | Arregla automáticamente errores de formato y Prettier. |
 
-## 2. Environmental Testing (The Real World)
+## 3. Tipos de Tests en el Proyecto
 
-Simulators cannot recreate the Grand Prix environment. We test for:
+### A. Tests de Lógica (Vitest)
+Ubicados en `apps/server/*/` y `apps/mobile/src/utils/__tests__/`.
+- **Enfoque:** Algoritmos, servicios y lógica pura.
+- **Mocking:** Usamos `vi.mock` para simular la base de datos en la mayoría de casos.
 
-1. **Magnetic Interference:** Steel grandstands can decalibrate compasses.
-2. **GPS Shadow (Multipath):** High structures cause coordinate "jumps".
-3. **Extreme Sun:** Checking visibility of AR elements under direct noon-day sun.
-4. **Network Saturation:** Testing app behavior under extreme 4G/5G congestion using local "2G/Edge" throttling.
+### B. Tests de Integración de Base de Datos (Testcontainers)
+Ubicados en `packages/db/__tests__/`.
+- **Requisito:** Requiere **Docker** activo.
+- **Funcionamiento:** Levanta un contenedor efímero de Postgres, ejecuta las migraciones y valida queries reales contra la DB.
+- **Comando:** `pnpm --filter @app/db test`.
 
-## 3. Bug Reporting Standards
+### C. Tests de Gateway (Proxy & Routing)
+Ubicados en `apps/server/gateway/__tests__/`.
+- **Enfoque:** Validar que las rutas `/api/v1/*` se redirigen correctamente y que los health-checks funcionan.
 
-When reporting issues from the field, testers must include:
-- **Exact Coordinates** (from Debug mode).
-- **Environment Conditions** (Sun/Clouds/Rain).
-- **Device Orientation**.
-- **Debug Screenshots** of AR anchor points.
+### D. Tests de UI (Jest + RNTL)
+Ubicados en `apps/mobile/src/components/__tests__/`.
+- **Enfoque:** Renderizado de componentes React Native y navegación.
+
+## 4. Guía para el Desarrollador
+1. **Antes de subir código:** Ejecuta `pnpm lint` y `pnpm test`.
+2. **Si el lint falla:** Ejecuta `pnpm turbo lint -- --fix`.
+3. **Nuevos servicios:** Siempre añade un archivo `vitest.config.ts` y exporta la instancia de `app` para facilitar los tests sin colisión de puertos.
 
 ---
 > [!IMPORTANT]
-> A successful test in the office does not guarantee success at the track. Always perform a field walk.
+> El Pipeline de CI rechazará cualquier código que no pase los tests o el linting. ¡Mantén el código limpio!

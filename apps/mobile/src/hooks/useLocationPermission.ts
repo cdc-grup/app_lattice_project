@@ -9,31 +9,42 @@ export interface LocationPermissionState {
   status: PermissionStatus;
   requestPermission: () => Promise<boolean>;
 }
+
 export const useLocationPermission = () => {
+  const [permissionResponse, requestPermissionInternal] = Location.useForegroundPermissions();
   const [status, setStatus] = useState<PermissionStatus>('idle');
 
+  // Sync internal status with expo-location hook
+  useEffect(() => {
+    if (!permissionResponse) return;
+    
+    if (permissionResponse.status === Location.PermissionStatus.GRANTED) {
+      setStatus('granted');
+    } else if (permissionResponse.status === Location.PermissionStatus.DENIED) {
+      setStatus(permissionResponse.canAskAgain ? 'denied' : 'blocked');
+    }
+  }, [permissionResponse]);
+
   const requestPermission = useCallback(async () => {
+    console.log('[Permission] A. Starting requestPermission');
     setStatus('loading');
+    
     try {
-      const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+      console.log('[Permission] B. Calling requestPermissionInternal from hook');
+      const response = await requestPermissionInternal();
+      console.log('[Permission] C. Response received:', response.status);
 
-      if (existingStatus === 'granted') {
+      if (response.status === Location.PermissionStatus.GRANTED) {
         setStatus('granted');
         return true;
       }
 
-      const { status: newStatus, canAskAgain } = await Location.requestForegroundPermissionsAsync();
-
-      if (newStatus === 'granted') {
-        setStatus('granted');
-        return true;
-      }
-
-      if (!canAskAgain) {
+      if (!response.canAskAgain) {
+        console.log('[Permission] D. Blocked permanently');
         setStatus('blocked');
         Alert.alert(
           'Permisos de ubicación',
-          'Has denegado los permisos de ubicación de forma permanente. Por favor, actívalos en los ajustes de la aplicación para poder orientarte en el circuito.',
+          'Has denegado los permisos de ubicación de forma permanente. Por favor, actívalos en los ajustes de la aplicación.',
           [
             { text: 'Cancelar', style: 'cancel' },
             { text: 'Abrir Ajustes', onPress: () => Linking.openSettings() },
@@ -45,21 +56,11 @@ export const useLocationPermission = () => {
       setStatus('denied');
       return false;
     } catch (error) {
-      console.error('Error requesting location permission:', error);
+      console.error('[Permission] FATAL ERROR:', error);
       setStatus('denied');
       return false;
     }
-  }, []);
-
-  useEffect(() => {
-    // Check permission on mount
-    (async () => {
-      const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
-      if (existingStatus === 'granted') {
-        setStatus('granted');
-      }
-    })();
-  }, []);
+  }, [requestPermissionInternal]);
 
   return { status, requestPermission };
 };

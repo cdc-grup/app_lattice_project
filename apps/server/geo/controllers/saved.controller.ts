@@ -52,11 +52,14 @@ export const createSavedLocation = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
 
-    const result = await db.insert(savedLocations).values({
-      userId,
-      label: label || 'Saved Location',
-      location: sql`ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`,
-    }).returning();
+    const result = await db
+      .insert(savedLocations)
+      .values({
+        userId,
+        label: label || 'Saved Location',
+        location: sql`ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`,
+      })
+      .returning();
 
     res.status(201).json(result[0]);
   } catch (error) {
@@ -75,12 +78,9 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid ID' });
     }
 
-    await db.delete(savedLocations).where(
-      and(
-        eq(savedLocations.id, savedId),
-        eq(savedLocations.userId, userId)
-      )
-    );
+    await db
+      .delete(savedLocations)
+      .where(and(eq(savedLocations.id, savedId), eq(savedLocations.userId, userId)));
 
     res.status(204).send();
   } catch (error) {

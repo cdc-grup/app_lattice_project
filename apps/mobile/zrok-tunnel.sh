@@ -60,21 +60,7 @@ wait_for_url() {
     return 1
 }
 
-# Start API tunnel
-echo "📡 Starting API tunnel on port $API_PORT..."
-# Remove old log if exists
-rm -f "$SCRIPT_DIR/api_zrok.log"
-zrok share public http://localhost:$API_PORT --headless > "$SCRIPT_DIR/api_zrok.log" 2>&1 &
-API_URL=$(wait_for_url "$SCRIPT_DIR/api_zrok.log" "API")
-
-if [ $? -ne 0 ]; then
-    cleanup
-fi
-echo "✅ API Tunnel: $API_URL"
-
 # Start Metro tunnel
-echo "📡 Wait a moment before starting Metro tunnel..."
-sleep 2
 echo "📡 Starting Metro tunnel on port $METRO_PORT..."
 # Remove old log if exists
 rm -f "$SCRIPT_DIR/metro_zrok.log"
@@ -84,26 +70,10 @@ METRO_URL=$(wait_for_url "$SCRIPT_DIR/metro_zrok.log" "Metro")
 if [ $? -ne 0 ]; then
     cleanup
 fi
-if [ -z "$API_URL" ] || [ -z "$METRO_URL" ]; then
-    echo "❌ Failed to retrieve one or more tunnel URLs. Aborting."
-    cleanup
-fi
 
-# Update .env file
-echo "📝 Updating $ENV_FILE with new API URL..."
-if [ -f "$ENV_FILE" ]; then
-    # Backup .env
-    cp "$ENV_FILE" "$ENV_FILE.bak"
-    # Update or add EXPO_PUBLIC_API_URL
-    # Escaping / for sed
-    SAFE_API_URL=$(echo "$API_URL" | sed 's/\//\\\//g')
-    if grep -q "EXPO_PUBLIC_API_URL=" "$ENV_FILE"; then
-        sed -i "s/EXPO_PUBLIC_API_URL=.*/EXPO_PUBLIC_API_URL=$SAFE_API_URL\/api\/v1/" "$ENV_FILE"
-    else
-        echo "EXPO_PUBLIC_API_URL=$API_URL/api/v1" >> "$ENV_FILE"
-    fi
-else
-    echo "EXPO_PUBLIC_API_URL=$API_URL/api/v1" > "$ENV_FILE"
+if [ -z "$METRO_URL" ]; then
+    echo "❌ Failed to retrieve Metro tunnel URL. Aborting."
+    cleanup
 fi
 
 # Run Metro Bundler with proxy settings

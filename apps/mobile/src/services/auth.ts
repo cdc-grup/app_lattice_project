@@ -5,9 +5,6 @@ import { apiClient } from './apiClient';
 import { API_ENDPOINTS } from '../constants/api';
 
 export const useSyncTicket = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const setTicket = useAuthStore((state) => state.setTicket);
-
   return useMutation({
     mutationFn: async (ticketCode: string) => {
       return apiClient.post<{ user: User; token: string; ticket_info: Ticket; requires_setup: boolean }>(
@@ -30,8 +27,6 @@ export const useSyncTicket = () => {
 };
 
 export const useLogin = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const setTicket = useAuthStore((state) => state.setTicket);
   const pendingTicketCode = useAuthStore((state) => state.pendingTicketCode);
 
   return useMutation({
@@ -46,6 +41,7 @@ export const useLogin = () => {
       );
     },
     onSuccess: (data: any) => {
+      const { setAuth, setTicket } = useAuthStore.getState();
       setAuth(data.token, data.user, data.tickets || [], false);
       if (data.ticket_info) {
         setTicket(data.ticket_info);
@@ -56,7 +52,6 @@ export const useLogin = () => {
 };
 
 export const useRegister = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
   const pendingTicketCode = useAuthStore((state) => state.pendingTicketCode);
 
   return useMutation({
@@ -72,6 +67,7 @@ export const useRegister = () => {
       );
     },
     onSuccess: (data: any) => {
+      const { setAuth } = useAuthStore.getState();
       setAuth(data.token, data.user, data.tickets || [], false);
       if (data.ticket_info) {
         useAuthStore.getState().setTicket(data.ticket_info);

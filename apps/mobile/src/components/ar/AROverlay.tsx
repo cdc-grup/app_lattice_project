@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text, useWindowDimensions } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Canvas } from '@react-three/fiber/native';
 import { MainARScene } from './MainARScene';
@@ -10,22 +10,51 @@ import Animated, {
   withTiming, 
   useSharedValue,
 } from 'react-native-reanimated';
+import { typography } from '../../styles/typography';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getCategoryMetadata } from '../../utils/poiUtils';
+
+// Math helpers
+const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371e3;
+  const p1 = lat1 * Math.PI / 180;
+  const p2 = lat2 * Math.PI / 180;
+  const dp = (lat2 - lat1) * Math.PI / 180;
+  const dl = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const getBearing = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const p1 = lat1 * Math.PI / 180;
+  const p2 = lat2 * Math.PI / 180;
+  const l1 = lon1 * Math.PI / 180;
+  const l2 = lon2 * Math.PI / 180;
+  const y = Math.sin(l2 - l1) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(l2 - l1);
+  const theta = Math.atan2(y, x);
+  return (theta * 180 / Math.PI + 360) % 360;
+};
 
 interface AROverlayProps {
   isVisible: boolean;
   onExitAR?: () => void;
+  userCoords?: number[] | null;
+  heading?: number;
+  pois?: any[];
+  isLandscape?: boolean;
 }
 
-export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR }) => {
+export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR, userCoords, heading = 0, pois = [], isLandscape }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [mountScene, setMountScene] = useState(false);
   const hudOpacity = useSharedValue(0);
+  const { width, height } = useWindowDimensions();
 
   useEffect(() => {
     if (isVisible && isCameraReady) {
-      // Small delay before mounting the 3D scene once camera is ready
-      // Minimal delay to ensure camera view has rendered its native component
       const timer = setTimeout(() => {
         setMountScene(true);
         hudOpacity.value = withTiming(1, { duration: 600 });
@@ -42,19 +71,113 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR }) => 
     transform: [{ translateY: withTiming(hudOpacity.value === 1 ? 0 : 20, { duration: 600 }) }]
   }));
 
+  // Filter POIs by distance for AR - MUST BE AT TOP LEVEL BEFORE EARLY RETURNS
+  const activePois = React.useMemo(() => {
+    if (!userCoords || !pois.length) return [];
+    const [userLon, userLat] = userCoords;
+    return pois.filter(poi => {
+      const [poiLon, poiLat] = poi.geometry.coordinates;
+      const dist = getDistance(userLat, userLon, poiLat, poiLon);
+      return dist < 1000;
+    });
+  }, [userCoords, pois]);
+
   if (!isVisible) return null;
+  if (!permission) return <View style={styles.permissionContainer} />;
+  if (!permission.granted) return <View style={StyleSheet.absoluteFill}><CameraPermissionView onRequestPermission={requestPermission} /></View>;
 
-  if (!permission) {
-    return <View style={styles.permissionContainer} />;
-  }
+  const isScanning = activePois.length === 0;
 
-  if (!permission.granted) {
-    return (
-      <View style={StyleSheet.absoluteFill}>
-        <CameraPermissionView onRequestPermission={requestPermission} />
-      </View>
-    );
-  }
+  // Calculate 2D Screen Overlay Positions for Text Labels
+  const render2DLabels = (poisToRender: any[]) => {
+    if (!userCoords || poisToRender.length === 0) return null;
+    const [userLon, userLat] = userCoords;
+    const FOV = 60; // Camera Field of View
+    
+    return poisToRender.map((poi, idx) => {
+      const [poiLon, poiLat] = poi.geometry.coordinates;
+      const distance = getDistance(userLat, userLon, poiLat, poiLon);
+      const metadata = getCategoryMetadata(poi.properties.category);
+
+      const bearing = getBearing(userLat, userLon, poiLat, poiLon);
+      let angleDiff = bearing - heading;
+      
+      // Normalize to -180...180
+      if (angleDiff > 180) angleDiff -= 360;
+      if (angleDiff < -180) angleDiff += 360;
+
+      // Only show if it's within the front hemisphere and reasonably centered
+      if (Math.abs(angleDiff) > 45) return null;
+
+      // Use staggered height to prevent overlaps but more subtly
+      let yOffset = (idx % 2) * 50 - 25; 
+      
+      if (isLandscape) {
+        // When physically landscape but OS is portrait (rotated 90deg CW)
+        // The camera view is filling the screen [width x height]
+        // Our UI will be rotated 90deg.
+        // angleDiff maps to 'vertical' movement on the portrait screen (which is horizontal movement for the user)
+        const centerOffset = (angleDiff / (FOV / 2)) * (height / 2);
+        const screenYPos = (height / 2) + centerOffset;
+        // distance/elevation maps to 'horizontal' movement on portrait screen
+        const screenXPos = (width / 2) + yOffset;
+
+        return (
+          <View 
+            key={`2d-label-${poi.properties.id}`} 
+            style={{ 
+              position: 'absolute', 
+              top: screenYPos - 40,
+              left: screenXPos - 120,
+              width: 240, 
+              flexDirection: 'row',
+              alignItems: 'center',
+              transform: [{ rotate: '90deg' }]
+            }}
+          >
+            <View style={styles.premiumBubble}>
+              <View style={[styles.iconContainer, { backgroundColor: metadata.color }]}>
+                <MaterialCommunityIcons name={metadata.icon as any} size={18} color="white" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.premiumLabelText} numberOfLines={1}>{poi.properties.name}</Text>
+                <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
+              </View>
+            </View>
+            <View style={styles.horizontalStalk} />
+          </View>
+        );
+      } else {
+        // Standard Portrait
+        const xPos = (angleDiff / (FOV / 2)) * (width / 2) + (width / 2);
+        const yPos = (height / 2) + yOffset - 120;
+
+        return (
+          <View 
+            key={`2d-label-${poi.properties.id}`} 
+            style={{ 
+              position: 'absolute', 
+              left: xPos - 100,
+              top: yPos,
+              width: 200, 
+              alignItems: 'center' 
+            }}
+          >
+            <View style={styles.premiumBubble}>
+              <View style={[styles.iconContainer, { backgroundColor: metadata.color }]}>
+                <MaterialCommunityIcons name={metadata.icon as any} size={18} color="white" />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.premiumLabelText} numberOfLines={1}>{poi.properties.name}</Text>
+                <Text style={styles.premiumDistanceText}>{Math.round(distance)}m • Ahead</Text>
+              </View>
+            </View>
+            <View style={styles.verticalStalk} />
+          </View>
+        );
+      }
+    });
+  };
 
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -67,14 +190,32 @@ export const AROverlay: React.FC<AROverlayProps> = ({ isVisible, onExitAR }) => 
         <>
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <Canvas>
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <ambientLight intensity={Math.PI / 2} />
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
+              {/* eslint-disable-next-line react/no-unknown-property */}
               <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-              <MainARScene />
+              <MainARScene 
+                userCoords={userCoords}
+                heading={heading}
+                pois={activePois}
+                isLandscape={isLandscape}
+              />
             </Canvas>
           </View>
+          
+          {/* 2D Projection Overlay */}
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            {render2DLabels(activePois)}
+          </View>
+
           <Animated.View style={[StyleSheet.absoluteFill, hudAnimatedStyle]} pointerEvents="box-none">
-            <ARHUD onExit={onExitAR || (() => {})} />
+            <ARHUD 
+              onExit={onExitAR || (() => {})} 
+              isLandscape={isLandscape}
+              isScanning={isScanning}
+            />
           </Animated.View>
         </>
       )}
@@ -92,4 +233,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#000',
   },
+  premiumBubble: {
+    backgroundColor: 'rgba(20, 20, 20, 0.85)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    minWidth: 160,
+    maxWidth: 240,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  premiumLabelText: {
+    color: 'white',
+    fontSize: 14,
+    fontFamily: typography.primary.bold,
+  },
+  premiumDistanceText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
+    fontFamily: typography.primary.medium,
+    marginTop: 1,
+  },
+  verticalStalk: {
+    width: 2,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginTop: -2,
+  },
+  horizontalStalk: {
+    width: 40,
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    marginRight: -2,
+  }
 });

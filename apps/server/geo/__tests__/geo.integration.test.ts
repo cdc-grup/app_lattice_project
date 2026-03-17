@@ -5,7 +5,7 @@ import * as dbLib from '@app/db';
 
 // Mock the entire DB library
 vi.mock('@app/db', async () => {
-  const actual = await vi.importActual('@app/db') as any;
+  const actual = (await vi.importActual('@app/db')) as any;
   return {
     ...actual,
     db: {
@@ -54,13 +54,15 @@ describe('Geo Service Integration Tests', () => {
       ];
 
       const mockDynamic = vi.fn().mockResolvedValue(mockResults);
-      const mockFrom = vi.fn().mockReturnValue({ $dynamic: vi.fn().mockReturnValue({ where: mockDynamic, ...mockDynamic }) });
-      
+      const mockFrom = vi.fn().mockReturnValue({
+        $dynamic: vi.fn().mockReturnValue({ where: mockDynamic, ...mockDynamic }),
+      });
+
       // Drizzle dynamic query mock is complex, let's simplify for the test
       (dbLib.db.select as any).mockReturnValue({
         from: vi.fn().mockReturnValue({
-            $dynamic: vi.fn().mockReturnValue(Promise.resolve(mockResults))
-        })
+          $dynamic: vi.fn().mockReturnValue(Promise.resolve(mockResults)),
+        }),
       });
 
       const response = await request(app).get('/pois');

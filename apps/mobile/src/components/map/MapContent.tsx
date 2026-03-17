@@ -1,14 +1,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
+import { StyleSheet, View, Dimensions, Platform } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Animated, { 
-  useAnimatedStyle, 
-  withTiming,
-  withRepeat,
-  useSharedValue,
-  FadeInDown,
-} from 'react-native-reanimated';
+import { SharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
@@ -18,19 +11,60 @@ import { useRoute } from '../../hooks/queries/useRoute';
 import { usePathNetwork } from '../../hooks/queries/usePathNetwork';
 
 // Constants & Utilities
-import { 
-  EMPTY_GEOJSON, 
-  MAP_CENTER, 
-  DEFAULT_ZOOM,
-  SELECT_ANIMATION_DURATION,
-  FLY_ANIMATION_DURATION
-} from '../../constants/mapConstants';
+import { EMPTY_GEOJSON, MAP_CENTER, DEFAULT_ZOOM } from '../../constants/mapConstants';
 import { mapLayerStyles } from '../../styles/mapLayerStyles';
 import { theme } from '../../styles/theme';
-import { getCategoryMetadata } from '../../utils/poiUtils';
-import { typography } from '../../styles/typography';
+import { colors } from '../../styles/colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const NavigationController = ({
+  userCoords,
+  isNavigating,
+}: {
+  userCoords: number[] | null;
+  isNavigating: boolean;
+}) => {
+  const selectedPoiId = useMapStore((s) => s.selectedPoiId);
+  const selectedPoi = useMapStore((s) => s.selectedPoi);
+  const setRoute = useMapStore((s) => s.setRoute);
+
+  const routeRequest = useMemo(() => {
+    // We calculate route IF we have user coords AND a selected POI (numeric or saved)
+    if (selectedPoiId && userCoords) {
+      const isSaved = selectedPoiId.toString().startsWith('saved_');
+      const poiId = isSaved ? null : Number(selectedPoiId);
+
+      const destination =
+        isSaved && selectedPoi?.geometry?.coordinates
+          ? { lng: selectedPoi.geometry.coordinates[0], lat: selectedPoi.geometry.coordinates[1] }
+          : { poiId: poiId! };
+
+      if (isSaved && !selectedPoi?.geometry?.coordinates) return null;
+      if (!isSaved && isNaN(poiId!)) return null;
+
+      const lat = Math.round(userCoords[1] * 10000) / 10000;
+      const lng = Math.round(userCoords[0] * 10000) / 10000;
+
+      return { origin: { lat, lng }, destination };
+    }
+    return null;
+  }, [selectedPoiId, selectedPoi, userCoords]);
+
+  const { data: routeData } = useRoute(routeRequest);
+
+  useEffect(() => {
+    if (routeData) {
+      setRoute(routeData, {
+        distance: routeData.properties.distance,
+        duration: routeData.properties.durationEstimate,
+        destinationName: selectedPoi?.name || 'tu destino',
+      });
+    }
+  }, [routeData, selectedPoi, setRoute]);
+
+  return null;
+};
 
 interface MapContentProps {
   userCoords: number[] | null;
@@ -38,393 +72,236 @@ interface MapContentProps {
   poisGeoJSON: any;
   savedLocations?: any;
   onDeselect?: () => void;
+  sheetPosition: SharedValue<number>;
 }
 
-const PulsingUserLocation = React.memo(() => {
-  const pulse = useSharedValue(1);
-  
-  useEffect(() => {
-    pulse.value = withRepeat(
-      withTiming(1.6, { duration: 1500 }),
-      -1,
-      true
-    );
-  }, []);
-
-  const rPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulse.value }],
-    opacity: withTiming(0.4 / pulse.value),
-  }));
-
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View 
-        style={[
-          {
-            position: 'absolute',
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            backgroundColor: 'rgba(255, 255, 255, 0.4)',
-          },
-          rPulseStyle
-        ]}
-      />
-      <View style={{
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: 'white',
-        borderWidth: 2,
-        borderColor: '#0A0A0A',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 3,
-      }} />
-    </View>
-  );
-});
-
-const PoiMarker = React.memo(({ 
-  isSelected, 
-  metadata, 
-  onPress,
-  label
-}: { 
-  isSelected: boolean; 
-  metadata: any; 
-  onPress: () => void;
-  label?: string;
-}) => {
-  return (
-    <Pressable 
-      onPress={onPress} 
-      style={styles.markerContainer}
-    >
-      <View style={styles.markerSymbol}>
-        <MaterialCommunityIcons
-          name={metadata.icon as any}
-          size={isSelected ? 20 : 16}
-          color={isSelected ? 'white' : metadata.color}
-        />
-      </View>
-      <Text 
-        style={[
-          styles.markerLabelText,
-          { color: isSelected ? 'white' : metadata.color }
-        ]} 
-        numberOfLines={1}
-      >
-        {label || metadata.label}
-      </Text>
-    </Pressable>
-  );
-});
-
-export const MapContent = React.memo(({ 
-  userCoords, 
-  locationStatus, 
+export const MapContent = React.memo(function MapContent({
+  userCoords,
   poisGeoJSON,
   savedLocations,
-  onDeselect
-}: MapContentProps) => {
+  onDeselect,
+}: MapContentProps) {
   const camera = useRef<MapLibreGL.CameraRef>(null);
-  
-  // State from Store
-  const selectedPoiId = useMapStore(s => s.selectedPoiId);
-  const selectedCoords = useMapStore(s => s.selectedCoords);
-  const recenterCount = useMapStore(s => s.recenterCount);
-  const currentRoute = useMapStore(s => s.currentRoute);
-  const isNavigating = useMapStore(s => s.isNavigating);
-  const selectPoi = useMapStore(s => s.selectPoi);
-  const setNavigating = useMapStore(s => s.setNavigating);
-  const storeDeselect = useMapStore(s => s.deselect);
+  const insets = useSafeAreaInsets();
 
-  const lastSelectionTime = useRef(0);
+  const selectedPoiId = useMapStore((s) => s.selectedPoiId);
+  const selectedCoords = useMapStore((s) => s.selectedCoords);
+  const recenterCount = useMapStore((s) => s.recenterCount);
+  const currentRoute = useMapStore((s) => s.currentRoute);
+  const isNavigating = useMapStore((s) => s.isNavigating);
+  const selectPoi = useMapStore((s) => s.selectPoi);
+  const storeDeselect = useMapStore((s) => s.deselect);
 
-  // Queries
+  const selectionGeoJSON = useMemo(() => {
+    if (!selectedCoords) return EMPTY_GEOJSON;
+    return {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: selectedCoords },
+          properties: { id: selectedPoiId },
+        },
+      ],
+    };
+  }, [selectedCoords, selectedPoiId]);
+
   const { data: pathNetwork } = usePathNetwork();
-  
-  const routeRequest = useMemo(() => {
-    if (selectedPoiId && userCoords && !isNaN(Number(selectedPoiId))) {
-      return {
-        origin: { lat: userCoords[1], lng: userCoords[0] },
-        destination: { poiId: Number(selectedPoiId) },
-      } as any;
-    }
-    return null;
-  }, [selectedPoiId, userCoords]);
 
-  useRoute(routeRequest);
-
-  // Camera Management
   useEffect(() => {
-    if (recenterCount > 0 && userCoords && camera.current) {
+    if (recenterCount > 0 && camera.current && userCoords) {
       camera.current.setCamera({
         centerCoordinate: userCoords,
         zoomLevel: DEFAULT_ZOOM,
-        animationDuration: FLY_ANIMATION_DURATION,
+        animationDuration: 800,
         animationMode: 'flyTo',
+        pitch: 0,
+        padding: { paddingBottom: 150, paddingTop: 60, paddingLeft: 20, paddingRight: 20 },
       });
     }
   }, [recenterCount, userCoords]);
 
   useEffect(() => {
     if (selectedCoords && camera.current && !isNavigating) {
-      // DEBUG LOG
-      console.log('[Camera] Attempting to center on:', selectedCoords);
-      
-      // TRUCO: Calculamos un punto de enfoque ligeramente al SUR del POI
-      // Esto empuja el POI hacia ARRIBA en la pantalla, pero con cuidado de no sacarlo
-      const focusCoords = [
-        selectedCoords[0], // longitud igual
-        selectedCoords[1] - 0.0006 // latitud un poco más abajo (sur) - ajuste final
-      ];
-
       camera.current.setCamera({
-        centerCoordinate: focusCoords,
+        centerCoordinate: selectedCoords,
         zoomLevel: 17.2,
-        animationDuration: 600,
+        animationDuration: 400,
         animationMode: 'flyTo',
+        pitch: 0,
+        padding: {
+          paddingBottom: SCREEN_HEIGHT * 0.45,
+          paddingTop: insets.top + 40,
+          paddingLeft: 20,
+          paddingRight: 20,
+        },
       });
     }
-  }, [selectedCoords, isNavigating]);
+  }, [selectedCoords, isNavigating, insets.top]);
 
-  // Event Handlers
-  const onMapPress = useCallback(() => {
-    const now = Date.now();
-    if (now - lastSelectionTime.current < 400) return;
-    
-    console.log('[MapContent] Interaction: Map deselection');
-    Haptics.selectionAsync();
-    
-    if (onDeselect) {
-      onDeselect();
-    } else {
-      storeDeselect();
-    }
-  }, [onDeselect, storeDeselect]);
-
-  const onPoiPress = useCallback((poi: any) => {
-    console.log('[MapContent] Interaction: Marker selected:', poi.id);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    lastSelectionTime.current = Date.now();
-    selectPoi(poi);
-  }, [selectPoi]);
-
-  const insets = useSafeAreaInsets();
-
-  const destinationName = useMemo(() => {
-    if (!selectedPoiId || !poisGeoJSON?.features) return 'Destino';
-    const poi = poisGeoJSON.features.find((f: any) => String(f.properties.id) === String(selectedPoiId));
-    return poi?.properties.name || 'Destino';
-  }, [selectedPoiId, poisGeoJSON]);
-
-  // Render Helpers
-  const renderMarkers = useMemo(() => {
-    const markers: React.ReactNode[] = [];
-
-    // 1. Standard POIs
-    if (poisGeoJSON?.features) {
-      poisGeoJSON.features.forEach((feature: any) => {
-        const id = feature.properties.id;
-        const isSelected = String(id) === String(selectedPoiId);
-        const coords = feature.geometry.coordinates;
-        const metadata = getCategoryMetadata(feature.properties.category);
-        const poiObject = { ...feature.properties, geometry: feature.geometry };
-
-        markers.push(
-          <MapLibreGL.MarkerView
-            key={`poi-${id}`}
-            id={`poi-marker-${id}`}
-            coordinate={coords}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <PoiMarker 
-              isSelected={isSelected}
-              metadata={metadata}
-              onPress={() => onPoiPress(poiObject)}
-              label={feature.properties.name}
-            />
-          </MapLibreGL.MarkerView>
-        );
+  useEffect(() => {
+    if (!isNavigating && camera.current) {
+      camera.current.setCamera({
+        pitch: 0,
+        animationDuration: 600,
       });
     }
+  }, [isNavigating]);
 
-    // 2. Saved Locations
-    if (savedLocations?.features) {
-      savedLocations.features.forEach((feature: any) => {
-        const id = feature.properties.id;
-        const finalId = `saved_${id}`;
-        const isSelected = finalId === String(selectedPoiId);
-        const coords = feature.geometry.coordinates;
-        const poiObject = { ...feature.properties, id: finalId, name: feature.properties.label, geometry: feature.geometry };
-        
-        const savedMetadata = {
-          icon: 'star',
-          color: '#B4D99B', 
-          label: feature.properties.label
-        };
+  const handlePoiPress = useCallback(
+    (data: any) => {
+      // Normalization: Android passes an event with .features, iOS passes the feature object directly
+      const feature = data.features ? data.features[0] : data;
 
-        markers.push(
-          <MapLibreGL.MarkerView
-            key={finalId}
-            id={`saved-marker-${id}`}
-            coordinate={coords}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <PoiMarker 
-              isSelected={isSelected}
-              metadata={savedMetadata}
-              onPress={() => onPoiPress(poiObject)}
-              label={feature.properties.label}
-            />
-          </MapLibreGL.MarkerView>
-        );
+      if (!feature?.properties) return;
+
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      selectPoi({
+        id: feature.properties.id,
+        name: feature.properties.name,
+        category: feature.properties.category,
+        geometry: feature.geometry,
       });
-    }
+    },
+    [selectPoi]
+  );
 
-    return markers;
-  }, [poisGeoJSON, savedLocations, selectedPoiId, onPoiPress]);
+  const poisAndSaved = useMemo(() => {
+    const pois = poisGeoJSON?.features || [];
+    const saved =
+      savedLocations?.features?.map((f: any) => ({
+        ...f,
+        properties: { ...f.properties, id: `saved_${f.properties.id}`, name: f.properties.label },
+      })) || [];
+    return { type: 'FeatureCollection', features: [...pois, ...saved] };
+  }, [poisGeoJSON, savedLocations]);
 
   return (
     <View style={{ flex: 1 }}>
+      <NavigationController userCoords={userCoords} isNavigating={isNavigating} />
+
       <MapLibreGL.MapView
         style={styles.map}
         mapStyle="https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
         logoEnabled={false}
         attributionEnabled={false}
         compassEnabled={false}
-        onPress={onMapPress}
+        onPress={onDeselect || storeDeselect}
       >
+        <MapLibreGL.UserLocation visible={true} animated={true} showsUserHeadingIndicator={true} />
         <MapLibreGL.Camera
           ref={camera}
-          minZoomLevel={12}
-          defaultSettings={{
-            centerCoordinate: MAP_CENTER,
-            zoomLevel: DEFAULT_ZOOM,
-          }}
+          minZoomLevel={11}
+          defaultSettings={{ centerCoordinate: MAP_CENTER, zoomLevel: DEFAULT_ZOOM }}
           followUserLocation={isNavigating}
-          followUserMode={(isNavigating ? 'compass' : 'normal') as any}
+          followUserMode={isNavigating ? 'compass' : 'normal'}
           followZoomLevel={18}
           followPitch={45}
         />
 
-      <MapLibreGL.UserLocation 
-        visible={locationStatus === 'granted'} 
-        renderMode="normal" 
-      >
-        <MapLibreGL.SymbolLayer
-          id="userHeadingIndicator"
-          style={{
-            iconImage: 'arrow', 
-            iconSize: 0.5,
-            iconRotate: ['get', 'heading'],
-            iconAllowOverlap: true,
-            iconIgnorePlacement: true,
-          }}
-        />
-      </MapLibreGL.UserLocation>
+        {/* 1. PATH NETWORK */}
+        <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
+          <MapLibreGL.LineLayer
+            id="networkLines"
+            style={{ ...mapLayerStyles.networkLines, lineOpacity: 0.15 }}
+          />
+        </MapLibreGL.ShapeSource>
 
-      {locationStatus === 'granted' && userCoords && (
-        <MapLibreGL.MarkerView coordinate={userCoords}>
-          <PulsingUserLocation />
-        </MapLibreGL.MarkerView>
-      )}
+        {/* 2. VISUAL POIS (Drawing circles and labels) */}
+        <MapLibreGL.ShapeSource id="poisSource" shape={poisGeoJSON || EMPTY_GEOJSON}>
+          <MapLibreGL.CircleLayer
+            id="poiCircles"
+            style={mapLayerStyles.poiCircles}
+            minZoomLevel={12.8}
+          />
+          <MapLibreGL.SymbolLayer
+            id="poiLabels"
+            style={mapLayerStyles.poiLabels}
+            minZoomLevel={15.8}
+          />
+        </MapLibreGL.ShapeSource>
 
-      {/* Network Background */}
-      <MapLibreGL.ShapeSource id="networkSource" shape={pathNetwork || EMPTY_GEOJSON}>
-        <MapLibreGL.LineLayer
-          id="networkLines"
-          style={{ ...mapLayerStyles.networkLines, lineOpacity: pathNetwork ? 0.3 : 0 }}
-        />
-      </MapLibreGL.ShapeSource>
+        <MapLibreGL.ShapeSource id="savedSource" shape={savedLocations || EMPTY_GEOJSON}>
+          <MapLibreGL.CircleLayer
+            id="savedCircles"
+            style={mapLayerStyles.savedPoiCircles}
+            minZoomLevel={12.8}
+          />
+          <MapLibreGL.SymbolLayer
+            id="savedLabels"
+            style={mapLayerStyles.poiLabels}
+            minZoomLevel={15.8}
+          />
+        </MapLibreGL.ShapeSource>
 
-      {/* Active Route */}
-      <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute || EMPTY_GEOJSON}>
-        <MapLibreGL.LineLayer
-          id="routeFill"
-          style={{ ...mapLayerStyles.routeFill, lineOpacity: currentRoute ? 0.95 : 0 }}
-        />
-        <MapLibreGL.LineLayer
-          id="routeGlow"
-          style={{ ...mapLayerStyles.routeGlow, lineOpacity: currentRoute ? 0.3 : 0, lineBlur: 4 }}
-        />
-      </MapLibreGL.ShapeSource>
+        {/* 3. ROUTE & SELECTION VISUALS */}
+        {isNavigating && currentRoute && (
+          <MapLibreGL.ShapeSource id="routeSource" shape={currentRoute}>
+            <MapLibreGL.LineLayer id="routeFill" style={mapLayerStyles.routeFill} />
+            <MapLibreGL.LineLayer
+              id="routeGlow"
+              style={{ ...mapLayerStyles.routeGlow, lineBlur: 4 }}
+            />
+          </MapLibreGL.ShapeSource>
+        )}
 
-      {renderMarkers}
+        <MapLibreGL.ShapeSource id="selectionSource" shape={selectionGeoJSON}>
+          <MapLibreGL.CircleLayer
+            id="selectedPoiHighlight"
+            style={{
+              circleRadius: 22,
+              circleColor: 'white',
+              circleOpacity: 0.2,
+              circleStrokeWidth: 2,
+              circleStrokeColor: 'white',
+            }}
+          />
+          <MapLibreGL.CircleLayer
+            id="selectedPoiInner"
+            style={{
+              circleRadius: 18,
+              circleColor: colors.primary,
+              circleStrokeWidth: 2,
+              circleStrokeColor: 'white',
+            }}
+          />
+        </MapLibreGL.ShapeSource>
+
+        {/* 4. HIGH-PERFORMANCE INTERACTION LAYER (MUST BE LAST TO BE ON TOP) */}
+        {Platform.OS === 'android' ? (
+          <MapLibreGL.ShapeSource
+            id="interactionSource"
+            shape={poisAndSaved}
+            onPress={handlePoiPress}
+            hitbox={{ width: 44, height: 44 }}
+          >
+            <MapLibreGL.CircleLayer
+              id="interactionLayer"
+              style={{ circleRadius: 24, circleOpacity: 0 }}
+            />
+          </MapLibreGL.ShapeSource>
+        ) : (
+          poisAndSaved.features.map((f: any) => (
+            <MapLibreGL.MarkerView
+              key={`ios-mv-${f.properties.id}`}
+              coordinate={f.geometry.coordinates}
+            >
+              <View
+                onStartShouldSetResponder={() => true}
+                onResponderRelease={() => handlePoiPress(f)}
+                style={styles.hitbox}
+              />
+            </MapLibreGL.MarkerView>
+          ))
+        )}
       </MapLibreGL.MapView>
-
-      {/* Top Navigation Bar */}
-      {isNavigating && (
-        <Animated.View entering={FadeInDown.duration(400)} style={[styles.topNavContainer, { paddingTop: insets.top + 10 }]}>
-          <View style={styles.topNavContent}>
-            <View style={styles.topNavLeft}>
-              <MaterialCommunityIcons name="arrow-up" size={32} color="white" />
-            </View>
-            <View style={styles.topNavCenter}>
-              <Text style={styles.topNavInstruction}>Hacia</Text>
-              <Text style={styles.topNavDestination} numberOfLines={1}>{destinationName}</Text>
-            </View>
-            <View style={styles.topNavRight}>
-              <View style={styles.sparkleCircle}>
-                <MaterialCommunityIcons name={"sparkles" as any} size={20} color="#006B6B" />
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      )}
-
-      {/* Bottom Navigation Bar */}
-      {isNavigating && (
-        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={[styles.bottomNavContainer, { paddingBottom: insets.bottom + 10 }]}>
-          <View style={styles.bottomNavHeader}>
-            <View style={styles.bottomNavInfo}>
-              <View style={styles.durationRow}>
-                <Text style={styles.durationText}>7 min</Text>
-                <MaterialCommunityIcons name="walk" size={24} color="#007AFF" style={{ marginLeft: 8 }} />
-              </View>
-              <Text style={styles.distanceText}>500 m • 23:03</Text>
-            </View>
-            <Pressable onPress={() => setNavigating(false)} style={styles.googleExitButton}>
-              <Text style={styles.exitButtonText}>Salir</Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-      )}
     </View>
   );
 });
 
+MapContent.displayName = 'MapContent';
+
 const styles = StyleSheet.create({
   map: { flex: 1, backgroundColor: theme.colors.background },
-  markerContainer: { alignItems: 'center', justifyContent: 'center' },
-  markerSymbol: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  markerLabelText: {
-    fontSize: 10,
-    fontFamily: typography.secondary.bold,
-    marginTop: 2,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-    maxWidth: 80,
-    textAlign: 'center',
-  },
-  topNavContainer: { position: 'absolute', top: 0, left: 10, right: 10 },
-  topNavContent: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#006B6B', padding: 16, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  topNavLeft: { marginRight: 16 },
-  topNavCenter: { flex: 1 },
-  topNavInstruction: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
-  topNavDestination: { color: 'white', fontSize: 22, fontWeight: 'bold' },
-  topNavRight: { marginLeft: 8 },
-  sparkleCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' },
-  bottomNavContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#1C1C1C', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 24, paddingTop: 16, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  bottomNavHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bottomNavInfo: { flex: 1 },
-  durationRow: { flexDirection: 'row', alignItems: 'center' },
-  durationText: { color: 'white', fontSize: 28, fontWeight: 'bold' },
-  distanceText: { color: 'rgba(255,255,255,0.6)', fontSize: 16, marginTop: 2 },
-  googleExitButton: { backgroundColor: '#EA4335', paddingHorizontal: 24, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  exitButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  hitbox: { width: 44, height: 44, backgroundColor: 'transparent' },
 });

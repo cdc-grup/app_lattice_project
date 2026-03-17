@@ -61,6 +61,10 @@ jest.mock('@maplibre/maplibre-react-native', () => ({
 // Vector Icons Mock
 jest.mock('@expo/vector-icons', () => ({
   MaterialCommunityIcons: 'MaterialCommunityIcons',
+  Feather: 'Feather',
+  MaterialIcons: 'MaterialIcons',
+  Ionicons: 'Ionicons',
+  AntDesign: 'AntDesign',
 }));
 
 // Global fetch mock

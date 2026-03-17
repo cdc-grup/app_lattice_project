@@ -1,20 +1,22 @@
 {
   "name": "@app/db",
   "version": "1.0.0",
-  "description": "Shared database schema and connection logic",
+  "private": true,
+  "description": "App Lattice Database Library",
   "main": "src/index.ts",
   "type": "module",
   "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
+    "db:check": "tsx src/check-db.ts",
+    "db:clean": "tsx src/db-clean.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/migrate.ts",
+    "db:qrs": "tsx src/generate-qrs.ts",
     "db:seed-montmelo": "tsx src/seed-montmelo.ts",
     "db:seed-pedralbes": "tsx src/seed-pedralbes.ts",
-    "db:clean": "tsx src/db-clean.ts",
     "db:studio": "drizzle-kit studio",
-    "db:check": "tsx src/check-db.ts",
-    "db:qrs": "tsx src/generate-qrs.ts"
+    "test": "vitest run"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
@@ -23,11 +25,14 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^11.12.0",
     "@types/node": "^20.11.24",
-    "@types/pg": "^8.11.5",
+    "@types/pg": "^8.18.0",
     "@types/qrcode": "^1.5.6",
     "drizzle-kit": "^0.31.9",
+    "testcontainers": "^11.12.0",
     "tsx": "^4.7.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   }
 }

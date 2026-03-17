@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Switch } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
-import { theme } from '../../styles/theme';
 
 interface SettingItemProps {
   label: string;
@@ -16,7 +15,7 @@ interface SettingItemProps {
   iconBgColor?: string;
 }
 
-export const SettingItem = React.memo(({ 
+export const SettingItem = React.memo(function SettingItem({ 
   label, 
   icon, 
   value, 
@@ -26,9 +25,9 @@ export const SettingItem = React.memo(({
   destructive = false,
   secondaryText,
   iconBgColor
-}: SettingItemProps) => {
-  const iconColor = destructive ? colors.wine[500] : (iconBgColor ? 'white' : colors.primary);
-  const bgColor = iconBgColor || (destructive ? 'rgba(74, 44, 58, 0.1)' : 'rgba(144, 119, 131, 0.1)');
+}: SettingItemProps) {
+  const iconColor = destructive ? "#FF3B30" : (iconBgColor ? 'white' : colors.primary);
+  const bgColor = iconBgColor || (destructive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(225, 6, 0, 0.1)');
 
   return (
     <Pressable 
@@ -44,10 +43,7 @@ export const SettingItem = React.memo(({
           <Feather name={icon} size={20} color={iconColor} />
         </View>
         <View className="flex-1">
-          <Text 
-            className={`text-base font-medium ${destructive ? 'font-bold' : 'text-white'}`}
-            style={destructive ? { color: colors.wine[500] } : undefined}
-          >
+          <Text className={`text-base font-medium ${destructive ? 'text-red-500 font-bold' : 'text-white'}`}>
             {label}
           </Text>
           {secondaryText ? (
@@ -64,8 +60,10 @@ export const SettingItem = React.memo(({
           thumbColor={'#ffffff'}
         />
       ) : (
-        <Feather name="chevron-right" size={24} color={destructive ? colors.wine[500] : "#9ca3af"} />
+        <Feather name="chevron-right" size={24} color={destructive ? "#FF3B30" : "#9ca3af"} />
       )}
     </Pressable>
   );
 });
+
+SettingItem.displayName = 'SettingItem';

@@ -6,7 +6,7 @@ interface POIImageGalleryProps {
   images: string[];
 }
 
-export const POIImageGallery = React.memo(({ images }: POIImageGalleryProps) => {
+export const POIImageGallery = React.memo(function POIImageGallery({ images }: POIImageGalleryProps) {
   if (!images || images.length === 0) return null;
 
   return (
@@ -31,6 +31,8 @@ export const POIImageGallery = React.memo(({ images }: POIImageGalleryProps) => 
     </View>
   );
 });
+
+POIImageGallery.displayName = 'POIImageGallery';
 
 const styles = StyleSheet.create({
   container: {

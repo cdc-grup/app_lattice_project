@@ -1,6 +1,4 @@
-import { POI } from '../components/POICard';
-
-export const MOCK_POIS: POI[] = [
+export const MOCK_POIS: any[] = [
   {
     id: '1',
     name: 'Paddock Club Grill',

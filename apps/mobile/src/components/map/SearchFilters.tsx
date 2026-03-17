@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import Animated, { SharedValue, useAnimatedStyle, interpolate, Extrapolate, withSpring, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { typography } from '../../styles/typography';
 import { colors } from '../../styles/colors';
 import * as Haptics from 'expo-haptics';
-import { SafeBlurView } from '../ui/SafeBlurView';
 
 interface FilterChipProps {
   icon: any;
@@ -39,7 +38,7 @@ const FilterChip = ({ icon, label, isActive, onPress }: FilterChipProps) => {
           isActive && styles.chipActive,
           animatedInnerStyle
         ]}>
-          <Feather name={icon as any} size={15} color={isActive ? "white" : "rgba(255, 255, 255, 0.7)"} />
+          <Feather name={icon as any} size={15} color={isActive ? "white" : "rgba(255, 255, 255, 0.6)"} />
           <Text style={[styles.chipText, isActive && styles.chipTextActive]}>{label}</Text>
         </Animated.View>
       </Pressable>
@@ -122,19 +121,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   chipWrapper: {
-    marginRight: 14,
+    marginRight: 10,
   },
   chipInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    height: 36,
-    borderRadius: 18,
+    paddingHorizontal: 14,
+    height: 40,
+    borderRadius: 20, // Increased to 20px
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   chipActive: {
     backgroundColor: colors.primary,
@@ -142,9 +140,9 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: typography.primary.medium,
-    marginLeft: 10,
+    marginLeft: 8,
   },
   chipTextActive: {
     color: 'white',

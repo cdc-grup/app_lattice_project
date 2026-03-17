@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Dimensions, Pressable, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, TouchableOpacity, ScrollView , Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedStyle, 
@@ -8,17 +8,14 @@ import Animated, {
   useSharedValue,
   interpolate,
   Extrapolate,
-  FadeIn
+  FadeIn,
+  SharedValue
 } from 'react-native-reanimated';
 import { Ticket } from '../../types/models/auth';
 import { TicketCard } from './TicketCard';
 import { useAuthStore } from '../../hooks/useAuthStore';
-import { Alert } from 'react-native';
-import { colors } from '../../styles/colors';
 
-const { width, height } = Dimensions.get('window');
-const CARD_WIDTH = width - 48;
-const CARD_HEIGHT = CARD_WIDTH * 1.5;
+const { height } = Dimensions.get('window');
 const STACK_OFFSET = 60;
 const EXPANDED_OFFSET = 180;
 
@@ -32,7 +29,7 @@ interface WalletItemProps {
   totalTickets: number;
   isExpanded: boolean;
   selectedTicketId: string | number | null;
-  expandProgress: Animated.SharedValue<number>;
+  expandProgress: SharedValue<number>;
   handleSelectTicket: (ticket: Ticket) => void;
   toggleExpand: () => void;
 }
@@ -139,7 +136,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               } else {
                 Alert.alert("Error", "No s'ha pogut eliminar l'entrada.");
               }
-            } catch (error) {
+            } catch {
               Alert.alert("Error", "Hi ha hagut un problema al connectar amb el servidor.");
             }
           }
@@ -187,7 +184,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>ESTAT</Text>
                 <View style={styles.statusBadge}>
-                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? colors.primary : colors.wine[500] }]} />
+                  <View style={[styles.statusDot, { backgroundColor: selectedTicket.isActive ? '#4CD964' : '#E10600' }]} />
                   <Text style={styles.statusText}>{selectedTicket.isActive ? 'ACTIVA' : 'INACTIVA'}</Text>
                 </View>
               </View>
@@ -207,9 +204,9 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
             <View style={styles.separator} />
 
             <View style={styles.infoBox}>
-              <Feather name="shield" size={16} color={colors.primary} />
+              <Feather name="shield" size={16} color="#4CD964" />
               <Text style={styles.infoBoxText}>
-                Entrada vinculada correctament al teu compte. Només tu pots utilitzar aquest QR per a l'accés.
+                Entrada vinculada correctament al teu compte. Només tu pots utilitzar aquest QR per a l&apos;accés.
               </Text>
             </View>
 
@@ -217,7 +214,7 @@ export const WalletStack: React.FC<WalletStackProps> = ({ tickets }) => {
               style={styles.deleteOptionButton} 
               onPress={() => handleDelete(selectedTicket)}
             >
-              <Feather name="trash-2" size={18} color={colors.wine[500]} />
+              <Feather name="trash-2" size={18} color="#E10600" />
               <Text style={styles.deleteOptionText}>Eliminar Entrada</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -302,7 +299,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   infoBox: {
-    backgroundColor: 'rgba(144, 119, 131, 0.1)',
+    backgroundColor: 'rgba(76, 217, 100, 0.1)',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -320,14 +317,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(74, 44, 58, 0.1)',
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
     borderRadius: 12,
     padding: 16,
     marginTop: 32,
     marginBottom: 20,
   },
   deleteOptionText: {
-    color: colors.wine[500],
+    color: '#E10600',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
