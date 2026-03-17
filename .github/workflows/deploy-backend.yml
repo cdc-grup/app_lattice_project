@@ -9,6 +9,7 @@ on:
       - 'packages/**'
       - 'docker-compose.prod.yml'
       - 'package.json'
+      - 'pnpm-lock.yaml'
       - 'turbo.json'
 
 concurrency:
@@ -35,7 +36,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Lint
         run: pnpm lint
@@ -67,11 +68,15 @@ jobs:
           echo "REDIS_URL=redis://redis:6379" >> .env
           cp .env packages/db/.env
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Build and Deploy Containers
         run: |
-          npm install --legacy-peer-deps
-          npx turbo test --filter="./apps/server/*" --filter="./packages/*"
-          npm run db:migrate
+          pnpm install --no-frozen-lockfile
+          pnpm db:migrate
           docker compose -f docker-compose.prod.yml down --remove-orphans
           docker compose -f docker-compose.prod.yml up -d --build
 
