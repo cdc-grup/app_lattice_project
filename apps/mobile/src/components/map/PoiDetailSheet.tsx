@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, Dimensions, Pressable, ScrollView } from 'react-native';
-import BottomSheet, { BottomSheetScrollView, BottomSheetBackgroundProps } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetScrollView,
+  BottomSheetBackgroundProps,
+} from '@gorhom/bottom-sheet';
 import { SafeBlurView } from '../ui/SafeBlurView';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SharedValue } from 'react-native-reanimated';
@@ -25,132 +28,159 @@ interface PoiDetailSheetProps {
 
 const CustomBackground = ({ style }: BottomSheetBackgroundProps) => {
   return (
-    <SafeBlurView 
-      intensity={100} 
-      tint="dark"
-      style={[style, styles.blurBackground]}
-    >
+    <SafeBlurView intensity={100} tint="dark" style={[style, styles.blurBackground]}>
       <View style={styles.premiumBorder} />
     </SafeBlurView>
   );
 };
 
-export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>(({ 
-  poi, 
-  route,
-  onClose,
-  translateY 
-}: PoiDetailSheetProps, ref) => {
-  const insets = useSafeAreaInsets();
-  const setNavigating = useMapStore((s: any) => s.setNavigating);
+export const PoiDetailSheet = React.forwardRef<BottomSheet, PoiDetailSheetProps>(
+  ({ poi, onClose, translateY }: PoiDetailSheetProps, ref) => {
+    const insets = useSafeAreaInsets();
+    const setNavigating = useMapStore((s) => s.setNavigating);
+    const routeMetadata = useMapStore((s) => s.routeMetadata);
 
-  const metadata = React.useMemo(() => getCategoryMetadata(poi?.category), [poi?.category]);
+    const metadata = React.useMemo(() => getCategoryMetadata(poi?.category), [poi?.category]);
 
-  const snapPoints = React.useMemo(() => [
-    insets.bottom + 320, // Collapsed: Enough to see the 3 buttons
-    SCREEN_HEIGHT * 0.6, // Medium
-    SCREEN_HEIGHT - insets.top - 20 // Full
-  ], [insets.bottom, insets.top]);
+    const formatDistance = (m: number) => {
+      if (m >= 1000) return `${(m / 1000).toFixed(1)} km`;
+      return `${Math.round(m)} m`;
+    };
 
-  if (!poi) return null;
+    const formatDuration = (s: number) => {
+      const mins = Math.round(s / 60);
+      if (mins < 1) return '< 1 min';
+      return `${mins} min`;
+    };
 
-  return (
-    <BottomSheet
-      ref={ref}
-      index={0}
-      snapPoints={snapPoints}
-      backgroundComponent={CustomBackground}
-      handleIndicatorStyle={styles.handleIndicator}
-      animatedPosition={translateY}
-      enablePanDownToClose
-      onClose={onClose}
-      overDragResistanceFactor={0}
-    >
-      <View style={styles.container}>
-        {/* Header: [Share] [Centered Title/Cat] [Close] */}
-        <View style={styles.poiHeader}>
-          <Pressable 
-            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-            style={styles.headerIconCircle}
-          >
-            <Feather name="share" size={20} color="white" />
-          </Pressable>
+    const snapPoints = React.useMemo(
+      () => [
+        insets.bottom + 320, // Collapsed
+        SCREEN_HEIGHT * 0.6, // Medium
+        SCREEN_HEIGHT - insets.top - 20, // Full
+      ],
+      [insets.bottom, insets.top]
+    );
 
-          <View style={styles.titleContainer}>
-            <Text style={styles.poiTitle} numberOfLines={1}>{poi.name}</Text>
-            <Text style={styles.poiSubtitle}>{metadata.label}</Text>
-          </View>
+    if (!poi) return null;
 
-          <Pressable 
-            onPress={() => {
-              Haptics.selectionAsync();
-              onClose();
-            }}
-            style={styles.headerIconCircle}
-          >
-            <Feather name="x" size={20} color="white" />
-          </Pressable>
-        </View>
-
-        <BottomSheetScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Action Buttons Row: [Ir Ahora] [Distancia] [Horario] */}
-          <View style={styles.actionRow}>
-            {/* Main Action: Ir Ahora */}
-            <Pressable 
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setNavigating(true);
-              }}
-              style={[styles.actionCard, styles.actionCardPrimary]}
+    return (
+      <BottomSheet
+        ref={ref}
+        index={0}
+        snapPoints={snapPoints}
+        backgroundComponent={CustomBackground}
+        handleIndicatorStyle={styles.handleIndicator}
+        animatedPosition={translateY}
+        enablePanDownToClose
+        onClose={onClose}
+        overDragResistanceFactor={0}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.poiHeader}>
+            <Pressable
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+              style={styles.headerIconCircle}
             >
-              <MaterialCommunityIcons name="walk" size={28} color="white" />
-              <Text style={styles.actionCardValue}>7 min</Text>
+              <Feather name="share" size={20} color="white" />
             </Pressable>
 
-            {/* Info Action: Distancia */}
-            <View style={styles.actionCard}>
-              <View style={styles.iconContainer}>
-                <Feather name="map-pin" size={18} color="rgba(255,255,255,0.4)" />
-              </View>
-              <Text style={styles.actionCardLabel}>Distancia</Text>
-              <Text style={styles.actionCardValue}>450 m</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.poiTitle} numberOfLines={1}>
+                {poi.name}
+              </Text>
+              <Text style={styles.poiSubtitle}>{metadata.label}</Text>
             </View>
 
-            {/* Info Action: Horario */}
-            <View style={styles.actionCard}>
-              <View style={styles.iconContainer}>
-                <Feather name="clock" size={18} color="rgba(255,255,255,0.4)" />
-              </View>
-              <Text style={styles.actionCardLabel}>Horario</Text>
-              <Text style={[styles.actionCardValue, { color: '#FF453A' }]}>Cerrado</Text>
-            </View>
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                onClose();
+              }}
+              style={styles.headerIconCircle}
+            >
+              <Feather name="x" size={20} color="white" />
+            </Pressable>
           </View>
 
-          {/* Photos */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={styles.photoList}
+          <BottomSheetScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            {(poi.images && poi.images.length > 0 ? poi.images : [
-              'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=800&auto=format&fit=crop',
-              'https://images.unsplash.com/photo-1471295253337-3ceaaedca402?q=80&w=800&auto=format&fit=crop'
-            ]).map((img, i) => (
-              <Image key={i} source={{ uri: img }} style={styles.photo} contentFit="cover" transition={200} />
-            ))}
-          </ScrollView>
+            {/* Action Buttons Row */}
+            <View style={styles.actionRow}>
+              {/* Main Action: Ir Ahora */}
+              <Pressable
+                onPress={() => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  setNavigating(true);
+                }}
+                disabled={!routeMetadata}
+                style={[
+                  styles.actionCard,
+                  styles.actionCardPrimary,
+                  !routeMetadata && { opacity: 0.6 },
+                ]}
+              >
+                <MaterialCommunityIcons name="walk" size={28} color="white" />
+                <Text style={styles.actionCardValue}>
+                  {routeMetadata ? formatDuration(routeMetadata.duration) : '...'}
+                </Text>
+                <Text style={styles.actionCardLabelPrimary}>IR AHORA</Text>
+              </Pressable>
 
-          {poi.description && (
-            <Text style={styles.description}>{poi.description}</Text>
-          )}
-        </BottomSheetScrollView>
-      </View>
-    </BottomSheet>
-  );
-});
+              {/* Info Action: Distancia */}
+              <View style={styles.actionCard}>
+                <View style={styles.iconContainer}>
+                  <Feather name="map-pin" size={18} color="rgba(255,255,255,0.4)" />
+                </View>
+                <Text style={styles.actionCardLabel}>Distancia</Text>
+                <Text style={styles.actionCardValue}>
+                  {routeMetadata ? formatDistance(routeMetadata.distance) : 'Calculando...'}
+                </Text>
+              </View>
+
+              {/* Info Action: Horario */}
+              <View style={styles.actionCard}>
+                <View style={styles.iconContainer}>
+                  <Feather name="clock" size={18} color="rgba(255,255,255,0.4)" />
+                </View>
+                <Text style={styles.actionCardLabel}>Horario</Text>
+                <Text style={[styles.actionCardValue, { color: '#32D74B' }]}>Abierto</Text>
+              </View>
+            </View>
+
+            {/* Photos */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.photoList}
+            >
+              {(poi.images && poi.images.length > 0
+                ? poi.images
+                : [
+                    'https://images.unsplash.com/photo-1504450758481-7338eba7524a?q=80&w=800&auto=format&fit=crop',
+                    'https://images.unsplash.com/photo-1471295253337-3ceaaedca402?q=80&w=800&auto=format&fit=crop',
+                  ]
+              ).map((img, i) => (
+                <Image
+                  key={i}
+                  source={{ uri: img }}
+                  style={styles.photo}
+                  contentFit="cover"
+                  transition={200}
+                />
+              ))}
+            </ScrollView>
+
+            {poi.description && <Text style={styles.description}>{poi.description}</Text>}
+          </BottomSheetScrollView>
+        </View>
+      </BottomSheet>
+    );
+  }
+);
 
 PoiDetailSheet.displayName = 'PoiDetailSheet';
 
