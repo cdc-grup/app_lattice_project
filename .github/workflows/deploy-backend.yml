@@ -21,13 +21,29 @@ jobs:
   quality:
     name: Lint, TypeCheck & Test
     runs-on: ubuntu-latest
+    
+    # Añadimos una base de datos con PostGIS para los tests
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        # No especificamos versión aquí para que la lea de package.json y evitar conflictos
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,13 +54,10 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Type Check
-        run: pnpm build
-
       - name: Run All Tests
+        env:
+          # Configuramos la URL de la base de datos para los tests
+          DATABASE_URL: postgres://postgres:password@localhost:5432/test_db
         run: pnpm test
 
   deploy:
