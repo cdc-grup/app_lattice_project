@@ -1,16 +1,6 @@
 name: Pipeline - CI/CD
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/server/**'
-      - 'packages/**'
-      - 'docker-compose.prod.yml'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'turbo.json'
   workflow_dispatch:
 
 concurrency:
@@ -71,7 +61,7 @@ jobs:
 
       - name: Pre-build Cleanup
         run: |
-          docker system prune -af --volumes || true
+          docker system prune -af || true
           docker builder prune -af || true
 
       - name: Create .env file
