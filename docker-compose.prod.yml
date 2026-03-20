@@ -1,38 +1,27 @@
 services:
-  nginx:
-    container_name: lattice-nginx
-    build:
-      context: ./infra/nginx
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    restart: always
-    depends_on:
-      - gateway
-
-  gateway:
-    container_name: lattice-gateway
+  lattice_gateway:
+    container_name: lattice_gateway
     build:
       context: .
       dockerfile: apps/server/gateway/Dockerfile
       target: production
-    # Removed ports: "3000:3000" because it will be accessed via nginx
     restart: always
     environment:
       - NODE_ENV=production
       - PORT=3000
       - BASE_PATH=/lattice
-      - AUTH_SERVICE_URL=http://auth:3001
-      - GEO_SERVICE_URL=http://geo:3002
-      - SOCIAL_SERVICE_URL=http://social:3003
+      - AUTH_SERVICE_URL=http://lattice_auth:3001
+      - GEO_SERVICE_URL=http://lattice_geo:3002
+      - SOCIAL_SERVICE_URL=http://lattice_social:3003
     depends_on:
-      - auth
-      - geo
-      - social
+      - lattice_auth
+      - lattice_geo
+      - lattice_social
     networks:
-      - default
+      - red_proxy
 
-  auth:
+  lattice_auth:
+    container_name: lattice_auth
     build:
       context: .
       dockerfile: apps/server/auth/Dockerfile
@@ -43,8 +32,11 @@ services:
       - PORT=3001
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - red_proxy
 
-  geo:
+  lattice_geo:
+    container_name: lattice_geo
     build:
       context: .
       dockerfile: apps/server/geo/Dockerfile
@@ -54,8 +46,11 @@ services:
       - NODE_ENV=production
       - PORT=3002
       - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - red_proxy
 
-  social:
+  lattice_social:
+    container_name: lattice_social
     build:
       context: .
       dockerfile: apps/server/social/Dockerfile
@@ -65,15 +60,21 @@ services:
       - NODE_ENV=production
       - PORT=3003
       - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - red_proxy
 
-  redis:
-    container_name: lattice-redis
+  lattice_redis:
+    container_name: lattice_redis
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     restart: always
+    networks:
+      - red_proxy
+
+networks:
+  red_proxy:
+    external: true
 
 volumes:
   redis_data:
