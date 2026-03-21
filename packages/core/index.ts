@@ -31,3 +31,5 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
   next();
 };
+
+export * from './redis.js';
